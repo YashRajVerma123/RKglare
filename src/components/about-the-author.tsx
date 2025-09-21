@@ -11,11 +11,14 @@ import { useState, useEffect } from "react";
 import FollowButton from "./follow-button";
 import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
+import { usePathname } from "next/navigation";
 
 const AboutTheAuthor = () => {
   const { user, mainAuthor, updateMainAuthorFollowerCount } = useAuth();
   const [isFollowingState, setIsFollowingState] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const pathname = usePathname();
+  const isHomePage = pathname === '/';
 
   useEffect(() => {
     const checkFollowingStatus = async () => {
@@ -47,10 +50,8 @@ const AboutTheAuthor = () => {
   const followerCount = mainAuthor?.followers || 0;
   const isMainAuthor = mainAuthor?.email === 'yashrajverma916@gmail.com';
   
-  return (
-    <section>
-        <h2 className="text-3xl font-headline font-bold mb-8 text-center">About the Author</h2>
-        <div className="aurora-border p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden rounded-2xl">
+  const componentContent = (
+      <div className="p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
             <Avatar className="h-32 w-32 border-4 border-primary/20 shrink-0">
                 <AvatarImage src={authorAvatar} alt={authorName} />
                 <AvatarFallback>YV</AvatarFallback>
@@ -91,6 +92,18 @@ const AboutTheAuthor = () => {
              <div className="self-end mt-4 md:mt-0">
                 <p className="font-signature text-4xl bg-gradient-to-r from-foreground/80 to-foreground/50 bg-clip-text text-transparent drop-shadow-sm">~{signature}</p>
              </div>
+        </div>
+  )
+  
+  if (isHomePage) {
+      return componentContent;
+  }
+  
+  return (
+    <section>
+        <h2 className="text-3xl font-headline font-bold mb-8 text-center">About the Author</h2>
+        <div className="aurora-border rounded-2xl">
+            {componentContent}
         </div>
     </section>
   );
