@@ -1,0 +1,144 @@
+
+import Link from 'next/link';
+import { ArrowRight, BrainCircuit, Rocket, SatelliteDish } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { getFeaturedPosts, getRecentPosts, getTrendingPosts } from '@/lib/data';
+import BlogPostCard from '@/components/blog-post-card';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
+import FeedTabs from '@/components/feed-tabs';
+import AboutTheAuthor from '@/components/about-the-author';
+import PopularPostCard from '@/components/popular-post-card';
+
+const topics = [
+    {
+        icon: <SatelliteDish className="h-10 w-10 text-primary mb-4" />,
+        title: "Modern Tech",
+        description: "Exploring the latest trends and breakthroughs in the world of technology, from gadgets to global networks."
+    },
+    {
+        icon: <BrainCircuit className="h-10 w-10 text-primary mb-4" />,
+        title: "Artificial Intelligence",
+        description: "Diving deep into the AI revolution, demystifying algorithms and exploring its impact on our future."
+    },
+    {
+        icon: <Rocket className="h-10 w-10 text-primary mb-4" />,
+        title: "Space Exploration",
+        description: "Journeying through the cosmos, covering the latest missions, discoveries, and the quest to understand our universe."
+    }
+]
+
+export default async function HomePage() {
+  const [featuredPosts, recentPosts, trendingPosts] = await Promise.all([
+    getFeaturedPosts(),
+    getRecentPosts(10),
+    getTrendingPosts(3)
+  ]);
+
+  return (
+    <div className="space-y-24 md:space-y-32">
+      {/* Hero Section */}
+      <section className="container mx-auto px-4 text-center pt-16 md:pt-24">
+        <div className="animate-fade-in-up">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-headline font-bold tracking-tighter mb-6">
+            Cutting through the noise.
+            <br />
+            <span className="text-primary">Delivering clarity.</span>
+          </h1>
+          <p className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground mb-10">
+            Your essential destination for making sense of today. Sharp, focused journalism for the modern reader.
+          </p>
+          <div className="flex justify-center gap-4">
+            <Button asChild size="lg">
+              <Link href="/posts">
+                Explore Articles <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link href="/about">About Us</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Posts Section */}
+      {featuredPosts.length > 0 && (
+        <section className="container mx-auto px-4">
+          <h2 className="text-3xl font-headline font-bold mb-2 text-center">Featured Stories</h2>
+          <p className="text-center text-muted-foreground mb-8 md:hidden">Swipe to see more</p>
+          <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            className="w-full relative group"
+          >
+            <CarouselContent>
+              {featuredPosts.map((post, index) => (
+                <CarouselItem key={post.slug} className="md:basis-1/2 lg:basis-1/3">
+                  <div className="p-1">
+                      <BlogPostCard post={post} priority={index < 3} />
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="hidden md:inline-flex" />
+            <CarouselNext className="hidden md:inline-flex" />
+          </Carousel>
+        </section>
+      )}
+
+      {/* Recent Posts Section */}
+      <section className="container mx-auto px-4">
+        <FeedTabs recentPosts={recentPosts} />
+      </section>
+      
+      <div className="my-12 h-[2px] w-full bg-gradient-to-r from-transparent via-primary/50 to-transparent container" />
+
+      {/* Why Glare Section */}
+       <section className="container mx-auto px-4">
+           <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-headline font-bold">Why Glare?</h2>
+                <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">We focus on the stories that shape tomorrow, providing deep-dives and sharp analysis on the topics that matter most.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {topics.map(topic => (
+                    <div key={topic.title} className="glass-card text-center p-8 transition-transform transform hover:-translate-y-2 group">
+                        <div className="inline-block p-4 bg-primary/10 rounded-full mb-4 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20">
+                            {topic.icon}
+                        </div>
+                        <h3 className="text-xl font-headline font-semibold mb-2">{topic.title}</h3>
+                        <p className="text-muted-foreground text-sm">{topic.description}</p>
+                    </div>
+                ))}
+            </div>
+       </section>
+
+      {/* Trending Posts Section */}
+      {trendingPosts.length > 0 && (
+        <section className="container mx-auto px-4">
+            <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-headline font-bold">Trending Posts</h2>
+                <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">Hand-picked articles that are generating buzz right now.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {trendingPosts.map((post, index) => (
+                    <PopularPostCard key={post.id} post={post} rank={index + 1} />
+                ))}
+            </div>
+        </section>
+      )}
+
+      {/* About the Developer Section */}
+      <section className="container mx-auto px-4">
+          <AboutTheAuthor />
+      </section>
+    </div>
+  );
+}
