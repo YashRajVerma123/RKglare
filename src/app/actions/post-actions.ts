@@ -7,7 +7,7 @@ import { db } from '@/lib/firebase-server'; // Use server db
 import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, getDocs, limit, getDoc, setDoc } from 'firebase/firestore';
 import { z } from 'zod';
 import sgMail from '@sendgrid/mail';
-import { render } from 'react-email';
+import { render } from '@react-email/components';
 import NewPostEmail from '@/emails/new-post-email';
 
 const formSchema = z.object({
