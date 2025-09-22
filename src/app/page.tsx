@@ -15,7 +15,6 @@ import FeedTabs from '@/components/feed-tabs';
 import AboutTheAuthor from '@/components/about-the-author';
 import PopularPostCard from '@/components/popular-post-card';
 import EditorsPickCard from '@/components/editors-pick-card';
-import NewsletterForm from '@/components/newsletter-form';
 import FeaturedPostCard from '@/components/featured-post-card';
 
 const topics = [
@@ -137,22 +136,6 @@ export default async function HomePage() {
               ))}
           </div>
       </section>
-
-      {/* Newsletter Section */}
-       <section className="container mx-auto px-4">
-           <div className="glass-card p-8 md:p-12 lg:p-16 rounded-2xl flex flex-col lg:flex-row items-center justify-between gap-8 overflow-hidden">
-                <div className="text-center lg:text-left max-w-xl">
-                    <div className="inline-block p-4 bg-primary/10 rounded-full mb-4">
-                        <Mail className="h-8 w-8 text-primary"/>
-                    </div>
-                    <h2 className="text-3xl md:text-4xl font-headline font-bold mb-4">Stay Ahead of the Curve</h2>
-                    <p className="text-muted-foreground mb-6 lg:mb-0">Subscribe to our newsletter for a weekly digest of our best articles, exclusive insights, and a look at what's coming next. No spam, just clarity delivered to your inbox.</p>
-                </div>
-                <div className="w-full max-w-md">
-                    <NewsletterForm />
-                </div>
-           </div>
-       </section>
 
       {/* About the Developer Section */}
       <section className="container mx-auto px-4">

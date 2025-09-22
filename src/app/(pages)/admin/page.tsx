@@ -36,7 +36,6 @@ import { updateAuthorProfile } from "@/app/actions/user-actions";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AnalyticsDashboard from "@/components/analytics-dashboard";
-import { sendCustomNewsletter } from "@/app/actions/newsletter-actions";
 
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -63,12 +62,6 @@ const profileSchema = z.object({
   instagramUrl: z.string().url('Please enter a valid Instagram URL.'),
   signature: z.string().min(2, 'Signature must be at least 2 characters.'),
 });
-
-const newsletterSchema = z.object({
-  subject: z.string().min(5, 'Subject must be at least 5 characters.'),
-  content: z.string().min(50, 'Content must be at least 50 characters.'),
-});
-
 
 const AdminPage = () => {
     const { user, isAdmin, loading, updateUserProfile } = useAuth();
@@ -112,14 +105,6 @@ const AdminPage = () => {
             bio: user?.bio || '',
             instagramUrl: user?.instagramUrl || '',
             signature: user?.signature || '',
-        }
-    });
-
-    const newsletterForm = useForm<z.infer<typeof newsletterSchema>>({
-        resolver: zodResolver(newsletterSchema),
-        defaultValues: {
-            subject: '',
-            content: '',
         }
     });
 
@@ -274,16 +259,6 @@ const AdminPage = () => {
         }
     }
 
-    const onNewsletterSubmit = async (values: z.infer<typeof newsletterSchema>) => {
-        try {
-            await sendCustomNewsletter(values.subject, values.content);
-            toast({ title: "Newsletter Sent!", description: "Your email has been sent to all subscribers." });
-            newsletterForm.reset();
-        } catch (error) {
-            toast({ title: "Error", description: (error as Error).message || "Failed to send newsletter.", variant: "destructive" });
-        }
-    }
-
     return (
         <div className="container mx-auto px-4 py-16 animate-fade-in-up">
             <section className="text-center mb-16">
@@ -425,51 +400,6 @@ const AdminPage = () => {
                         </div>
 
                         <div className="space-y-8">
-                             <Card className="glass-card">
-                                <CardHeader>
-                                <div className="flex items-center gap-2">
-                                    <Mail className="h-5 w-5 text-primary" />
-                                    <CardTitle>Send Newsletter</CardTitle>
-                                </div>
-                                    <CardDescription>Send a custom email to all subscribers.</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                <Form {...newsletterForm}>
-                                    <form onSubmit={newsletterForm.handleSubmit(onNewsletterSubmit)} className="space-y-4">
-                                        <FormField
-                                            control={newsletterForm.control}
-                                            name="subject"
-                                            render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Subject</FormLabel>
-                                                <FormControl>
-                                                <Input placeholder="A special announcement from Glare" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={newsletterForm.control}
-                                            name="content"
-                                            render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Email Body</FormLabel>
-                                                <FormControl>
-                                                <Textarea placeholder="<h1>Your Title Here</h1><p>Start writing your email content. You can use HTML for formatting.</p>" {...field} rows={8} />
-                                                </FormControl>
-                                                 <p className="text-xs text-muted-foreground">You can use HTML tags for formatting.</p>
-                                                <FormMessage />
-                                            </FormItem>
-                                            )}
-                                        />
-                                        <Button type="submit" className="w-full" disabled={newsletterForm.formState.isSubmitting}>
-                                            {newsletterForm.formState.isSubmitting ? 'Sending...' : 'Send to All Subscribers'}
-                                        </Button>
-                                    </form>
-                                </Form>
-                                </CardContent>
-                            </Card>
                             
                             <Card className="glass-card">
                                 <CardHeader>
@@ -768,3 +698,4 @@ export default AdminPage;
     
 
     
+
