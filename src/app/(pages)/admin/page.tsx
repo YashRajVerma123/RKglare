@@ -37,7 +37,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AnalyticsDashboard from "@/components/analytics-dashboard";
 import AboutTheAuthor from "@/components/about-the-author";
-import { sendNewsletterAction } from "@/app/actions/newsletter-actions";
+import { generateNewsletterMailto } from "@/app/actions/newsletter-actions";
 
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -257,11 +257,15 @@ const AdminPage = () => {
 
     const onNewsletterSubmit = async (values: z.infer<typeof newsletterSchema>) => {
         try {
-            const result = await sendNewsletterAction(values);
-            toast({ title: "Newsletter Sent!", description: `Your newsletter has been sent to ${result.subscriberCount} subscribers.` });
-            newsletterForm.reset();
+            const result = await generateNewsletterMailto(values);
+             if (result.error) {
+                throw new Error(result.error);
+            }
+            window.location.href = result.mailtoLink;
+
+            toast({ title: "Newsletter Prepared!", description: `Your email client should open with a draft for ${result.subscriberCount} subscribers.` });
         } catch (error) {
-             toast({ title: "Error Sending Newsletter", description: (error as Error).message, variant: "destructive" });
+             toast({ title: "Error Preparing Newsletter", description: (error as Error).message, variant: "destructive" });
         }
     }
 
@@ -411,7 +415,7 @@ const AdminPage = () => {
                                                 )}
                                             />
                                             <Button type="submit" className="w-full" disabled={newsletterForm.formState.isSubmitting}>
-                                                {newsletterForm.formState.isSubmitting ? 'Sending...' : 'Send Newsletter to Subscribers'}
+                                                {newsletterForm.formState.isSubmitting ? 'Preparing...' : 'Prepare Newsletter in Email Client'}
                                             </Button>
                                         </form>
                                     </Form>
@@ -711,4 +715,5 @@ export default AdminPage;
 
 
     
+
 
