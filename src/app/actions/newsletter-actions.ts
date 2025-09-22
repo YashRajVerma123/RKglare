@@ -4,6 +4,7 @@
 import { db } from '@/lib/firebase-server';
 import { addDoc, collection, getDocs } from 'firebase/firestore';
 import { z } from 'zod';
+import { Resend } from 'resend';
 
 const emailSchema = z.string().email('Please enter a valid email address.');
 const newsletterSchema = z.object({
@@ -11,6 +12,8 @@ const newsletterSchema = z.object({
     content: z.string().min(100),
 });
 
+// Initialize Resend with the API key from your .env file
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function subscribeToNewsletter(email: string) {
     const validation = emailSchema.safeParse(email);
@@ -33,28 +36,51 @@ export async function subscribeToNewsletter(email: string) {
         subscribedAt: new Date(),
     });
 
+    // Send a welcome email
+    try {
+        await resend.emails.send({
+            from: 'newsletter@glare.ac', // IMPORTANT: This must be a verified domain on Resend
+            to: email,
+            subject: 'Welcome to the Glare Newsletter!',
+            html: `<h1>Welcome!</h1><p>You've successfully subscribed to the Glare newsletter. We're excited to have you.</p>`,
+        });
+    } catch (error) {
+        console.warn('Welcome email failed to send:', error);
+        // We don't block the subscription if the welcome email fails
+    }
+
     return { success: true };
 }
 
 export async function sendNewsletterAction(values: z.infer<typeof newsletterSchema>) {
+    if (!process.env.RESEND_API_KEY) {
+        throw new Error('Resend API key is not configured. Please add RESEND_API_KEY to your .env file.');
+    }
+    
     const subscribersSnapshot = await getDocs(collection(db, 'subscribers'));
-    const subscribers = subscribersSnapshot.docs.map(doc => doc.data().email);
+    const subscribers = subscribersSnapshot.docs.map(doc => doc.data().email as string);
 
     if (subscribers.length === 0) {
         throw new Error('There are no subscribers to send this newsletter to.');
     }
+    
+    try {
+        const { data, error } = await resend.emails.send({
+            from: 'newsletter@glare.ac', // IMPORTANT: This must be a verified domain on Resend
+            to: subscribers, // Resend can handle arrays of recipients
+            subject: values.title,
+            html: values.content,
+        });
 
-    // In a real app, you would integrate an email service like Resend, SendGrid, or Mailchimp here.
-    // For this prototype, we will just simulate the sending process.
-    console.log('--- Sending Newsletter ---');
-    console.log('Title:', values.title);
-    console.log('Content:', values.content);
-    console.log(`Simulating sending to ${subscribers.length} subscribers:`);
-    console.log(subscribers.join(', '));
-    console.log('--------------------------');
+        if (error) {
+            console.error('Resend API Error:', error);
+            throw new Error(`Failed to send newsletter: ${error.message}`);
+        }
 
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    } catch (error) {
+        console.error("Error sending newsletter:", error);
+        throw new Error((error as Error).message || 'An unexpected error occurred while sending the newsletter.');
+    }
 
     return { success: true, subscriberCount: subscribers.length };
 }
