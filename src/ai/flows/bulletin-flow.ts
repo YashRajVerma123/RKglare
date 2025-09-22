@@ -24,6 +24,9 @@ export type BulletinOutput = z.infer<typeof BulletinOutputSchema>;
 const bulletinPrompt = ai.definePrompt({
   name: 'bulletinPrompt',
   output: { schema: BulletinOutputSchema },
+  config: {
+    temperature: 1.0, // Set temperature for more creative/varied responses
+  },
   prompt: `
     You are a world-class news analyst AI. Your task is to identify three distinct and significant news topics from the last 24 hours.
 
