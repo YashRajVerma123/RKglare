@@ -1,3 +1,4 @@
+
 import { MetadataRoute } from 'next'
 import { getPosts } from '@/lib/data'
 
