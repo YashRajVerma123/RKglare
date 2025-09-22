@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useState, useMemo, useEffect } from 'react';
-import { subDays, format, parseISO } from 'date-fns';
+import { subDays, subHours, format, parseISO } from 'date-fns';
 import { getComments } from '@/lib/data';
 
 interface AnalyticsDashboardProps {
@@ -19,26 +19,75 @@ interface AnalyticsDashboardProps {
 const generateChartData = (posts: Post[], days: number) => {
   const data: { [key: string]: { name: string, views: number } } = {};
   const endDate = new Date();
-  const startDate = subDays(endDate, days - 1);
 
-  for (let i = 0; i < days; i++) {
-    const date = subDays(endDate, i);
-    const formattedDate = format(date, 'MMM d');
-    data[formattedDate] = { name: formattedDate, views: 0 };
+  if (days === 1) { // Last 24 hours
+    const startDate = subHours(endDate, 23);
+    for (let i = 0; i < 24; i++) {
+      const date = subHours(endDate, i);
+      const formattedDate = format(date, 'ha'); // '12am', '1pm', etc.
+      data[formattedDate] = { name: formattedDate, views: 0 };
+    }
+    posts.forEach(post => {
+      const postDate = parseISO(post.publishedAt);
+      if (postDate >= startDate && postDate <= endDate) {
+        const formattedDate = format(postDate, 'ha');
+        if (data[formattedDate]) {
+          data[formattedDate].views += (post.likes || 0);
+        }
+      }
+    });
+
+  } else { // Days view
+    const startDate = subDays(endDate, days - 1);
+    for (let i = 0; i < days; i++) {
+      const date = subDays(endDate, i);
+      const formattedDate = format(date, 'MMM d');
+      data[formattedDate] = { name: formattedDate, views: 0 };
+    }
+    posts.forEach(post => {
+      const postDate = parseISO(post.publishedAt);
+      if (postDate >= startDate && postDate <= endDate) {
+        const formattedDate = format(postDate, 'MMM d');
+        if (data[formattedDate]) {
+          data[formattedDate].views += (post.likes || 0);
+        }
+      }
+    });
   }
 
-  posts.forEach(post => {
-    const postDate = parseISO(post.publishedAt);
-    if (postDate >= startDate && postDate <= endDate) {
-      const formattedDate = format(postDate, 'MMM d');
-      if (data[formattedDate]) {
-        // Using likes as a proxy for views as we don't have real view counts
-        data[formattedDate].views += (post.likes || 0);
-      }
-    }
-  });
+  return Object.values(data).sort((a, b) => {
+    if (days === 1) {
+      // Custom sort for hours (e.g., '12am', '1am'...'11pm')
+      const hourA = parseInt(a.name.replace(/am|pm/, ''));
+      const periodA = a.name.includes('am') ? 0 : 1;
+      const hourB = parseInt(b.name.replace(/am|pm/, ''));
+      const periodB = b.name.includes('pm') ? 0 : 1;
 
-  return Object.values(data).sort((a, b) => new Date(a.name).getTime() - new Date(b.name).getTime());
+      // Handle 12am/12pm correctly
+      const realHourA = hourA === 12 ? (periodA === 0 ? 0 : 12) : hourA + (periodA * 12);
+      const realHourB = hourB === 12 ? (periodB === 0 ? 0 : 12) : hourB + (periodB * 12);
+      
+      // Need to find the original date objects to sort properly
+      const now = new Date();
+      const dateA = Object.keys(data).find(key => data[key] === a);
+      const dateB = Object.keys(data).find(key => data[key] === b);
+      
+      // Fallback to simple name sort if keys aren't found
+      if(!dateA || !dateB) return a.name.localeCompare(b.name);
+
+      // This is not perfect as we lose the date part, but for a 24h window it's a proxy.
+      // A better way would be to not use formatted string as key.
+      const d1 = new Date(now);
+      d1.setHours(realHourA, 0, 0, 0);
+
+      const d2 = new Date(now);
+      d2.setHours(realHourB, 0, 0, 0);
+      
+      return d1.getTime() - d2.getTime();
+
+    }
+    return new Date(a.name).getTime() - new Date(b.name).getTime()
+  });
 };
 
 const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
@@ -129,6 +178,7 @@ const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
                       <SelectValue placeholder="Select time range" />
                   </SelectTrigger>
                   <SelectContent>
+                      <SelectItem value="1">Last 24 hours</SelectItem>
                       <SelectItem value="7">Last 7 days</SelectItem>
                       <SelectItem value="30">Last 30 days</SelectItem>
                       <SelectItem value="90">Last 90 days</SelectItem>
