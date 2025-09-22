@@ -159,9 +159,9 @@ const UserNav = () => {
   }
   
   if (!isMounted) {
-      return <div className="h-9 w-9 rounded-full bg-muted animate-pulse" />;
+    return <div className="h-9 w-9" />;
   }
-  
+
   const getInitials = (name: string) => {
     const names = name.split(' ');
     if (names.length > 1 && names[0] && names[1]) {
