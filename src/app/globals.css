@@ -127,6 +127,7 @@
     }
     .dark .aurora-border {
         background: hsl(var(--card) / 0.6);
+        box-shadow: 0 0 40px -10px hsl(var(--primary) / 0.2);
     }
 
     .aurora-border::before {
@@ -172,7 +173,7 @@
     }
     
     .insta-button-outline {
-      @apply relative overflow-hidden;
+      @apply relative overflow-hidden bg-white/10 hover:bg-white/20;
     }
 
     .insta-button-outline::before {
@@ -239,6 +240,15 @@
     .group:hover .decorative-border::before {
       opacity: 1;
       transform: scaleX(1);
+    }
+
+    .profile-image-hover img {
+        filter: grayscale(100%);
+        transition: filter 0.3s ease, transform 0.3s ease;
+    }
+    .profile-image-hover:hover img {
+        filter: grayscale(0%);
+        transform: scale(1.05);
     }
 }
 

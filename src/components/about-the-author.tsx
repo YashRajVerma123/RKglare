@@ -55,7 +55,7 @@ const AboutTheAuthor = () => {
   const componentContent = (
       <div className="p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
             <div className="relative group shrink-0">
-                <Avatar className="h-32 w-32 border-4 border-background">
+                <Avatar className="h-32 w-32 border-2 border-primary/30 profile-image-hover">
                     <AvatarImage src={authorAvatar} alt={authorName} />
                     <AvatarFallback>YV</AvatarFallback>
                 </Avatar>
@@ -94,8 +94,8 @@ const AboutTheAuthor = () => {
                     )}
                      <Button asChild variant="outline" className="insta-button-outline group/button">
                         <Link href={instagramUrl} target="_blank" rel="noopener noreferrer">
-                            <Instagram className="h-4 w-4 mr-2 text-pink-500" />
-                            <span className="group-hover/button:instagram-gradient">Follow on Instagram</span>
+                            <Instagram className="h-4 w-4 mr-2 text-white group-hover/button:instagram-gradient transition-colors" />
+                            <span className="text-white group-hover/button:instagram-gradient transition-colors">Follow on Instagram</span>
                         </Link>
                      </Button>
                 </div>
