@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
-const BulletinCard = ({ bulletin, index }: { bulletin: Bulletin; index: number }) => {
+export const BulletinCard = ({ bulletin, index }: { bulletin: Bulletin; index: number }) => {
     const isReversed = index % 2 !== 0;
 
     return (

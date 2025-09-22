@@ -13,7 +13,17 @@ import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import { Button } from "./ui/button";
 
-const AboutTheAuthor = () => {
+interface AboutTheAuthorProps {
+  previewData?: {
+    name: string;
+    bio: string;
+    signature: string;
+    instagramUrl: string;
+    avatar: string;
+  }
+}
+
+const AboutTheAuthor = ({ previewData }: AboutTheAuthorProps) => {
   const { user, mainAuthor, updateMainAuthorFollowerCount } = useAuth();
   const [isFollowingState, setIsFollowingState] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,6 +31,7 @@ const AboutTheAuthor = () => {
   const isHomePage = pathname === '/';
 
   useEffect(() => {
+    if (previewData) return;
     const checkFollowingStatus = async () => {
       if (user && mainAuthor) {
         setIsLoading(true);
@@ -33,7 +44,7 @@ const AboutTheAuthor = () => {
     };
 
     checkFollowingStatus();
-  }, [user, mainAuthor]);
+  }, [user, mainAuthor, previewData]);
 
   const handleFollowToggle = (newFollowState: boolean) => {
     setIsFollowingState(newFollowState);
@@ -41,16 +52,19 @@ const AboutTheAuthor = () => {
     updateMainAuthorFollowerCount(newFollowState ? 1 : -1);
   }
 
+  const data = previewData || mainAuthor;
+
   // Provide default fallback values in case the author data is not yet available
-  const authorAvatar = mainAuthor?.avatar || "https://i.ibb.co/TChNTL8/pfp.png";
-  const authorName = mainAuthor?.name || "Yash Raj Verma";
-  const authorBio = mainAuthor?.bio || "Hi, I'm Yash Raj Verma. Welcome to Glare, my personal blog where I explore the rapidly evolving worlds of technology, AI, space, and breaking news. I break down complex topics into clear, engaging insights. Thanks for reading.";
+  const authorAvatar = data?.avatar || "https://i.ibb.co/TChNTL8/pfp.png";
+  const authorName = data?.name || "Yash Raj Verma";
+  const authorBio = data?.bio || "Hi, I'm Yash Raj Verma. Welcome to Glare, my personal blog where I explore the rapidly evolving worlds of technology, AI, space, and breaking news. I break down complex topics into clear, engaging insights. Thanks for reading.";
   const developerBio = "Hi there, I'm Yash Raj Verma, the developer behind Glare. This project is my personal playground for blending cutting-edge web technologies with a passion for clean, readable content. I built Glare from the ground up using Next.js, Firebase, and AI to create a fast, modern, and engaging user experience. Thanks for visiting!";
-  const instagramUrl = mainAuthor?.instagramUrl || "https://instagram.com/v.yash.raj";
-  const signature = mainAuthor?.signature || "V.Yash.Raj";
+  const instagramUrl = data?.instagramUrl || "https://instagram.com/v.yash.raj";
+  const signature = data?.signature || "V.Yash.Raj";
   const followerCount = mainAuthor?.followers || 0;
-  const isMainAuthor = mainAuthor?.email === 'yashrajverma916@gmail.com';
-  
+  // @ts-ignore
+  const isMainAuthor = data?.email === 'yashrajverma916@gmail.com' || previewData;
+
   const componentContent = (
       <div className="p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
             <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
@@ -69,7 +83,7 @@ const AboutTheAuthor = () => {
             <div className="flex-1 text-center md:text-left">
                 <div className="flex flex-col items-center md:items-start gap-2">
                     <h3 className="text-2xl font-headline font-bold">{authorName}</h3>
-                    {isMainAuthor && (
+                    {(isMainAuthor && !isHomePage) && (
                         <Badge variant="default" className={cn("flex items-center gap-1.5 border-blue-500/50 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20", "badge-shine")}>
                             <BadgeCheck className="h-4 w-4" />
                             Verified Author
@@ -77,7 +91,7 @@ const AboutTheAuthor = () => {
                     )}
                 </div>
                 <div className="flex items-center justify-center md:justify-start gap-4 my-2 text-sm text-muted-foreground">
-                    {!isHomePage && (
+                    {!isHomePage && !previewData && (
                         <div className="flex items-center gap-1">
                             <Users className="h-4 w-4" />
                             <span>{followerCount} Followers</span>
@@ -88,7 +102,7 @@ const AboutTheAuthor = () => {
                   {isHomePage ? developerBio : authorBio}
                 </p>
                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
-                    {mainAuthor && user && user.id !== mainAuthor.id && !isLoading && !isHomePage && (
+                    {mainAuthor && user && user.id !== mainAuthor.id && !isLoading && !isHomePage && !previewData && (
                         <FollowButton
                             authorId={mainAuthor.id}
                             isFollowing={isFollowingState}
@@ -109,7 +123,7 @@ const AboutTheAuthor = () => {
         </div>
   )
   
-  if (isHomePage) {
+  if (isHomePage || previewData) {
       return componentContent;
   }
   

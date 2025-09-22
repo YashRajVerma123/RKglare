@@ -16,8 +16,11 @@ import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/use-auth';
 import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Upload } from 'lucide-react';
+import { ArrowLeft, Upload, Eye, Pencil } from 'lucide-react';
 import Link from 'next/link';
+import { Post } from '@/lib/data';
+import PostClientPage from '../../posts/[slug]/post-client-page';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -71,6 +74,7 @@ export default function CreatePostPage() {
   });
   
   const isTrending = form.watch('trending');
+  const watchedForm = form.watch();
 
   useEffect(() => {
     if (!loading && !isAdmin) {
@@ -117,8 +121,18 @@ export default function CreatePostPage() {
     }
   }
 
+  const previewPost: Post = {
+      id: 'preview',
+      slug: watchedForm.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
+      ...watchedForm,
+      tags: watchedForm.tags.split(',').map(t => t.trim()),
+      author: user!,
+      publishedAt: new Date().toISOString(),
+      likes: 0,
+  }
+
   return (
-    <div className="container mx-auto px-4 py-16 max-w-4xl">
+    <div className="container mx-auto px-4 py-16">
         <div className="mb-8">
             <Button asChild variant="outline" size="sm">
                 <Link href="/admin"><ArrowLeft className="mr-2 h-4 w-4" />Back to Dashboard</Link>
@@ -130,181 +144,192 @@ export default function CreatePostPage() {
                 <CardDescription>Fill out the details below to publish a new article to your blog.</CardDescription>
             </CardHeader>
             <CardContent>
-                <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Post Title</FormLabel>
-                        <FormControl>
-                            <Input placeholder="The Future of AI" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                    <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Short Description</FormLabel>
-                        <FormControl>
-                            <Textarea placeholder="A brief summary of your article..." {...field} rows={2} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                    <FormField
-                    control={form.control}
-                    name="summary"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Summary (for AI simulation)</FormLabel>
-                        <FormControl>
-                            <Textarea placeholder="Write a short summary to be shown when a user clicks 'Summarize'." {...field} rows={3} />
-                        </FormControl>
-                         <p className="text-xs text-muted-foreground">This will be shown after a short delay to simulate AI generation.</p>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                    <FormField
-                    control={form.control}
-                    name="content"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Full Content</FormLabel>
-                        <FormControl>
-                            <Textarea placeholder="Write your full article here. You can use HTML for formatting." {...field} rows={10} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                     <FormItem>
-                        <FormLabel>Cover Image</FormLabel>
-                        <FormControl>
-                            <div className="flex flex-col items-center gap-4">
-                                {imagePreview && (
-                                <div className="relative aspect-video w-full rounded-md overflow-hidden border">
-                                    <Image src={imagePreview} alt="Cover image preview" layout="fill" objectFit="cover" />
-                                </div>
-                                )}
-                                <Input 
-                                    id="coverImage-upload"
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleImageChange}
-                                    ref={fileInputRef}
-                                    className="hidden"
-                                />
-                                <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                                    <Upload className="mr-2 h-4 w-4" />
-                                    Upload Image
-                                </Button>
-                            </div>
-                        </FormControl>
-                         <FormField
-                            control={form.control}
-                            name="coverImage"
-                            render={({ field }) => <FormMessage {...field} />}
-                        />
-                    </FormItem>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormField
-                            control={form.control}
-                            name="tags"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Tags</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="AI, Technology, Future" {...field} />
-                                </FormControl>
-                                <p className="text-xs text-muted-foreground">Enter a comma-separated list of tags.</p>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="readTime"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Read Time (minutes)</FormLabel>
-                                <FormControl>
-                                    <Input type="number" placeholder="5" {...field} />
-                                </FormControl>
-                                 <p className="text-xs text-muted-foreground">Estimated time to read the article.</p>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-                    <FormField
-                        control={form.control}
-                        name="featured"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                            <div className="space-y-0.5">
-                                <FormLabel>Feature Post</FormLabel>
-                                <p className="text-xs text-muted-foreground">
-                                If selected, this post will appear in the featured carousel on the homepage.
-                                </p>
-                            </div>
-                            <FormControl>
-                                <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                                />
-                            </FormControl>
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="trending"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                            <div className="space-y-0.5">
-                                <FormLabel>Mark as Trending</FormLabel>
-                                <p className="text-xs text-muted-foreground">
-                                If selected, this post will appear in the trending section for 1 week.
-                                </p>
-                            </div>
-                            <FormControl>
-                                <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                                />
-                            </FormControl>
-                            </FormItem>
-                        )}
-                    />
-                     {isTrending && (
-                        <FormField
-                            control={form.control}
-                            name="trendingPosition"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Trending Position</FormLabel>
-                                <FormControl>
-                                    <Input type="number" placeholder="1" {...field} value={field.value ?? ''} />
-                                </FormControl>
-                                <p className="text-xs text-muted-foreground">Set the rank (1-10) for this trending post.</p>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    )}
-                    <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                        {form.formState.isSubmitting ? 'Publishing...' : 'Publish Post'}
-                    </Button>
-                </form>
-                </Form>
+              <Tabs defaultValue="write">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="write"><Pencil className="mr-2 h-4 w-4" />Write</TabsTrigger>
+                  <TabsTrigger value="preview"><Eye className="mr-2 h-4 w-4" />Preview</TabsTrigger>
+                </TabsList>
+                <TabsContent value="write">
+                  <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                      <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>Post Title</FormLabel>
+                          <FormControl>
+                              <Input placeholder="The Future of AI" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                      />
+                      <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>Short Description</FormLabel>
+                          <FormControl>
+                              <Textarea placeholder="A brief summary of your article..." {...field} rows={2} />
+                          </FormControl>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                      />
+                      <FormField
+                      control={form.control}
+                      name="summary"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>Summary (for AI simulation)</FormLabel>
+                          <FormControl>
+                              <Textarea placeholder="Write a short summary to be shown when a user clicks 'Summarize'." {...field} rows={3} />
+                          </FormControl>
+                          <p className="text-xs text-muted-foreground">This will be shown after a short delay to simulate AI generation.</p>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                      />
+                      <FormField
+                      control={form.control}
+                      name="content"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>Full Content</FormLabel>
+                          <FormControl>
+                              <Textarea placeholder="Write your full article here. You can use HTML for formatting." {...field} rows={10} />
+                          </FormControl>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                      />
+                      <FormItem>
+                          <FormLabel>Cover Image</FormLabel>
+                          <FormControl>
+                              <div className="flex flex-col items-center gap-4">
+                                  {imagePreview && (
+                                  <div className="relative aspect-video w-full rounded-md overflow-hidden border">
+                                      <Image src={imagePreview} alt="Cover image preview" layout="fill" objectFit="cover" />
+                                  </div>
+                                  )}
+                                  <Input 
+                                      id="coverImage-upload"
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={handleImageChange}
+                                      ref={fileInputRef}
+                                      className="hidden"
+                                  />
+                                  <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                                      <Upload className="mr-2 h-4 w-4" />
+                                      Upload Image
+                                  </Button>
+                              </div>
+                          </FormControl>
+                          <FormField
+                              control={form.control}
+                              name="coverImage"
+                              render={({ field }) => <FormMessage {...field} />}
+                          />
+                      </FormItem>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <FormField
+                              control={form.control}
+                              name="tags"
+                              render={({ field }) => (
+                                  <FormItem>
+                                  <FormLabel>Tags</FormLabel>
+                                  <FormControl>
+                                      <Input placeholder="AI, Technology, Future" {...field} />
+                                  </FormControl>
+                                  <p className="text-xs text-muted-foreground">Enter a comma-separated list of tags.</p>
+                                  <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
+                          <FormField
+                              control={form.control}
+                              name="readTime"
+                              render={({ field }) => (
+                                  <FormItem>
+                                  <FormLabel>Read Time (minutes)</FormLabel>
+                                  <FormControl>
+                                      <Input type="number" placeholder="5" {...field} />
+                                  </FormControl>
+                                  <p className="text-xs text-muted-foreground">Estimated time to read the article.</p>
+                                  <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
+                      </div>
+                      <FormField
+                          control={form.control}
+                          name="featured"
+                          render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                              <div className="space-y-0.5">
+                                  <FormLabel>Feature Post</FormLabel>
+                                  <p className="text-xs text-muted-foreground">
+                                  If selected, this post will appear in the featured carousel on the homepage.
+                                  </p>
+                              </div>
+                              <FormControl>
+                                  <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  />
+                              </FormControl>
+                              </FormItem>
+                          )}
+                      />
+                      <FormField
+                          control={form.control}
+                          name="trending"
+                          render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                              <div className="space-y-0.5">
+                                  <FormLabel>Mark as Trending</FormLabel>
+                                  <p className="text-xs text-muted-foreground">
+                                  If selected, this post will appear in the trending section for 1 week.
+                                  </p>
+                              </div>
+                              <FormControl>
+                                  <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  />
+                              </FormControl>
+                              </FormItem>
+                          )}
+                      />
+                      {isTrending && (
+                          <FormField
+                              control={form.control}
+                              name="trendingPosition"
+                              render={({ field }) => (
+                                  <FormItem>
+                                  <FormLabel>Trending Position</FormLabel>
+                                  <FormControl>
+                                      <Input type="number" placeholder="1" {...field} value={field.value ?? ''} />
+                                  </FormControl>
+                                  <p className="text-xs text-muted-foreground">Set the rank (1-10) for this trending post.</p>
+                                  <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
+                      )}
+                      <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                          {form.formState.isSubmitting ? 'Publishing...' : 'Publish Post'}
+                      </Button>
+                  </form>
+                  </Form>
+                </TabsContent>
+                <TabsContent value="preview" className="prose dark:prose-invert max-w-none">
+                    <PostClientPage post={previewPost} relatedPosts={[]} initialComments={[]} isPreview />
+                </TabsContent>
+              </Tabs>
             </CardContent>
         </Card>
     </div>

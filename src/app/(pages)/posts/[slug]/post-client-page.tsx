@@ -22,9 +22,10 @@ interface PostClientPageProps {
   post: Post;
   relatedPosts: Post[];
   initialComments: CommentType[];
+  isPreview?: boolean;
 }
 
-export default function PostClientPage({ post, relatedPosts, initialComments }: PostClientPageProps) {
+export default function PostClientPage({ post, relatedPosts, initialComments, isPreview = false }: PostClientPageProps) {
   const { user, bookmarks } = useAuth();
   const contentRef = useRef<HTMLDivElement>(null);
   const { setTheme, resetTheme } = useDynamicTheme();
@@ -32,24 +33,28 @@ export default function PostClientPage({ post, relatedPosts, initialComments }: 
   const isBookmarked = post ? bookmarks[post.id] : false;
   
   useEffect(() => {
+    if (isPreview) return;
     if (post?.tags && post.tags.length > 0) {
       setTheme(post.tags[0]);
     }
     return () => {
+      if (isPreview) return;
       resetTheme();
     };
-  }, [post, setTheme, resetTheme]);
+  }, [post, setTheme, resetTheme, isPreview]);
 
   useEffect(() => {
+    if (isPreview) return;
     if (isBookmarked) {
         const scrollPosition = bookmarks[post!.id]?.scrollPosition;
         if (typeof scrollPosition === 'number') {
             setTimeout(() => window.scrollTo(0, scrollPosition), 100);
         }
     }
-  }, [post, isBookmarked, bookmarks]);
+  }, [post, isBookmarked, bookmarks, isPreview]);
 
   useEffect(() => {
+    if (isPreview) return;
     let timeout: NodeJS.Timeout;
     const handleScroll = () => {
         if (contentRef.current && user && isBookmarked) {
@@ -65,7 +70,7 @@ export default function PostClientPage({ post, relatedPosts, initialComments }: 
         window.removeEventListener('scroll', handleScroll);
         clearTimeout(timeout);
     };
-  }, [post, user, isBookmarked]);
+  }, [post, user, isBookmarked, isPreview]);
 
   const getInitials = (name: string) => {
     const names = name.split(' ');
@@ -74,7 +79,7 @@ export default function PostClientPage({ post, relatedPosts, initialComments }: 
   
   return (
     <>
-      <ReadingProgressBar />
+      {!isPreview && <ReadingProgressBar />}
       <div className="container mx-auto px-4 py-10 max-w-4xl" ref={contentRef}>
         <article>
           <header className="mb-8 animate-fade-in-up">
@@ -137,35 +142,38 @@ export default function PostClientPage({ post, relatedPosts, initialComments }: 
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
           
-          <Separator className="my-12" />
-          
-        </article>
-
-        <div className="animate-fade-in-up" style={{animationDelay: '0.6s'}}>
-          <AboutTheAuthor />
-        </div>
-
-        <Separator className="my-12" />
-
-        <div className="animate-fade-in-up" style={{animationDelay: '0.8s'}}>
-          <CommentSection postId={post.id} initialComments={initialComments} />
-        </div>
-
-        {relatedPosts.length > 0 && (
-          <>
-            <div className="my-12 h-[2px] w-full bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-            <section className="animate-fade-in-up" style={{animationDelay: '1s'}}>
-              <h2 className="text-3xl font-headline font-bold mb-8 text-center">Continue Reading</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {relatedPosts.map(relatedPost => (
-                  <BlogPostCard key={relatedPost.id} post={relatedPost} />
-                ))}
+         {!isPreview && (
+           <>
+              <Separator className="my-12" />
+              
+              <div className="animate-fade-in-up" style={{animationDelay: '0.6s'}}>
+                <AboutTheAuthor />
               </div>
-            </section>
-          </>
-        )}
+
+              <Separator className="my-12" />
+
+              <div className="animate-fade-in-up" style={{animationDelay: '0.8s'}}>
+                <CommentSection postId={post.id} initialComments={initialComments} />
+              </div>
+
+              {relatedPosts.length > 0 && (
+                <>
+                  <div className="my-12 h-[2px] w-full bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+                  <section className="animate-fade-in-up" style={{animationDelay: '1s'}}>
+                    <h2 className="text-3xl font-headline font-bold mb-8 text-center">Continue Reading</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {relatedPosts.map(relatedPost => (
+                        <BlogPostCard key={relatedPost.id} post={relatedPost} />
+                      ))}
+                    </div>
+                  </section>
+                </>
+              )}
+           </>
+         )}
+        </article>
       </div>
-      <PostActions post={post} />
+     {!isPreview && <PostActions post={post} />}
     </>
   );
 };

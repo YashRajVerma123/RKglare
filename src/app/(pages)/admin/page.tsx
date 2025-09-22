@@ -36,6 +36,8 @@ import { updateAuthorProfile } from "@/app/actions/user-actions";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AnalyticsDashboard from "@/components/analytics-dashboard";
+import AboutTheAuthor from "@/components/about-the-author";
+import { BulletinCard } from "@/app/(pages)/bulletin/page";
 
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -107,6 +109,9 @@ const AdminPage = () => {
             signature: user?.signature || '',
         }
     });
+
+    const watchedProfile = profileForm.watch();
+    const watchedBulletin = bulletinForm.watch();
 
     useEffect(() => {
         if (user) {
@@ -410,83 +415,93 @@ const AdminPage = () => {
                                     <CardDescription>Update your public author information.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                <Form {...profileForm}>
-                                    <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
-                                        <div className="flex flex-col items-center gap-4">
-                                            <Avatar className="h-24 w-24">
-                                                <AvatarImage src={previewUrl} alt={user?.name} />
-                                                <AvatarFallback>{getInitials(user?.name || '')}</AvatarFallback>
-                                            </Avatar>
-                                            <Input 
-                                                id="avatar-upload"
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleAvatarChange}
-                                                ref={fileInputRef}
-                                                className="hidden"
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+                                  <div>
+                                    <Form {...profileForm}>
+                                        <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
+                                            <div className="flex flex-col items-center gap-4">
+                                                <Avatar className="h-24 w-24">
+                                                    <AvatarImage src={previewUrl} alt={user?.name} />
+                                                    <AvatarFallback>{getInitials(user?.name || '')}</AvatarFallback>
+                                                </Avatar>
+                                                <Input 
+                                                    id="avatar-upload"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={handleAvatarChange}
+                                                    ref={fileInputRef}
+                                                    className="hidden"
+                                                />
+                                                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                                                    <Upload className="mr-2 h-4 w-4" />
+                                                    Change Photo
+                                                </Button>
+                                            </div>
+                                            <FormField
+                                                control={profileForm.control}
+                                                name="name"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Author Name</FormLabel>
+                                                    <FormControl>
+                                                    <Input placeholder="Yash Raj Verma" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
                                             />
-                                            <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                                                <Upload className="mr-2 h-4 w-4" />
-                                                Change Photo
-                                            </Button>
-                                        </div>
-                                        <FormField
-                                            control={profileForm.control}
-                                            name="name"
-                                            render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Author Name</FormLabel>
-                                                <FormControl>
-                                                <Input placeholder="Yash Raj Verma" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={profileForm.control}
-                                            name="bio"
-                                            render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Author Bio</FormLabel>
-                                                <FormControl>
-                                                <Textarea placeholder="A short bio about yourself..." {...field} rows={4} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={profileForm.control}
-                                            name="instagramUrl"
-                                            render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Instagram URL</FormLabel>
-                                                <FormControl>
-                                                <Input placeholder="https://instagram.com/..." {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={profileForm.control}
-                                            name="signature"
-                                            render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Signature Text</FormLabel>
-                                                <FormControl>
-                                                <Input placeholder="Y. R. Verma" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                            )}
-                                        />
-                                    <Button type="submit" className="w-full" disabled={profileForm.formState.isSubmitting}>
-                                        {profileForm.formState.isSubmitting ? 'Saving...' : 'Save Profile'}
-                                    </Button>
-                                    </form>
-                                </Form>
+                                            <FormField
+                                                control={profileForm.control}
+                                                name="bio"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Author Bio</FormLabel>
+                                                    <FormControl>
+                                                    <Textarea placeholder="A short bio about yourself..." {...field} rows={4} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={profileForm.control}
+                                                name="instagramUrl"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Instagram URL</FormLabel>
+                                                    <FormControl>
+                                                    <Input placeholder="https://instagram.com/..." {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={profileForm.control}
+                                                name="signature"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Signature Text</FormLabel>
+                                                    <FormControl>
+                                                    <Input placeholder="Y. R. Verma" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                        <Button type="submit" className="w-full" disabled={profileForm.formState.isSubmitting}>
+                                            {profileForm.formState.isSubmitting ? 'Saving...' : 'Save Profile'}
+                                        </Button>
+                                        </form>
+                                    </Form>
+                                  </div>
+                                  <div className="space-y-4">
+                                      <Label>Live Preview</Label>
+                                      <div className="aurora-border rounded-2xl">
+                                          <AboutTheAuthor previewData={{...watchedProfile, avatar: previewUrl}} />
+                                      </div>
+                                  </div>
+                                </div>
                                 </CardContent>
                             </Card>
 
@@ -499,52 +514,58 @@ const AdminPage = () => {
                                     <CardDescription>Publish a new daily bulletin.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                <Form {...bulletinForm}>
-                                    <form onSubmit={bulletinForm.handleSubmit(onBulletinSubmit)} className="space-y-4">
-                                    <FormField
-                                        control={bulletinForm.control}
-                                        name="title"
-                                        render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Title</FormLabel>
-                                            <FormControl>
-                                            <Input placeholder="Daily Market Wrap-Up" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={bulletinForm.control}
-                                        name="content"
-                                        render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Content</FormLabel>
-                                            <FormControl>
-                                            <Textarea placeholder="Markets closed mixed today..." {...field} rows={4} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={bulletinForm.control}
-                                        name="coverImage"
-                                        render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Image URL</FormLabel>
-                                            <FormControl>
-                                            <Input placeholder="https://picsum.photos/1200/800" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                        )}
-                                    />
-                                    <Button type="submit" className="w-full" disabled={bulletinForm.formState.isSubmitting}>
-                                        {bulletinForm.formState.isSubmitting ? 'Publishing...' : 'Publish Bulletin'}
-                                    </Button>
-                                    </form>
-                                </Form>
+                                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                                    <Form {...bulletinForm}>
+                                        <form onSubmit={bulletinForm.handleSubmit(onBulletinSubmit)} className="space-y-4">
+                                        <FormField
+                                            control={bulletinForm.control}
+                                            name="title"
+                                            render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Title</FormLabel>
+                                                <FormControl>
+                                                <Input placeholder="Daily Market Wrap-Up" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={bulletinForm.control}
+                                            name="content"
+                                            render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Content</FormLabel>
+                                                <FormControl>
+                                                <Textarea placeholder="Markets closed mixed today..." {...field} rows={4} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={bulletinForm.control}
+                                            name="coverImage"
+                                            render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Image URL</FormLabel>
+                                                <FormControl>
+                                                <Input placeholder="https://picsum.photos/1200/800" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                            )}
+                                        />
+                                        <Button type="submit" className="w-full" disabled={bulletinForm.formState.isSubmitting}>
+                                            {bulletinForm.formState.isSubmitting ? 'Publishing...' : 'Publish Bulletin'}
+                                        </Button>
+                                        </form>
+                                    </Form>
+                                     <div className="space-y-4">
+                                      <Label>Live Preview</Label>
+                                       <BulletinCard bulletin={{...watchedBulletin, id: 'preview', publishedAt: new Date().toISOString() }} index={0} />
+                                  </div>
+                                  </div>
                                 </CardContent>
                             </Card>
 
