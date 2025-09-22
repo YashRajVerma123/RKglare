@@ -15,9 +15,9 @@ export async function generateAndSaveBulletins(): Promise<{ success: boolean; er
 
     // 2. "Generate" images and save bulletins
     for (const newsItem of aiResponse.bulletins) {
-        // 3. "Generate" a suitable image using a placeholder service with AI hint
-        const imageSeed = encodeURIComponent(newsItem.imageHint.replace(/\s+/g, '-'));
-        const coverImage = `https://picsum.photos/seed/${imageSeed}/1200/800`;
+        // 3. "Generate" a suitable image using Unsplash with AI hint
+        const imageKeywords = encodeURIComponent(newsItem.imageHint.replace(/\s+/g, ','));
+        const coverImage = `https://source.unsplash.com/1200x800/?${imageKeywords}`;
         
         const newBulletin = {
             title: newsItem.title,
