@@ -45,7 +45,7 @@ const Header = () => {
         {/* Left Section */}
         <div className="flex items-center gap-0 md:flex-1">
             {/* Mobile Left Icons */}
-            <div className="flex items-center md:hidden -ml-4">
+            <div className="flex items-center md:hidden">
               <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">

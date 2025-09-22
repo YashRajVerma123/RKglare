@@ -129,6 +129,7 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
 
 export async function updatePost(postId: string, values: z.infer<typeof formSchema>): Promise<string> {
   const postRef = doc(db, 'posts', postId);
+  const newSlug = values.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
   await runTransaction(db, async (transaction) => {
     const oldPostSnap = await transaction.get(postRef);
@@ -137,7 +138,6 @@ export async function updatePost(postId: string, values: z.infer<typeof formSche
     }
     const oldPostData = oldPostSnap.data();
 
-    const newSlug = values.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
     const tagsArray = values.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
 
     let trendingUntil: Date | null;
@@ -168,7 +168,6 @@ export async function updatePost(postId: string, values: z.infer<typeof formSche
       summary: values.summary || '',
     };
     
-    // Handle position shifting if trending status or position changes
     const newPosition = updatedData.trendingPosition;
     const oldPosition = oldPostData.trendingPosition;
     const isNowTrending = updatedData.trending;
@@ -176,7 +175,6 @@ export async function updatePost(postId: string, values: z.infer<typeof formSche
 
     const postsCollection = collection(db, 'posts');
 
-    // Case 1: Post is becoming trending or changing position
     if (isNowTrending && newPosition && (newPosition !== oldPosition || !wasTrending)) {
         const trendingQuery = query(
             postsCollection,
@@ -187,7 +185,6 @@ export async function updatePost(postId: string, values: z.infer<typeof formSche
         const snapshot = await getDocs(trendingQuery);
         
         for (const postDoc of snapshot.docs) {
-            // Don't shift the post we are currently editing
             if (postDoc.id === postId) continue;
 
             const postData = postDoc.data();
@@ -205,7 +202,6 @@ export async function updatePost(postId: string, values: z.infer<typeof formSche
         }
     }
     
-    // Case 2: Post is becoming non-trending, so we need to shift others up
     if (!isNowTrending && wasTrending && oldPosition) {
         const trendingQuery = query(
             postsCollection,
@@ -246,7 +242,6 @@ export async function deletePost(postId: string): Promise<{ success: boolean }> 
     
     const postData = postSnap.data();
     
-    // If the deleted post was trending, shift subsequent posts up
     if (postData.trending && postData.trendingPosition) {
         const position = postData.trendingPosition;
         const postsCollection = collection(db, 'posts');
