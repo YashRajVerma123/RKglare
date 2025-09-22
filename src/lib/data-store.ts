@@ -145,3 +145,14 @@ export const initialBulletinsData: Omit<Bulletin, 'id'>[] = [
         publishedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
     },
 ];
+
+export const simulatedAiNews = [
+  { title: "Breakthrough in Fusion Energy", content: "Scientists have achieved a net energy gain in a fusion reaction for the second time, paving the way for a future of clean, limitless power.", imageKeywords: "fusion reactor" },
+  { title: "AI Detects Cancer Earlier", content: "A new AI model can detect lung cancer from scans with 90% accuracy, promising to save lives through early diagnosis and treatment.", imageKeywords: "medical scan" },
+  { title: "First Commercial Asteroid Mine", content: "A private company has launched its first mission to mine a near-earth asteroid for precious metals, heralding a new space-based economy.", imageKeywords: "asteroid mining" },
+  { title: "Global Carbon Emissions Drop", content: "For the first time in a decade, global carbon emissions have fallen, thanks to a rapid expansion of renewable energy sources worldwide.", imageKeywords: "wind turbines" },
+  { title: "Quantum Computing Milestone", content: "Researchers have built the first stable, 100-qubit quantum computer, a major step towards solving problems beyond the reach of classical computers.", imageKeywords: "quantum computer" },
+  { title: "Vertical Farms Feed Megacities", content: "Large-scale vertical farms are now producing tons of fresh produce in the heart of major cities, reducing food miles and increasing food security.", imageKeywords: "vertical farm" },
+  { title: "Lab-Grown Meat Hits Shelves", content: "Cultivated meat, grown from animal cells without slaughter, is now available in select supermarkets, offering an ethical and sustainable protein alternative.", imageKeywords: "modern food" },
+  { title: "New Deep-Sea Species Discovered", content: "An oceanographic expedition has discovered over 100 new species in the Clarion-Clipperton Zone, highlighting the vast biodiversity of our planet's oceans.", imageKeywords: "deep sea" },
+];
