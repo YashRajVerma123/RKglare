@@ -55,10 +55,12 @@ const AboutTheAuthor = () => {
   const componentContent = (
       <div className="p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
             <div className="relative group shrink-0">
-                <Avatar className="h-32 w-32 border-2 border-primary/30 profile-image-hover">
-                    <AvatarImage src={authorAvatar} alt={authorName} />
-                    <AvatarFallback>YV</AvatarFallback>
-                </Avatar>
+                <div className="relative profile-image-hover purple-animated-border rounded-full p-1">
+                    <Avatar className="h-32 w-32 border-2 border-transparent">
+                        <AvatarImage src={authorAvatar} alt={authorName} />
+                        <AvatarFallback>YV</AvatarFallback>
+                    </Avatar>
+                </div>
                  <div className="absolute bottom-1 right-1 bg-gray-800 p-1.5 rounded-full border-2 border-background">
                     <Code className="h-4 w-4 text-green-400" />
                 </div>
