@@ -96,7 +96,7 @@ const AboutTheAuthor = () => {
                     )}
                      <Button asChild variant="outline" className="insta-button-outline group/button">
                         <Link href={instagramUrl} target="_blank" rel="noopener noreferrer">
-                            <Instagram className="h-4 w-4 mr-2 text-white group-hover/button:instagram-gradient transition-colors" />
+                            <Instagram className="h-4 w-4 mr-2 text-white group-hover/button:text-transparent transition-colors" />
                             <span className="text-white group-hover/button:instagram-gradient transition-colors">Follow on Instagram</span>
                         </Link>
                      </Button>

@@ -68,6 +68,15 @@ export default function RootLayout({
           nunito.variable
         )}
       >
+        <svg width="0" height="0" style={{ position: 'absolute' }}>
+          <defs>
+            <linearGradient id="instagram-gradient-svg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style={{ stopColor: '#feda75' }} />
+              <stop offset="50%" style={{ stopColor: '#d62976' }} />
+              <stop offset="100%" style={{ stopColor: '#4f5bd5' }} />
+            </linearGradient>
+          </defs>
+        </svg>
         <Script
           strategy="afterInteractive"
           src="https://www.googletagmanager.com/gtag/js?id=G-XV6E6GR0RD"

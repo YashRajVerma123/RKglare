@@ -169,11 +169,18 @@
     }
     
     .instagram-gradient {
-      @apply bg-gradient-to-r from-yellow-400 via-red-500 to-purple-500 bg-clip-text text-transparent;
+      background-image: linear-gradient(to right, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .group-hover\/button\:instagram-gradient svg {
+        stroke: url(#instagram-gradient-svg);
     }
     
     .insta-button-outline {
-      @apply relative overflow-hidden bg-white/10 hover:bg-white/20;
+      @apply relative overflow-hidden;
     }
 
     .insta-button-outline::before {
