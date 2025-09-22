@@ -20,6 +20,7 @@ import {
     runTransaction,
     increment,
 } from 'firebase/firestore';
+import { unstable_cache } from 'next/cache';
 
 
 export type Author = {
@@ -230,7 +231,7 @@ const sortComments = (comments: Comment[]): Comment[] => {
     });
 };
 
-export const getPosts = async (): Promise<Post[]> => {
+export const getPosts = unstable_cache(async (): Promise<Post[]> => {
     const postsCollection = collection(db, 'posts').withConverter(postConverter);
     const q = query(postsCollection, orderBy('publishedAt', 'desc'));
     const snapshot = await getDocs(q);
@@ -240,26 +241,24 @@ export const getPosts = async (): Promise<Post[]> => {
     const uniquePosts = Array.from(new Map(allPosts.map(post => [post.id, post])).values());
     
     return uniquePosts;
-};
+}, ['posts'], { revalidate: 60 }); // Revalidate every 60 seconds
 
-export const getFeaturedPosts = async (): Promise<Post[]> => {
+export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
     const postsCollection = collection(db, 'posts').withConverter(postConverter);
     const q = query(postsCollection, where('featured', '==', true));
     const snapshot = await getDocs(q);
     const posts = snapshot.docs.map(doc => doc.data());
     return posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-}
+}, ['featured_posts'], { revalidate: 60 });
 
-export const getRecentPosts = async (count: number): Promise<Post[]> => {
-    const postsCollection = collection(db, 'posts').withConverter(postConverter);
-    const q = query(postsCollection, where('featured', '==', false));
-    const snapshot = await getDocs(q);
-    const posts = snapshot.docs.map(doc => doc.data());
-    const sortedPosts = posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-    return sortedPosts.slice(0, count);
-}
+export const getRecentPosts = unstable_cache(async (count: number): Promise<Post[]> => {
+    const allPosts = await getPosts(); // Leverage the cached getPosts
+    const nonFeatured = allPosts.filter(p => !p.featured);
+    return nonFeatured.slice(0, count);
+}, ['recent_posts'], { revalidate: 60 });
 
-export const getTrendingPosts = async (): Promise<Post[]> => {
+
+export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
     const postsCollection = collection(db, 'posts').withConverter(postConverter);
     const now = new Date();
     
@@ -281,10 +280,10 @@ export const getTrendingPosts = async (): Promise<Post[]> => {
     posts = posts.sort((a,b) => (a.trendingPosition || 11) - (b.trendingPosition || 11));
 
     return posts.slice(0, 10);
-}
+}, ['trending_posts'], { revalidate: 60 });
 
 
-export const getPost = async (slug: string): Promise<Post | undefined> => {
+export const getPost = unstable_cache(async (slug: string): Promise<Post | undefined> => {
     const postsCollection = collection(db, 'posts');
     const q = query(postsCollection, where('slug', '==', slug), limit(1)).withConverter(postConverter);
     const snapshot = await getDocs(q);
@@ -295,24 +294,22 @@ export const getPost = async (slug: string): Promise<Post | undefined> => {
     
     const post = snapshot.docs[0].data();
     return post;
-};
+}, ['post'], { revalidate: 60 });
 
 
 export const getRelatedPosts = async (currentPost: Post): Promise<Post[]> => {
-    const postsCollection = collection(db, 'posts').withConverter(postConverter);
+    const allPosts = await getPosts(); // Leverage the cached getPosts function
     let potentialPosts: Post[] = [];
 
-    // Fetch posts with at least one common tag
+    // Find posts with at least one common tag
     if (currentPost.tags && currentPost.tags.length > 0) {
-        const q = query(postsCollection, where('tags', 'array-contains-any', currentPost.tags), limit(10));
-        const snapshot = await getDocs(q);
-        potentialPosts.push(...snapshot.docs.map(doc => doc.data()));
+        const currentPostTags = new Set(currentPost.tags);
+        const taggedPosts = allPosts.filter(p => p.tags.some(tag => currentPostTags.has(tag)));
+        potentialPosts.push(...taggedPosts);
     }
     
-    // Fetch recent posts as a fallback or to supplement
-    const qRecent = query(postsCollection, orderBy('publishedAt', 'desc'), limit(10));
-    const recentSnapshot = await getDocs(qRecent);
-    potentialPosts.push(...recentSnapshot.docs.map(doc => doc.data()));
+    // Add all posts to ensure we have fallbacks
+    potentialPosts.push(...allPosts);
 
     // Filter out the current post and remove duplicates
     const filteredPosts = potentialPosts.filter(p => p.slug !== currentPost.slug);
@@ -466,6 +463,7 @@ export type UserData = {
     likedComments: { [commentId: string]: boolean };
     bookmarks: { [postId: string]: { bookmarkedAt: string, scrollPosition?: number } };
 }
+
 
 
 
