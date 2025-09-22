@@ -6,6 +6,10 @@ import { Post, Author } from '@/lib/data';
 import { db } from '@/lib/firebase-server'; // Use server db
 import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, getDocs, limit, getDoc, setDoc } from 'firebase/firestore';
 import { z } from 'zod';
+import { Resend } from 'resend';
+import NewPostEmail from '@/emails/new-post-email';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 
 const formSchema = z.object({
@@ -81,6 +85,28 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
         ...newPost,
         publishedAt: new Date(newPost.publishedAt),
     });
+
+    // Send newsletter email
+    try {
+        const subscribersCollection = collection(db, 'subscribers');
+        const subscribersSnapshot = await getDocs(subscribersCollection);
+        const subscriberEmails = subscribersSnapshot.docs.map(doc => doc.data().email);
+
+        if (subscriberEmails.length > 0) {
+            await resend.emails.send({
+                from: 'Glare Blog <noreply@theglare.blog>', // You'll need to verify this domain in Resend
+                to: subscriberEmails,
+                subject: newPost.title,
+                react: NewPostEmail({ post: newPost }),
+            });
+            console.log(`Newsletter sent to ${subscriberEmails.length} subscribers.`);
+        }
+    } catch (error) {
+        console.error("Failed to send newsletter:", error);
+        // We don't throw an error here because the post was still created successfully.
+        // We just log the error to the server.
+    }
+
 
     revalidatePath('/');
     revalidatePath('/posts');
