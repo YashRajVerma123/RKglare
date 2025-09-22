@@ -59,75 +59,69 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
     }
 
     const newSlug = values.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
-    const tagsArray = values.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-
-    let trendingUntil: Date | null = null;
-    if (values.trending) {
-        const sevenDaysFromNow = new Date();
-        sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-        trendingUntil = sevenDaysFromNow;
-    }
     
-    const newPostData = {
-        slug: newSlug,
-        title: values.title,
-        description: values.description,
-        content: values.content,
-        coverImage: values.coverImage,
-        tags: tagsArray,
-        featured: values.featured,
-        trending: values.trending,
-        trendingPosition: values.trendingPosition || null,
-        trendingUntil: trendingUntil,
-        author,
-        publishedAt: new Date(),
-        readTime: values.readTime,
-        summary: values.summary || '',
-        likes: 0,
-    };
-    
-    const postsCollection = collection(db, 'posts');
-    const batch = writeBatch(db);
-
-    if (newPostData.trending && newPostData.trendingPosition) {
-        const position = newPostData.trendingPosition;
+    await runTransaction(db, async (transaction) => {
+        const tagsArray = values.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
         
-        // Fetch all current trending posts
-        const trendingQuery = query(
-            postsCollection,
-            where('trending', '==', true)
-        );
-        const trendingSnapshot = await getDocs(trendingQuery);
-        let trendingPosts = trendingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        let newTrendingPosts: (Post & { id: string })[] = [];
+        const newDocRef = doc(collection(db, 'posts'));
+        
+        const newPostData: Omit<Post, 'id'> = {
+            slug: newSlug,
+            title: values.title,
+            description: values.description,
+            content: values.content,
+            coverImage: values.coverImage,
+            tags: tagsArray,
+            featured: values.featured,
+            trending: values.trending,
+            trendingPosition: values.trendingPosition || null,
+            trendingUntil: null,
+            author,
+            publishedAt: new Date().toISOString(),
+            readTime: values.readTime,
+            summary: values.summary || '',
+            likes: 0,
+        };
 
-        // Sort them by position
-        trendingPosts.sort((a, b) => (a.trendingPosition || 11) - (b.trendingPosition || 11));
+        if (values.trending && values.trendingPosition) {
+            const sevenDaysFromNow = new Date();
+            sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+            newPostData.trendingUntil = sevenDaysFromNow.toISOString();
 
-        // Make space for the new post
-        if (trendingPosts.some(p => p.trendingPosition === position)) {
-            for (let i = trendingPosts.length - 1; i >= 0; i--) {
-                const post = trendingPosts[i];
-                if ((post.trendingPosition || 0) >= position) {
-                    const newPosition = (post.trendingPosition || 0) + 1;
-                    const postRef = doc(db, 'posts', post.id);
-                    if (newPosition > 10) {
-                        batch.update(postRef, {
-                            trending: false,
-                            trendingPosition: null,
-                            trendingUntil: null,
-                        });
-                    } else {
-                        batch.update(postRef, { trendingPosition: newPosition });
-                    }
+            const postsCollection = collection(db, 'posts');
+            const q = query(postsCollection, where('trending', '==', true));
+            const trendingSnapshot = await getDocs(q);
+            
+            const currentTrendingPosts = trendingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as Post }));
+            
+            let postsToShift = currentTrendingPosts
+                .filter(p => p.trendingPosition && p.trendingPosition >= values.trendingPosition!)
+                .sort((a, b) => a.trendingPosition! - b.trendingPosition!);
+            
+            newTrendingPosts = currentTrendingPosts.filter(p => !postsToShift.includes(p) && p.id !== newDocRef.id);
+            newTrendingPosts.push({ id: newDocRef.id, ...newPostData });
+            
+            let currentPos = values.trendingPosition! + 1;
+            for (const postToShift of postsToShift) {
+                if (currentPos <= 10) {
+                    postToShift.trendingPosition = currentPos;
+                    newTrendingPosts.push(postToShift);
+                    currentPos++;
+                } else {
+                    const postRef = doc(db, 'posts', postToShift.id);
+                    transaction.update(postRef, { trending: false, trendingPosition: null, trendingUntil: null });
                 }
             }
         }
-    }
-    
-    const newDocRef = doc(collection(db, 'posts'));
-    batch.set(newDocRef, newPostData);
-    await batch.commit();
+        
+        transaction.set(newDocRef, newPostData);
 
+        for (const post of newTrendingPosts) {
+            const postRef = doc(db, 'posts', post.id);
+            transaction.update(postRef, { trendingPosition: post.trendingPosition });
+        }
+    });
 
     revalidatePath('/');
     revalidatePath('/posts');
@@ -137,109 +131,102 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
 }
 
 export async function updatePost(postId: string, values: z.infer<typeof formSchema>): Promise<string> {
-  const postRef = doc(db, 'posts', postId);
   const newSlug = values.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
-  const oldPostSnap = await getDoc(postRef);
-  if (!oldPostSnap.exists()) {
-    throw new Error("Post not found");
-  }
-  const oldPostData = oldPostSnap.data();
+  await runTransaction(db, async (transaction) => {
+    const postRef = doc(db, 'posts', postId);
+    const oldPostSnap = await transaction.get(postRef);
+    if (!oldPostSnap.exists()) {
+      throw new Error("Post not found");
+    }
+    const oldPostData = oldPostSnap.data() as Post;
 
-  const tagsArray = values.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-  const isNowTrending = values.trending;
-  let newPosition = values.trendingPosition || null;
-
-  // Fetch all current trending posts
-  const postsCollection = collection(db, 'posts');
-  const trendingQuery = query(postsCollection, where('trending', '==', true));
-  const trendingSnapshot = await getDocs(trendingQuery);
-  // Exclude the current post from the initial list, as its status might change
-  let trendingPosts = trendingSnapshot.docs
-    .map(doc => ({ id: doc.id, ...(doc.data() as Post) }))
-    .filter(p => p.id !== postId);
-
-  // If the post is now trending, add it to the list for re-ranking
-  if (isNowTrending && newPosition) {
-    const sevenDaysFromNow = new Date();
-    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+    const tagsArray = values.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
     
-    const currentPostForRanking: Post = {
-        id: postId,
-        ...oldPostData,
-        ...values,
-        slug: newSlug,
-        tags: tagsArray,
-        trendingPosition: newPosition,
-        trendingUntil: oldPostData.trending && oldPostData.trendingUntil ? oldPostData.trendingUntil.toDate().toISOString() : sevenDaysFromNow.toISOString(),
-        publishedAt: oldPostData.publishedAt.toDate().toISOString(),
-        likes: oldPostData.likes || 0
+    const updates: Partial<Post> = {
+      slug: newSlug,
+      title: values.title,
+      description: values.description,
+      content: values.content,
+      coverImage: values.coverImage,
+      tags: tagsArray,
+      featured: values.featured,
+      readTime: values.readTime,
+      summary: values.summary || '',
+      trending: values.trending,
+      trendingPosition: values.trending ? values.trendingPosition : null,
     };
     
-    // Remove any existing post at the new position
-    trendingPosts = trendingPosts.filter(p => p.trendingPosition !== newPosition);
-    trendingPosts.push(currentPostForRanking);
-  }
+    if (values.trending && !oldPostData.trending) {
+        const sevenDaysFromNow = new Date();
+        sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+        updates.trendingUntil = sevenDaysFromNow.toISOString();
+    } else if (!values.trending) {
+        updates.trendingUntil = null;
+    }
 
-  // Sort all posts by their intended position
-  trendingPosts.sort((a, b) => (a.trendingPosition || 11) - (b.trendingPosition || 11));
+    // First apply the basic updates
+    transaction.update(postRef, updates);
+    
+    const wasTrending = oldPostData.trending;
+    const isTrending = values.trending;
+    const oldPosition = oldPostData.trendingPosition;
+    const newPosition = values.trendingPosition;
 
-  const batch = writeBatch(db);
-  const updatedTrendingIds = new Set<string>();
+    // If trending status or position has changed, re-calculate all positions
+    if (isTrending || wasTrending) {
+      const postsCollection = collection(db, 'posts');
+      const q = query(postsCollection, where('trending', '==', true));
+      const snapshot = await getDocs(q); // Use getDocs, not transaction.get for queries in transactions
+      let currentTrendingPosts = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as Post) }));
 
-  // Re-assign positions 1-10
-  trendingPosts.forEach((post, index) => {
-    const newPos = index + 1;
-    if (newPos <= 10) {
-      const pRef = doc(db, 'posts', post.id);
-      if (post.trendingPosition !== newPos) {
-        batch.update(pRef, { trendingPosition: newPos });
+      // If the current post is being updated, make sure we have its latest data in our array
+      const thisPostInList = currentTrendingPosts.find(p => p.id === postId);
+      if (thisPostInList) {
+          Object.assign(thisPostInList, updates);
+      } else if (isTrending) {
+          // If it wasn't trending but now is, add it
+          currentTrendingPosts.push({ id: postId, ...oldPostData, ...updates });
       }
-      updatedTrendingIds.add(post.id);
-    }
-  });
+      
+      // Filter out any posts that should no longer be trending
+      let rankedList = currentTrendingPosts.filter(p => p.trending && p.id !== postId);
 
-  // Any posts that were trending but are no longer in the top 10
-  trendingSnapshot.docs.forEach(docSnap => {
-    if (!updatedTrendingIds.has(docSnap.id)) {
-      batch.update(docSnap.ref, {
-        trending: false,
-        trendingPosition: null,
-        trendingUntil: null,
+      if (isTrending && newPosition) {
+          // Insert the updated post at its new position
+          rankedList.splice(newPosition - 1, 0, { id: postId, ...oldPostData, ...updates });
+      }
+
+      // Re-assign positions and identify posts to update or demote
+      const batch = writeBatch(db);
+      const postsToKeepTrending: string[] = [];
+
+      rankedList.forEach((post, index) => {
+          const pos = index + 1;
+          if (pos <= 10) {
+              const pRef = doc(db, 'posts', post.id);
+              // Only update if the position is different
+              if (post.trendingPosition !== pos) {
+                  batch.update(pRef, { trendingPosition: pos, trending: true });
+              }
+              postsToKeepTrending.push(post.id);
+          }
       });
+      
+      // Demote any posts that were trending but are no longer in the top 10 or were manually untrended
+      for (const post of currentTrendingPosts) {
+        if (!postsToKeepTrending.includes(post.id)) {
+          const pRef = doc(db, 'posts', post.id);
+          batch.update(pRef, { trending: false, trendingPosition: null, trendingUntil: null });
+        }
+      }
+      
+      await batch.commit();
     }
   });
-
-  // Finally, update the actual post being edited
-  const finalUpdateData: { [key: string]: any } = {
-    slug: newSlug,
-    title: values.title,
-    description: values.description,
-    content: values.content,
-    coverImage: values.coverImage,
-    tags: tagsArray,
-    featured: values.featured,
-    readTime: values.readTime,
-    summary: values.summary || '',
-    trending: isNowTrending,
-    trendingPosition: isNowTrending ? newPosition : null,
-  };
-
-  if (isNowTrending && !oldPostData.trending) {
-    const sevenDaysFromNow = new Date();
-    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-    finalUpdateData.trendingUntil = sevenDaysFromNow;
-  } else if (!isNowTrending) {
-    finalUpdateData.trendingUntil = null;
-  }
-
-  batch.update(postRef, finalUpdateData);
-
-  await batch.commit();
 
   revalidatePath('/');
   revalidatePath('/posts');
-  if (oldPostData?.slug) revalidatePath(`/posts/${oldPostData.slug}`);
   revalidatePath(`/posts/${newSlug}`);
   revalidatePath('/admin');
 
@@ -256,20 +243,21 @@ export async function deletePost(postId: string): Promise<{ success: boolean }> 
     
     const postData = postSnap.data();
     
+    // If the deleted post was trending, shift subsequent posts up
     if (postData.trending && postData.trendingPosition) {
         const position = postData.trendingPosition;
         const postsCollection = collection(db, 'posts');
         const q = query(
             postsCollection,
             where('trending', '==', true),
-            where('trendingPosition', '>', position),
-            orderBy('trendingPosition', 'asc')
+            where('trendingPosition', '>', position)
         );
-        const snapshot = await getDocs(q);
+        const snapshot = await getDocs(q); // Cannot use transaction.get for queries
         
         for (const docToShift of snapshot.docs) {
             const data = docToShift.data();
-            transaction.update(docToShift.ref, { trendingPosition: (data.trendingPosition || 1) - 1 });
+            const newPosition = (data.trendingPosition || 1) - 1;
+            transaction.update(docToShift.ref, { trendingPosition: newPosition });
         }
     }
     
