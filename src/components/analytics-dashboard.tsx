@@ -17,43 +17,46 @@ interface AnalyticsDashboardProps {
 }
 
 const generateChartData = (posts: Post[], timeRange: string) => {
-  const data: { [key: string]: { name: string, views: number, date: Date } } = {};
-  const endDate = new Date();
-  const impressionsPerLike = 5; // Each like is estimated to represent 5 views/impressions
+  const data: { [key: string]: { name: string, views: number, likes: number, date: Date } } = {};
+  const impressionsPerLike = 5;
+
+  const initializeDataPoint = (name: string, date: Date) => ({ name, views: 0, likes: 0, date });
 
   if (timeRange === '1') { // Last 24 hours
-    const startDate = subHours(endDate, 23);
+    const startDate = subHours(new Date(), 23);
     for (let i = 0; i < 24; i++) {
-      const date = subHours(endDate, i);
-      const formattedDate = format(date, 'ha'); // '12am', '1pm', etc.
+      const date = subHours(new Date(), i);
+      const formattedDate = format(date, 'ha');
       if (!data[formattedDate]) {
-        data[formattedDate] = { name: formattedDate, views: 0, date };
+        data[formattedDate] = initializeDataPoint(formattedDate, date);
       }
     }
     posts.forEach(post => {
       const postDate = parseISO(post.publishedAt);
-      if (postDate >= startDate && postDate <= endDate) {
+      if (postDate >= startDate) {
         const formattedDate = format(postDate, 'ha');
         if (data[formattedDate]) {
           data[formattedDate].views += (post.likes || 0) * impressionsPerLike;
+          data[formattedDate].likes += (post.likes || 0);
         }
       }
     });
-     return Object.values(data).sort((a, b) => a.date.getTime() - b.date.getTime());
+    return Object.values(data).sort((a, b) => a.date.getTime() - b.date.getTime());
   } else { // Days view
     const days = Number(timeRange);
-    const startDate = subDays(endDate, days - 1);
+    const startDate = subDays(new Date(), days - 1);
     for (let i = 0; i < days; i++) {
-      const date = subDays(endDate, i);
+      const date = subDays(new Date(), i);
       const formattedDate = format(date, 'MMM d');
-      data[formattedDate] = { name: formattedDate, views: 0, date };
+      data[formattedDate] = initializeDataPoint(formattedDate, date);
     }
     posts.forEach(post => {
       const postDate = parseISO(post.publishedAt);
-      if (postDate >= startDate && postDate <= endDate) {
+      if (postDate >= startDate) {
         const formattedDate = format(postDate, 'MMM d');
         if (data[formattedDate]) {
           data[formattedDate].views += (post.likes || 0) * impressionsPerLike;
+          data[formattedDate].likes += (post.likes || 0);
         }
       }
     });
@@ -144,7 +147,7 @@ const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
               <div>
                 <CardTitle>Audience Overview</CardTitle>
-                <CardDescription>A summary of your content's estimated pageviews over time.</CardDescription>
+                <CardDescription>A summary of your content's engagement over time.</CardDescription>
               </div>
               <Select value={timeRange} onValueChange={setTimeRange}>
                   <SelectTrigger className="w-[180px]">
@@ -174,7 +177,8 @@ const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
                     }}
                  />
                 <Legend iconType="circle"/>
-                <Line type="monotone" dataKey="views" name="Pageviews (Est.)" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--primary))" }} activeDot={{ r: 6 }} />
+                <Line type="monotone" dataKey="views" name="Pageviews (Est.)" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 2, fill: "hsl(var(--primary))" }} activeDot={{ r: 6 }} />
+                <Line type="monotone" dataKey="likes" name="Likes" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 2, fill: "hsl(var(--destructive))" }} activeDot={{ r: 6 }} />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
