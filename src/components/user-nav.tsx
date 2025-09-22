@@ -185,9 +185,11 @@ const UserNav = () => {
                     <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
                   </>
                 ) : (
-                  <AvatarFallback>
-                    <Settings className="h-5 w-5" />
-                  </AvatarFallback>
+                  <Avatar>
+                    <AvatarFallback className="bg-transparent">
+                      <Settings className="h-5 w-5" />
+                    </AvatarFallback>
+                  </Avatar>
                 )}
               </Avatar>
             </Button>
@@ -364,5 +366,7 @@ const UserNav = () => {
 };
 
 export default UserNav;
+
+    
 
     
