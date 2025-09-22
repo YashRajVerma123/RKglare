@@ -21,6 +21,9 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { useState, useRef, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from './ui/input';
@@ -33,6 +36,7 @@ import { Textarea } from './ui/textarea';
 import FollowListDialog from './follow-list-dialog';
 import Link from 'next/link';
 import ProfileCard from './profile-card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 
 // Helper to convert file to Base64
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
@@ -42,15 +46,20 @@ const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) 
     reader.onerror = error => reject(error);
 });
 
+const profileFormSchema = z.object({
+    name: z.string().min(2, 'Name must be at least 2 characters.'),
+    bio: z.string().optional(),
+    showEmail: z.boolean().default(false),
+});
+
+
 // This is the main component for the header.
 const UserNav = () => {
   const { user, signIn, signOut, loading, updateUserProfile, isAdmin } = useAuth();
   const [isSignInOpen, setSignInOpen] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isProfileOpen, setProfileOpen] = useState(false);
-  const [newUsername, setNewUsername] = useState('');
-  const [newBio, setNewBio] = useState('');
-  const [newShowEmail, setNewShowEmail] = useState(false);
+  
   const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -62,6 +71,17 @@ const UserNav = () => {
   const [isFollowListOpen, setFollowListOpen] = useState(false);
   const [followListType, setFollowListType] = useState<'followers' | 'following'>('followers');
 
+  const profileForm = useForm<z.infer<typeof profileFormSchema>>({
+    resolver: zodResolver(profileFormSchema),
+    defaultValues: {
+      name: user?.name || '',
+      bio: user?.bio || '',
+      showEmail: user?.showEmail || false,
+    },
+  });
+
+  const watchedProfile = profileForm.watch();
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -69,12 +89,14 @@ const UserNav = () => {
 
   useEffect(() => {
     if (user) {
-        setNewUsername(user.name);
+        profileForm.reset({
+            name: user.name,
+            bio: user.bio || '',
+            showEmail: user.showEmail || false,
+        });
         setPreviewUrl(user.avatar);
-        setNewBio(user.bio || '');
-        setNewShowEmail(user.showEmail || false);
     }
-  }, [user]);
+  }, [user, profileForm]);
 
   const handleSignIn = async () => {
     setIsSigningIn(true);
@@ -100,24 +122,23 @@ const UserNav = () => {
     }
   };
 
-  const handleProfileUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !newUsername.trim()) return;
+  const handleProfileUpdate = async (values: z.infer<typeof profileFormSchema>) => {
+    if (!user) return;
 
     setIsSaving(true);
     try {
       let newAvatarUrl = user.avatar;
       if (newAvatarFile) {
-        // Convert file to Base64 and update
         newAvatarUrl = await toBase64(newAvatarFile);
       }
       
-      await updateUserProfile({ 
-          name: newUsername.trim(), 
+      const updateData = {
+          ...values,
           avatar: newAvatarUrl,
-          bio: newBio,
-          showEmail: newShowEmail,
-      });
+      };
+
+      await updateUserProfile(updateData);
+
       toast({
         title: 'Profile Updated',
         description: 'Your profile has been successfully updated.',
@@ -146,10 +167,12 @@ const UserNav = () => {
 
   const handleOpenProfile = () => {
     if (user) {
-        setNewUsername(user.name);
+        profileForm.reset({
+            name: user.name,
+            bio: user.bio || '',
+            showEmail: user.showEmail || false,
+        });
         setPreviewUrl(user.avatar);
-        setNewBio(user.bio || '');
-        setNewShowEmail(user.showEmail || false);
         setNewAvatarFile(null);
         setProfileOpen(true);
     }
@@ -165,7 +188,7 @@ const UserNav = () => {
     if (names.length > 1 && names[0] && names[1]) {
       return `${names[0][0]}${names[1][0]}`;
     }
-    return name.substring(0, 2);
+    return name ? name.substring(0, 2) : '';
   };
   
   if (!isMounted) {
@@ -300,67 +323,87 @@ const UserNav = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
-              <form onSubmit={handleProfileUpdate} className="space-y-4">
-                <div className="flex flex-col items-center gap-4">
-                    <Avatar className="h-24 w-24">
-                      <AvatarImage src={previewUrl} alt={newUsername} />
-                      <AvatarFallback>{getInitials(newUsername)}</AvatarFallback>
-                    </Avatar>
-                    <Input 
-                      id="avatar-upload"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarChange}
-                      ref={fileInputRef}
-                      className="hidden"
-                    />
-                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                      <Upload className="mr-2 h-4 w-4" />
-                      Upload Photo
-                    </Button>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    value={newUsername}
-                    onChange={(e) => setNewUsername(e.target.value)}
+              <Form {...profileForm}>
+                <form onSubmit={profileForm.handleSubmit(handleProfileUpdate)} className="space-y-4">
+                  <div className="flex flex-col items-center gap-4">
+                      <Avatar className="h-24 w-24">
+                        <AvatarImage src={previewUrl} alt={watchedProfile.name} />
+                        <AvatarFallback>{getInitials(watchedProfile.name || '')}</AvatarFallback>
+                      </Avatar>
+                      <Input 
+                        id="avatar-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarChange}
+                        ref={fileInputRef}
+                        className="hidden"
+                      />
+                      <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Photo
+                      </Button>
+                  </div>
+                  <FormField
+                    control={profileForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bio">Bio</Label>
-                  <Textarea
-                    id="bio"
-                    value={newBio}
-                    onChange={(e) => setNewBio(e.target.value)}
-                    placeholder="Tell us a little bit about yourself..."
-                    rows={3}
+                  <FormField
+                    control={profileForm.control}
+                    name="bio"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bio</FormLabel>
+                        <FormControl>
+                           <Textarea
+                              placeholder="Tell us a little bit about yourself..."
+                              rows={3}
+                              {...field}
+                            />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch 
-                    id="show-email" 
-                    checked={newShowEmail}
-                    onCheckedChange={setNewShowEmail}
+                   <FormField
+                    control={profileForm.control}
+                    name="showEmail"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel>Show email on your profile card</FormLabel>
+                      </FormItem>
+                    )}
                   />
-                  <Label htmlFor="show-email">Show email on your profile card</Label>
-                </div>
-                <DialogFooter className="pt-4">
-                    <Button variant="ghost" onClick={() => setProfileOpen(false)}>Cancel</Button>
-                    <Button type="submit" disabled={isSaving}>
-                      {isSaving ? 'Saving...' : 'Save changes'}
-                    </Button>
-                </DialogFooter>
-              </form>
+
+                  <DialogFooter className="pt-4">
+                      <Button variant="ghost" onClick={() => setProfileOpen(false)}>Cancel</Button>
+                      <Button type="submit" disabled={isSaving}>
+                        {isSaving ? 'Saving...' : 'Save changes'}
+                      </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
               <div className="space-y-4">
                   <Label>Live Preview</Label>
                   {user && (
                     <ProfileCard user={{
                       ...user,
-                      name: newUsername,
+                      ...watchedProfile,
                       avatar: previewUrl,
-                      bio: newBio,
-                      showEmail: newShowEmail
                     }} />
                   )}
               </div>

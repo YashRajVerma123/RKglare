@@ -30,7 +30,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { addNotificationAction, deleteNotificationAction } from "@/app/actions/notification-actions";
-import { addBulletin, deleteBulletin } from "@/lib/data";
+import { addBulletinAction, deleteBulletinAction } from "@/app/actions/bulletin-actions";
 import { Separator } from "@/components/ui/separator";
 import { updateAuthorProfile } from "@/app/actions/user-actions";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -113,6 +113,7 @@ const AdminPage = () => {
 
     const watchedProfile = profileForm.watch();
     const watchedBulletin = bulletinForm.watch();
+    const watchedNotification = notificationForm.watch();
 
     useEffect(() => {
         if (user) {
@@ -202,7 +203,7 @@ const AdminPage = () => {
     const handleDeleteBulletinConfirm = async () => {
         if (!bulletinToDelete) return;
         try {
-            await deleteBulletin(bulletinToDelete.id);
+            await deleteBulletinAction(bulletinToDelete.id);
             setAllBulletins(allBulletins.filter(b => b.id !== bulletinToDelete!.id));
             toast({ title: "Bulletin Deleted", description: `"${bulletinToDelete.title}" has been deleted.` });
         } catch (error) {
@@ -225,7 +226,7 @@ const AdminPage = () => {
 
     const onBulletinSubmit = async (values: z.infer<typeof bulletinSchema>) => {
       try {
-        await addBulletin(values);
+        await addBulletinAction(values);
         toast({ title: "Bulletin Published!", description: "Your new bulletin is now live." });
         bulletinForm.reset();
         await fetchAllData(); // Refresh the list
@@ -376,7 +377,7 @@ const AdminPage = () => {
                             <Card className="glass-card">
                                 <CardHeader>
                                     <CardTitle>Manage Bulletins</CardTitle>
-                                    <CardDescription>Here you can delete existing bulletins.</CardDescription>
+                                    <CardDescription>Here you can edit or delete existing bulletins.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <Table>
@@ -393,6 +394,9 @@ const AdminPage = () => {
                                                     <TableCell className="font-medium">{bulletin.title}</TableCell>
                                                     <TableCell>{new Date(bulletin.publishedAt).toLocaleDateString()}</TableCell>
                                                     <TableCell className="text-right">
+                                                         <Button asChild variant="ghost" size="icon">
+                                                            <Link href={`/admin/edit-bulletin/${bulletin.id}`}><Edit className="h-4 w-4" /></Link>
+                                                        </Button>
                                                         <Button variant="ghost" size="icon" onClick={() => handleDeleteBulletinClick(bulletin)}>
                                                             <Trash className="h-4 w-4 text-red-500" />
                                                         </Button>
@@ -620,6 +624,23 @@ const AdminPage = () => {
                                         </FormItem>
                                         )}
                                     />
+                                    <div className="space-y-2">
+                                        <Label>Live Preview</Label>
+                                        <div className="p-4 rounded-lg border bg-secondary/30">
+                                             <div className="grid grid-cols-[25px_1fr] items-start">
+                                                <span className="flex h-2 w-2 translate-y-1 rounded-full bg-primary" />
+                                                <div className="space-y-1">
+                                                <p className="text-sm font-medium leading-none">{watchedNotification.title || 'Notification Title'}</p>
+                                                <p className="text-sm text-muted-foreground">{watchedNotification.description || 'This is what your notification description will look like.'}</p>
+                                                {watchedNotification.image && (
+                                                    <div className="mt-2 relative aspect-video rounded-md overflow-hidden border">
+                                                        <img src={watchedNotification.image} alt="notification preview" className="object-cover w-full h-full" />
+                                                    </div>
+                                                )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <Button type="submit" className="w-full" disabled={notificationForm.formState.isSubmitting}>
                                         {notificationForm.formState.isSubmitting ? 'Sending...' : 'Send Notification'}
                                     </Button>

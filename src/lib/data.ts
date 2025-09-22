@@ -167,11 +167,13 @@ const bulletinConverter = {
             publishedAt: (data.publishedAt as Timestamp).toDate().toISOString(),
         };
     },
-    toFirestore: (bulletin: Omit<Bulletin, 'id'>) => {
-        return {
-            ...bulletin,
-            publishedAt: Timestamp.fromDate(new Date(bulletin.publishedAt)),
-        };
+    toFirestore: (bulletin: Omit<Bulletin, 'id' | 'publishedAt'> & { publishedAt?: any}) => {
+        const { id, ...rest } = bulletin;
+        const data: any = rest;
+        if(rest.publishedAt) {
+            data.publishedAt = Timestamp.fromDate(new Date(rest.publishedAt));
+        }
+        return data;
     }
 };
 
@@ -414,6 +416,20 @@ export async function deleteBulletin(bulletinId: string) {
     await deleteDoc(bulletinRef);
 }
 
+export async function updateBulletin(bulletinId: string, updates: { title: string; content: string, coverImage?: string }) {
+    const bulletinRef = doc(db, 'bulletins', bulletinId);
+    await updateDoc(bulletinRef, updates);
+}
+
+export const getBulletin = async (id: string): Promise<Bulletin | null> => {
+    const bulletinRef = doc(db, 'bulletins', id).withConverter(bulletinConverter);
+    const snapshot = await getDoc(bulletinRef);
+    if (snapshot.exists()) {
+        return snapshot.data();
+    }
+    return null;
+};
+
 export const getAuthorByEmail = async (email: string): Promise<Author | null> => {
     const usersCollection = collection(db, 'users');
     const q = query(usersCollection, where('email', '==', email), limit(1)).withConverter(authorConverter);
@@ -450,6 +466,7 @@ export type UserData = {
     likedComments: { [commentId: string]: boolean };
     bookmarks: { [postId: string]: { bookmarkedAt: string, scrollPosition?: number } };
 }
+
 
 
 
