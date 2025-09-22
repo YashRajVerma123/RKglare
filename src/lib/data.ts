@@ -60,6 +60,8 @@ export type Post = {
   readTime: number; 
   featured?: boolean;
   trending?: boolean;
+  trendingPosition?: number | null;
+  trendingUntil?: string | null; // ISO String
   likes?: number;
   summary?: string;
 };
@@ -99,15 +101,21 @@ const postConverter = {
             readTime: data.readTime,
             featured: data.featured,
             trending: data.trending,
+            trendingPosition: data.trendingPosition,
+            trendingUntil: data.trendingUntil ? (data.trendingUntil as Timestamp).toDate().toISOString() : null,
             likes: data.likes || 0,
             summary: data.summary,
         };
     },
     toFirestore: (post: Omit<Post, 'id'>) => {
-        return {
+        const data: {[key: string]: any} = {
             ...post,
             publishedAt: Timestamp.fromDate(new Date(post.publishedAt)),
         };
+        if (post.trendingUntil) {
+            data.trendingUntil = Timestamp.fromDate(new Date(post.trendingUntil));
+        }
+        return data;
     }
 }
 
@@ -234,13 +242,22 @@ export const getRecentPosts = async (count: number): Promise<Post[]> => {
     return sortedPosts.slice(0, count);
 }
 
-export const getTrendingPosts = async (count: number): Promise<Post[]> => {
+export const getTrendingPosts = async (): Promise<Post[]> => {
     const postsCollection = collection(db, 'posts').withConverter(postConverter);
-    const q = query(postsCollection, where('trending', '==', true));
+    
+    const q = query(
+        postsCollection, 
+        where('trending', '==', true),
+        orderBy('trendingPosition', 'asc'),
+        where('trendingUntil', '>=', Timestamp.now())
+    );
     const snapshot = await getDocs(q);
-    const posts = snapshot.docs.map(doc => doc.data());
-    const sortedPosts = posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-    return sortedPosts.slice(0, count);
+    let posts = snapshot.docs.map(doc => doc.data());
+    
+    // Manual sort after fetching because Firestore doesn't support multiple orderBys on different fields in this complex query
+    posts = posts.sort((a,b) => (a.trendingPosition || 11) - (b.trendingPosition || 11));
+
+    return posts.slice(0, 10);
 }
 
 
@@ -412,3 +429,4 @@ export type UserData = {
     likedComments: { [commentId: string]: boolean };
     bookmarks: { [postId: string]: { bookmarkedAt: string, scrollPosition?: number } };
 }
+

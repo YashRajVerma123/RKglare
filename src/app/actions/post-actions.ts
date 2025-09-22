@@ -15,6 +15,7 @@ const formSchema = z.object({
   tags: z.string().min(1, 'Please enter at least one tag.'),
   featured: z.boolean().default(false),
   trending: z.boolean().default(false),
+  trendingPosition: z.coerce.number().min(1).max(10).optional().nullable(),
   readTime: z.coerce.number().min(1, 'Read time must be at least 1 minute.'),
   summary: z.string().optional(),
 });
@@ -60,6 +61,13 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
     const slug = values.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
     const tagsArray = values.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
 
+    let trendingUntil: string | null = null;
+    if (values.trending) {
+        const sevenDaysFromNow = new Date();
+        sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+        trendingUntil = sevenDaysFromNow.toISOString();
+    }
+
     const newPost: Omit<Post, 'id' | 'comments'> = {
         slug,
         title: values.title,
@@ -69,6 +77,8 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
         tags: tagsArray,
         featured: values.featured,
         trending: values.trending,
+        trendingPosition: values.trendingPosition || null,
+        trendingUntil: trendingUntil,
         author,
         publishedAt: new Date().toISOString(),
         readTime: values.readTime,
@@ -79,6 +89,7 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
     const docRef = await addDoc(postsCollection, {
         ...newPost,
         publishedAt: new Date(newPost.publishedAt),
+        trendingUntil: newPost.trendingUntil ? new Date(newPost.trendingUntil) : null,
     });
 
     revalidatePath('/');
@@ -90,10 +101,28 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
 
 export async function updatePost(postId: string, values: z.infer<typeof formSchema>): Promise<string> {
   const postRef = doc(db, 'posts', postId);
-  const oldSlug = (await getDoc(postRef)).data()?.slug;
+  const oldPostSnap = await getDoc(postRef);
+  const oldPostData = oldPostSnap.data();
 
   const newSlug = values.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
   const tagsArray = values.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+
+  let trendingUntil: string | null;
+  // If trending is being turned on, or was already on
+  if (values.trending) {
+      // If it's being turned on *now*, set a new 7-day expiry.
+      if (!oldPostData?.trending) {
+          const sevenDaysFromNow = new Date();
+          sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+          trendingUntil = sevenDaysFromNow.toISOString();
+      } else {
+          // It was already trending, keep the original expiry date unless it's gone
+          trendingUntil = oldPostData?.trendingUntil ? oldPostData.trendingUntil.toDate().toISOString() : null;
+      }
+  } else {
+      // If trending is turned off, nullify the expiry
+      trendingUntil = null;
+  }
 
   const updatedData: { [key: string]: any } = {
     slug: newSlug,
@@ -104,6 +133,8 @@ export async function updatePost(postId: string, values: z.infer<typeof formSche
     tags: tagsArray,
     featured: values.featured,
     trending: values.trending,
+    trendingPosition: values.trendingPosition || null,
+    trendingUntil: trendingUntil ? new Date(trendingUntil) : null,
     readTime: values.readTime,
     summary: values.summary,
   };
@@ -113,7 +144,7 @@ export async function updatePost(postId: string, values: z.infer<typeof formSche
 
   revalidatePath('/');
   revalidatePath('/posts');
-  if (oldSlug) revalidatePath(`/posts/${oldSlug}`);
+  if (oldPostData?.slug) revalidatePath(`/posts/${oldPostData.slug}`);
   revalidatePath(`/posts/${newSlug}`);
   revalidatePath('/admin');
 

@@ -35,8 +35,17 @@ const formSchema = z.object({
   tags: z.string().min(1, 'Please enter at least one tag.'),
   featured: z.boolean().default(false),
   trending: z.boolean().default(false),
+  trendingPosition: z.coerce.number().min(1).max(10).optional().nullable(),
   readTime: z.coerce.number().min(1, 'Read time must be at least 1 minute.'),
   summary: z.string().optional(),
+}).refine(data => {
+    if (data.trending && !data.trendingPosition) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Trending Position is required when 'Mark as Trending' is enabled.",
+    path: ['trendingPosition'],
 });
 
 export default function EditPostPage({ params }: { params: { slug: string } }) {
@@ -58,10 +67,13 @@ export default function EditPostPage({ params }: { params: { slug: string } }) {
       tags: '',
       featured: false,
       trending: false,
+      trendingPosition: undefined,
       readTime: 5,
       summary: '',
     },
   });
+
+  const isTrending = form.watch('trending');
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -72,6 +84,7 @@ export default function EditPostPage({ params }: { params: { slug: string } }) {
         form.reset({
           ...fetchedPost,
           tags: fetchedPost.tags.join(', '),
+          trendingPosition: fetchedPost.trendingPosition,
         });
         setImagePreview(fetchedPost.coverImage);
       }
@@ -279,7 +292,7 @@ export default function EditPostPage({ params }: { params: { slug: string } }) {
                             <div className="space-y-0.5">
                                 <FormLabel>Mark as Trending</FormLabel>
                                 <p className="text-xs text-muted-foreground">
-                                If selected, this post will appear in the trending section on the homepage.
+                                If selected, this post will appear in the trending section for 1 week.
                                 </p>
                             </div>
                             <FormControl>
@@ -291,6 +304,22 @@ export default function EditPostPage({ params }: { params: { slug: string } }) {
                             </FormItem>
                         )}
                     />
+                    {isTrending && (
+                        <FormField
+                            control={form.control}
+                            name="trendingPosition"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Trending Position</FormLabel>
+                                <FormControl>
+                                    <Input type="number" placeholder="1" {...field} value={field.value ?? ''} />
+                                </FormControl>
+                                <p className="text-xs text-muted-foreground">Set the rank (1-10) for this trending post.</p>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
                     <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
                         {form.formState.isSubmitting ? 'Saving Changes...' : 'Save Changes'}
                     </Button>

@@ -39,7 +39,7 @@ export default async function HomePage() {
   const [featuredPosts, recentPosts, trendingPosts] = await Promise.all([
     getFeaturedPosts(),
     getRecentPosts(10),
-    getTrendingPosts(3)
+    getTrendingPosts()
   ]);
   
   const mainPost = featuredPosts[0];

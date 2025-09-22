@@ -22,7 +22,7 @@ const PopularPostCard = ({ post, rank }: PopularPostCardProps) => {
     <Link href={`/posts/${post.slug}`} className="group block">
         <div className="glass-card h-full p-6 flex items-start gap-6 transition-all duration-300 hover:border-primary/50 hover:-translate-y-1 relative decorative-border">
             <div className="text-4xl font-extrabold font-headline text-primary/50 transition-colors duration-300 group-hover:text-primary">
-                {String(rank).padStart(2, '0')}
+                #{String(rank).padStart(2, '0')}
             </div>
             <div className="flex-1">
                 <h3 className="font-headline font-semibold text-lg leading-snug mb-2 transition-colors duration-300 group-hover:text-primary">
