@@ -93,7 +93,7 @@ const Header = () => {
         </div>
 
         {/* Right Section */}
-        <div className="flex items-center justify-end flex-1 gap-1">
+        <div className="flex items-center justify-end flex-1">
             <div className="hidden md:flex">
               <SearchBar />
               <Button asChild variant="ghost" size="icon" className={cn(pathname === '/bookmarks' && 'text-primary')}>
@@ -103,8 +103,10 @@ const Header = () => {
                   </Link>
               </Button>
             </div>
-            <NotificationBell />
-            <UserNav />
+            <div className="flex items-center gap-1">
+              <NotificationBell />
+              <UserNav />
+            </div>
         </div>
 
       </div>
