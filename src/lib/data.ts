@@ -88,6 +88,21 @@ export type Bulletin = {
 const postConverter = {
     fromFirestore: (snapshot: any, options: any): Post => {
         const data = snapshot.data(options);
+        
+        let trendingUntil = null;
+        if (data.trendingUntil) {
+             if (typeof data.trendingUntil.toDate === 'function') {
+                trendingUntil = (data.trendingUntil as Timestamp).toDate().toISOString();
+             } else {
+                 try {
+                     // Handle cases where it might be a string or other formats
+                     trendingUntil = new Date(data.trendingUntil).toISOString();
+                 } catch (e) {
+                     trendingUntil = null;
+                 }
+             }
+        }
+
         return {
             id: snapshot.id,
             slug: data.slug,
@@ -102,7 +117,7 @@ const postConverter = {
             featured: data.featured,
             trending: data.trending,
             trendingPosition: data.trendingPosition,
-            trendingUntil: data.trendingUntil ? (data.trendingUntil as Timestamp).toDate().toISOString() : null,
+            trendingUntil: trendingUntil,
             likes: data.likes || 0,
             summary: data.summary,
         };
@@ -244,17 +259,23 @@ export const getRecentPosts = async (count: number): Promise<Post[]> => {
 
 export const getTrendingPosts = async (): Promise<Post[]> => {
     const postsCollection = collection(db, 'posts').withConverter(postConverter);
+    const now = new Date();
     
     const q = query(
         postsCollection, 
-        where('trending', '==', true),
-        orderBy('trendingPosition', 'asc'),
-        where('trendingUntil', '>=', Timestamp.now())
+        where('trending', '==', true)
     );
     const snapshot = await getDocs(q);
-    let posts = snapshot.docs.map(doc => doc.data());
     
-    // Manual sort after fetching because Firestore doesn't support multiple orderBys on different fields in this complex query
+    let posts = snapshot.docs.map(doc => doc.data());
+
+    // Filter expired posts in code instead of in the query
+    posts = posts.filter(post => {
+        if (!post.trendingUntil) return false;
+        return new Date(post.trendingUntil) >= now;
+    });
+    
+    // Manual sort after fetching
     posts = posts.sort((a,b) => (a.trendingPosition || 11) - (b.trendingPosition || 11));
 
     return posts.slice(0, 10);
@@ -429,4 +450,7 @@ export type UserData = {
     likedComments: { [commentId: string]: boolean };
     bookmarks: { [postId: string]: { bookmarkedAt: string, scrollPosition?: number } };
 }
+
+
+
 

@@ -24,7 +24,7 @@ const formSchema = z.object({
   image: z.string().url().optional().or(z.literal('')),
 });
 
-export default function EditNotificationPage({ params }: { params: { id: string } }) {
+export default function EditNotificationPage({ params: { id } }: { params: { id: string } }) {
   const { toast } = useToast();
   const router = useRouter();
   const { isAdmin, loading: authLoading } = useAuth();
@@ -43,7 +43,7 @@ export default function EditNotificationPage({ params }: { params: { id: string 
   useEffect(() => {
     const fetchNotification = async () => {
       setLoading(true);
-      const fetchedNotification = await getNotification(params.id);
+      const fetchedNotification = await getNotification(id);
       if (fetchedNotification) {
         setNotification(fetchedNotification);
         form.reset({
@@ -55,7 +55,7 @@ export default function EditNotificationPage({ params }: { params: { id: string 
       setLoading(false);
     }
     fetchNotification();
-  }, [params.id, form]);
+  }, [id, form]);
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {

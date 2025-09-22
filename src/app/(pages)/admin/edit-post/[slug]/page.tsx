@@ -48,7 +48,7 @@ const formSchema = z.object({
     path: ['trendingPosition'],
 });
 
-export default function EditPostPage({ params }: { params: { slug: string } }) {
+export default function EditPostPage({ params: { slug } }: { params: { slug: string } }) {
   const { toast } = useToast();
   const router = useRouter();
   const { isAdmin, loading: authLoading } = useAuth();
@@ -78,7 +78,7 @@ export default function EditPostPage({ params }: { params: { slug: string } }) {
   useEffect(() => {
     const fetchPost = async () => {
       setLoading(true);
-      const fetchedPost = await getPost(params.slug);
+      const fetchedPost = await getPost(slug);
       if (fetchedPost) {
         setPost(fetchedPost);
         form.reset({
@@ -91,7 +91,7 @@ export default function EditPostPage({ params }: { params: { slug: string } }) {
       setLoading(false);
     }
     fetchPost();
-  }, [params.slug, form]);
+  }, [slug, form]);
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
