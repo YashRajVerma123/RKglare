@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Edit, PlusCircle, Trash, Users, BellRing, Image as ImageIcon, Megaphone, User as UserIcon, Upload, LineChart, Mail, Bot, Loader2 } from "lucide-react";
+import { BarChart, Edit, PlusCircle, Trash, Users, BellRing, Image as ImageIcon, Megaphone, User as UserIcon, Upload, LineChart, Mail } from "lucide-react";
 import { Post, getPosts, Notification, getNotifications, Bulletin, getBulletins, Author } from "@/lib/data";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -36,7 +36,6 @@ import { updateAuthorProfile } from "@/app/actions/user-actions";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AnalyticsDashboard from "@/components/analytics-dashboard";
-import { generateAndSaveBulletins } from "@/app/actions/bulletin-actions";
 
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -79,7 +78,6 @@ const AdminPage = () => {
     const [bulletinToDelete, setBulletinToDelete] = useState<Bulletin | null>(null);
     const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState(user?.avatar || '');
-    const [isGenerating, setIsGenerating] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const notificationForm = useForm<z.infer<typeof notificationSchema>>({
@@ -259,18 +257,6 @@ const AdminPage = () => {
         } catch (error) {
             toast({ title: "Error", description: "Failed to update profile.", variant: "destructive" });
         }
-    }
-    
-    const handleGenerateBulletins = async () => {
-      setIsGenerating(true);
-      const result = await generateAndSaveBulletins();
-      if (result.success) {
-        toast({ title: "AI Bulletins Generated!", description: "3 new bulletins have been published." });
-        await fetchAllData(); // Refresh the list
-      } else {
-        toast({ title: "Error", description: result.error, variant: "destructive" });
-      }
-      setIsGenerating(false);
     }
 
     return (
@@ -503,23 +489,6 @@ const AdminPage = () => {
                                 </Form>
                                 </CardContent>
                             </Card>
-                            
-                             <Card className="glass-card">
-                                <CardHeader>
-                                <div className="flex items-center gap-2">
-                                    <Bot className="h-5 w-5 text-primary" />
-                                    <CardTitle>AI Content Generation</CardTitle>
-                                </div>
-                                    <CardDescription>Use AI to generate and publish new bulletins automatically.</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                  <Button className="w-full" onClick={handleGenerateBulletins} disabled={isGenerating}>
-                                    {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Bot className="mr-2 h-4 w-4" />}
-                                    {isGenerating ? 'Generating...' : 'Generate Bulletins with AI'}
-                                  </Button>
-                                  <p className="text-xs text-muted-foreground mt-2 text-center">Generates 3 new bulletins based on the latest trends.</p>
-                                </CardContent>
-                            </Card>
 
                             <Card className="glass-card">
                                 <CardHeader>
@@ -731,3 +700,6 @@ export default AdminPage;
     
 
 
+
+
+    
