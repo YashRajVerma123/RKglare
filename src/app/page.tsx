@@ -1,20 +1,14 @@
 
 import Link from 'next/link';
-import { ArrowRight, BrainCircuit, Rocket, SatelliteDish } from 'lucide-react';
+import { ArrowRight, BrainCircuit, Rocket, SatelliteDish, Mail } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { getFeaturedPosts, getRecentPosts, getTrendingPosts } from '@/lib/data';
-import BlogPostCard from '@/components/blog-post-card';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel"
 import FeedTabs from '@/components/feed-tabs';
 import AboutTheAuthor from '@/components/about-the-author';
 import PopularPostCard from '@/components/popular-post-card';
+import EditorsPickCard from '@/components/editors-pick-card';
+import NewsletterForm from '@/components/newsletter-form';
 
 const topics = [
     {
@@ -40,6 +34,10 @@ export default async function HomePage() {
     getRecentPosts(10),
     getTrendingPosts(3)
   ]);
+  
+  const mainPost = featuredPosts[0];
+  const secondaryPost = featuredPosts[1];
+  const tertiaryPosts = featuredPosts.slice(2, 4);
 
   return (
     <div className="space-y-24 md:space-y-32">
@@ -67,30 +65,29 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Featured Posts Section */}
+      {/* Editor's Picks Section */}
       {featuredPosts.length > 0 && (
         <section className="container mx-auto px-4">
-          <h2 className="text-3xl font-headline font-bold mb-2 text-center">Featured Stories</h2>
-          <p className="text-center text-muted-foreground mb-8 md:hidden">Swipe to see more</p>
-          <Carousel
-            opts={{
-              align: "start",
-              loop: true,
-            }}
-            className="w-full relative group"
-          >
-            <CarouselContent>
-              {featuredPosts.map((post, index) => (
-                <CarouselItem key={post.slug} className="md:basis-1/2 lg:basis-1/3">
-                  <div className="p-1">
-                      <BlogPostCard post={post} priority={index < 3} />
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="hidden md:inline-flex" />
-            <CarouselNext className="hidden md:inline-flex" />
-          </Carousel>
+          <h2 className="text-3xl font-headline font-bold mb-8 text-center">Editor's Picks</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-2 gap-8 h-auto lg:h-[800px]">
+            {mainPost && (
+              <div className="lg:col-span-2 lg:row-span-2">
+                <EditorsPickCard post={mainPost} layout="large" priority />
+              </div>
+            )}
+            {secondaryPost && (
+              <div className="lg:col-span-1 lg:row-span-1">
+                <EditorsPickCard post={secondaryPost} layout="medium" priority />
+              </div>
+            )}
+            {tertiaryPosts.length > 0 && (
+              <div className="lg:col-span-1 lg:row-span-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-8">
+                {tertiaryPosts.map(post => (
+                  <EditorsPickCard key={post.id} post={post} layout="small" priority />
+                ))}
+              </div>
+            )}
+          </div>
         </section>
       )}
 
@@ -98,26 +95,21 @@ export default async function HomePage() {
       <section className="container mx-auto px-4">
         <FeedTabs recentPosts={recentPosts} />
       </section>
-      
-      <div className="my-12 h-[2px] w-full bg-gradient-to-r from-transparent via-primary/50 to-transparent container" />
 
-      {/* Why Glare Section */}
+      {/* Newsletter Section */}
        <section className="container mx-auto px-4">
-           <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-headline font-bold">Why Glare?</h2>
-                <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">We focus on the stories that shape tomorrow, providing deep-dives and sharp analysis on the topics that matter most.</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {topics.map(topic => (
-                    <div key={topic.title} className="glass-card text-center p-8 transition-transform transform hover:-translate-y-2 group">
-                        <div className="inline-block p-4 bg-primary/10 rounded-full mb-4 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20">
-                            {topic.icon}
-                        </div>
-                        <h3 className="text-xl font-headline font-semibold mb-2">{topic.title}</h3>
-                        <p className="text-muted-foreground text-sm">{topic.description}</p>
+           <div className="glass-card p-8 md:p-12 lg:p-16 rounded-2xl flex flex-col lg:flex-row items-center justify-between gap-8 overflow-hidden">
+                <div className="text-center lg:text-left max-w-xl">
+                    <div className="inline-block p-4 bg-primary/10 rounded-full mb-4">
+                        <Mail className="h-8 w-8 text-primary"/>
                     </div>
-                ))}
-            </div>
+                    <h2 className="text-3xl md:text-4xl font-headline font-bold mb-4">Stay Ahead of the Curve</h2>
+                    <p className="text-muted-foreground mb-6 lg:mb-0">Subscribe to our newsletter for a weekly digest of our best articles, exclusive insights, and a look at what's coming next. No spam, just clarity delivered to your inbox.</p>
+                </div>
+                <div className="w-full max-w-md">
+                    <NewsletterForm />
+                </div>
+           </div>
        </section>
 
       {/* Trending Posts Section */}
