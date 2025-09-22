@@ -176,16 +176,20 @@ const UserNav = () => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-            {loading ? (
-                <div className="h-9 w-9 rounded-full bg-muted animate-pulse" />
-            ) : user ? (
-                <Avatar className="h-9 w-9">
+              <Avatar className="h-9 w-9">
+                {loading ? (
+                  <AvatarFallback className="animate-pulse bg-muted"></AvatarFallback>
+                ) : user ? (
+                  <>
                     <AvatarImage src={user.avatar} alt={user.name} />
                     <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                </Avatar>
-            ) : (
-                <Settings className="h-5 w-5" />
-            )}
+                  </>
+                ) : (
+                  <AvatarFallback>
+                    <Settings className="h-5 w-5" />
+                  </AvatarFallback>
+                )}
+              </Avatar>
             </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56 font-content" align="end" forceMount>
@@ -360,3 +364,5 @@ const UserNav = () => {
 };
 
 export default UserNav;
+
+    
