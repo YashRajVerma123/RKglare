@@ -4,7 +4,7 @@
 import { revalidatePath } from 'next/cache';
 import { Post, Author } from '@/lib/data';
 import { db } from '@/lib/firebase-server'; // Use server db
-import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, getDocs, limit, getDoc, setDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, getDocs, limit, getDoc, setDoc, runTransaction, writeBatch, orderBy } from 'firebase/firestore';
 import { z } from 'zod';
 
 const formSchema = z.object({
@@ -61,14 +61,14 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
     const slug = values.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
     const tagsArray = values.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
 
-    let trendingUntil: string | null = null;
+    let trendingUntil: Date | null = null;
     if (values.trending) {
         const sevenDaysFromNow = new Date();
         sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-        trendingUntil = sevenDaysFromNow.toISOString();
+        trendingUntil = sevenDaysFromNow;
     }
 
-    const newPost: Omit<Post, 'id' | 'comments'> = {
+    const newPostData = {
         slug,
         title: values.title,
         description: values.description,
@@ -80,16 +80,44 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
         trendingPosition: values.trendingPosition || null,
         trendingUntil: trendingUntil,
         author,
-        publishedAt: new Date().toISOString(),
+        publishedAt: new Date(),
         readTime: values.readTime,
         summary: values.summary || '',
+        likes: 0,
     };
     
     const postsCollection = collection(db, 'posts');
-    const docRef = await addDoc(postsCollection, {
-        ...newPost,
-        publishedAt: new Date(newPost.publishedAt),
-        trendingUntil: newPost.trendingUntil ? new Date(newPost.trendingUntil) : null,
+    
+    await runTransaction(db, async (transaction) => {
+        if (newPostData.trending && newPostData.trendingPosition) {
+            const position = newPostData.trendingPosition;
+            
+            const trendingQuery = query(
+                postsCollection,
+                where('trending', '==', true),
+                where('trendingPosition', '>=', position),
+                orderBy('trendingPosition', 'asc')
+            );
+            const trendingSnapshot = await getDocs(trendingQuery);
+            
+            for (const postDoc of trendingSnapshot.docs) {
+                const postData = postDoc.data();
+                const newPosition = (postData.trendingPosition || 0) + 1;
+                
+                if (newPosition > 10) {
+                    transaction.update(postDoc.ref, {
+                        trending: false,
+                        trendingPosition: null,
+                        trendingUntil: null
+                    });
+                } else {
+                    transaction.update(postDoc.ref, { trendingPosition: newPosition });
+                }
+            }
+        }
+        
+        const newDocRef = doc(collection(db, 'posts'));
+        transaction.set(newDocRef, newPostData);
     });
 
     revalidatePath('/');
@@ -101,51 +129,108 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
 
 export async function updatePost(postId: string, values: z.infer<typeof formSchema>): Promise<string> {
   const postRef = doc(db, 'posts', postId);
-  const oldPostSnap = await getDoc(postRef);
-  const oldPostData = oldPostSnap.data();
 
-  const newSlug = values.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
-  const tagsArray = values.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+  await runTransaction(db, async (transaction) => {
+    const oldPostSnap = await transaction.get(postRef);
+    if (!oldPostSnap.exists()) {
+      throw new Error("Post not found");
+    }
+    const oldPostData = oldPostSnap.data();
 
-  let trendingUntil: string | null;
-  // If trending is being turned on, or was already on
-  if (values.trending) {
-      // If it's being turned on *now*, set a new 7-day expiry.
-      if (!oldPostData?.trending) {
-          const sevenDaysFromNow = new Date();
-          sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-          trendingUntil = sevenDaysFromNow.toISOString();
-      } else {
-          // It was already trending, keep the original expiry date unless it's gone
-          trendingUntil = oldPostData?.trendingUntil ? oldPostData.trendingUntil.toDate().toISOString() : null;
-      }
-  } else {
-      // If trending is turned off, nullify the expiry
-      trendingUntil = null;
-  }
+    const newSlug = values.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+    const tagsArray = values.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
 
-  const updatedData: { [key: string]: any } = {
-    slug: newSlug,
-    title: values.title,
-    description: values.description,
-    content: values.content,
-    coverImage: values.coverImage,
-    tags: tagsArray,
-    featured: values.featured,
-    trending: values.trending,
-    trendingPosition: values.trendingPosition || null,
-    trendingUntil: trendingUntil ? new Date(trendingUntil) : null,
-    readTime: values.readTime,
-    summary: values.summary || '',
-  };
+    let trendingUntil: Date | null;
+    if (values.trending) {
+        if (!oldPostData?.trending) {
+            const sevenDaysFromNow = new Date();
+            sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+            trendingUntil = sevenDaysFromNow;
+        } else {
+            trendingUntil = oldPostData?.trendingUntil ? oldPostData.trendingUntil.toDate() : null;
+        }
+    } else {
+        trendingUntil = null;
+    }
 
-  await updateDoc(postRef, updatedData);
+    const updatedData: { [key: string]: any } = {
+      slug: newSlug,
+      title: values.title,
+      description: values.description,
+      content: values.content,
+      coverImage: values.coverImage,
+      tags: tagsArray,
+      featured: values.featured,
+      trending: values.trending,
+      trendingPosition: values.trendingPosition || null,
+      trendingUntil: trendingUntil,
+      readTime: values.readTime,
+      summary: values.summary || '',
+    };
+    
+    // Handle position shifting if trending status or position changes
+    const newPosition = updatedData.trendingPosition;
+    const oldPosition = oldPostData.trendingPosition;
+    const isNowTrending = updatedData.trending;
+    const wasTrending = oldPostData.trending;
+
+    const postsCollection = collection(db, 'posts');
+
+    // Case 1: Post is becoming trending or changing position
+    if (isNowTrending && newPosition && (newPosition !== oldPosition || !wasTrending)) {
+        const trendingQuery = query(
+            postsCollection,
+            where('trending', '==', true),
+            where('trendingPosition', '>=', newPosition),
+            orderBy('trendingPosition', 'asc')
+        );
+        const snapshot = await getDocs(trendingQuery);
+        
+        for (const postDoc of snapshot.docs) {
+            // Don't shift the post we are currently editing
+            if (postDoc.id === postId) continue;
+
+            const postData = postDoc.data();
+            const shiftedPosition = (postData.trendingPosition || 0) + 1;
+
+            if (shiftedPosition > 10) {
+                 transaction.update(postDoc.ref, {
+                    trending: false,
+                    trendingPosition: null,
+                    trendingUntil: null
+                });
+            } else {
+                transaction.update(postDoc.ref, { trendingPosition: shiftedPosition });
+            }
+        }
+    }
+    
+    // Case 2: Post is becoming non-trending, so we need to shift others up
+    if (!isNowTrending && wasTrending && oldPosition) {
+        const trendingQuery = query(
+            postsCollection,
+            where('trending', '==', true),
+            where('trendingPosition', '>', oldPosition),
+            orderBy('trendingPosition', 'asc')
+        );
+        const snapshot = await getDocs(trendingQuery);
+
+        for (const postDoc of snapshot.docs) {
+            const postData = postDoc.data();
+            transaction.update(postDoc.ref, { trendingPosition: (postData.trendingPosition || 1) - 1 });
+        }
+    }
+    
+    transaction.update(postRef, updatedData);
+  });
   
+  const finalPostSnap = await getDoc(postRef);
+  const finalPostData = finalPostSnap.data();
 
   revalidatePath('/');
   revalidatePath('/posts');
-  if (oldPostData?.slug) revalidatePath(`/posts/${oldPostData.slug}`);
-  revalidatePath(`/posts/${newSlug}`);
+  if (finalPostData?.slug) revalidatePath(`/posts/${finalPostData.slug}`);
+  if (finalPostData?.slug !== newSlug) revalidatePath(`/posts/${newSlug}`);
   revalidatePath('/admin');
 
   return newSlug;
@@ -154,8 +239,34 @@ export async function updatePost(postId: string, values: z.infer<typeof formSche
 
 export async function deletePost(postId: string): Promise<{ success: boolean }> {
   const postRef = doc(db, 'posts', postId);
-  await deleteDoc(postRef);
   
+  await runTransaction(db, async (transaction) => {
+    const postSnap = await transaction.get(postRef);
+    if (!postSnap.exists()) return;
+    
+    const postData = postSnap.data();
+    
+    // If the deleted post was trending, shift subsequent posts up
+    if (postData.trending && postData.trendingPosition) {
+        const position = postData.trendingPosition;
+        const postsCollection = collection(db, 'posts');
+        const q = query(
+            postsCollection,
+            where('trending', '==', true),
+            where('trendingPosition', '>', position),
+            orderBy('trendingPosition', 'asc')
+        );
+        const snapshot = await getDocs(q);
+        
+        for (const docToShift of snapshot.docs) {
+            const data = docToShift.data();
+            transaction.update(docToShift.ref, { trendingPosition: (data.trendingPosition || 1) - 1 });
+        }
+    }
+    
+    transaction.delete(postRef);
+  });
+
   revalidatePath('/');
   revalidatePath('/posts');
   revalidatePath('/admin');
