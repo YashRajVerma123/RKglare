@@ -30,15 +30,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { addNotificationAction, deleteNotificationAction } from "@/app/actions/notification-actions";
-import { addBulletinAction, deleteBulletinAction } from "@/app/actions/bulletin-actions";
+import { addBulletinAction } from "@/app/actions/bulletin-actions";
 import { Separator } from "@/components/ui/separator";
 import { updateAuthorProfile } from "@/app/actions/user-actions";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AnalyticsDashboard from "@/components/analytics-dashboard";
 import AboutTheAuthor from "@/components/about-the-author";
-import { BulletinCard } from "@/app/(pages)/bulletin/page";
-import { Label } from "@/components/ui/label";
+import { sendNewsletterAction } from "@/app/actions/newsletter-actions";
 
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -66,6 +65,12 @@ const profileSchema = z.object({
   signature: z.string().min(2, 'Signature must be at least 2 characters.'),
 });
 
+const newsletterSchema = z.object({
+    title: z.string().min(10, 'Title must be at least 10 characters.'),
+    content: z.string().min(100, 'Content must be at least 100 characters.'),
+});
+
+
 const AdminPage = () => {
     const { user, isAdmin, loading, updateUserProfile } = useAuth();
     const router = useRouter();
@@ -75,10 +80,8 @@ const AdminPage = () => {
     const [allBulletins, setAllBulletins] = useState<Bulletin[]>([]);
     const [isPostDeleteDialogOpen, setPostDeleteDialogOpen] = useState(false);
     const [isNotifDeleteDialogOpen, setNotifDeleteDialogOpen] = useState(false);
-    const [isBulletinDeleteDialogOpen, setBulletinDeleteDialogOpen] = useState(false);
     const [postToDelete, setPostToDelete] = useState<Post | null>(null);
     const [notificationToDelete, setNotificationToDelete] = useState<Notification | null>(null);
-    const [bulletinToDelete, setBulletinToDelete] = useState<Bulletin | null>(null);
     const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState(user?.avatar || '');
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -101,6 +104,14 @@ const AdminPage = () => {
       },
     });
 
+    const newsletterForm = useForm<z.infer<typeof newsletterSchema>>({
+        resolver: zodResolver(newsletterSchema),
+        defaultValues: {
+            title: '',
+            content: '',
+        },
+    });
+
     const profileForm = useForm<z.infer<typeof profileSchema>>({
         resolver: zodResolver(profileSchema),
         defaultValues: {
@@ -110,10 +121,6 @@ const AdminPage = () => {
             signature: user?.signature || '',
         }
     });
-
-    const watchedProfile = profileForm.watch();
-    const watchedBulletin = bulletinForm.watch();
-    const watchedNotification = notificationForm.watch();
 
     useEffect(() => {
         if (user) {
@@ -169,11 +176,6 @@ const AdminPage = () => {
         setNotifDeleteDialogOpen(true);
     };
 
-    const handleDeleteBulletinClick = (bulletin: Bulletin) => {
-        setBulletinToDelete(bulletin);
-        setBulletinDeleteDialogOpen(true);
-    };
-
     const handleDeletePostConfirm = async () => {
         if (!postToDelete) return;
         try {
@@ -199,19 +201,6 @@ const AdminPage = () => {
         setNotifDeleteDialogOpen(false);
         setNotificationToDelete(null);
     };
-
-    const handleDeleteBulletinConfirm = async () => {
-        if (!bulletinToDelete) return;
-        try {
-            await deleteBulletinAction(bulletinToDelete.id);
-            setAllBulletins(allBulletins.filter(b => b.id !== bulletinToDelete!.id));
-            toast({ title: "Bulletin Deleted", description: `"${bulletinToDelete.title}" has been deleted.` });
-        } catch (error) {
-            toast({ title: "Error", description: "Failed to delete bulletin.", variant: "destructive" });
-        }
-        setBulletinDeleteDialogOpen(false);
-        setBulletinToDelete(null);
-    }
 
     const onNotificationSubmit = async (values: z.infer<typeof notificationSchema>) => {
       try {
@@ -263,6 +252,16 @@ const AdminPage = () => {
             setNewAvatarFile(null);
         } catch (error) {
             toast({ title: "Error", description: "Failed to update profile.", variant: "destructive" });
+        }
+    }
+
+    const onNewsletterSubmit = async (values: z.infer<typeof newsletterSchema>) => {
+        try {
+            const result = await sendNewsletterAction(values);
+            toast({ title: "Newsletter Sent!", description: `Your newsletter has been sent to ${result.subscriberCount} subscribers.` });
+            newsletterForm.reset();
+        } catch (error) {
+             toast({ title: "Error Sending Newsletter", description: (error as Error).message, variant: "destructive" });
         }
     }
 
@@ -374,37 +373,48 @@ const AdminPage = () => {
                                 </CardContent>
                             </Card>
 
-                            <Card className="glass-card">
+                             <Card className="glass-card">
                                 <CardHeader>
-                                    <CardTitle>Manage Bulletins</CardTitle>
-                                    <CardDescription>Here you can edit or delete existing bulletins.</CardDescription>
+                                    <div className="flex items-center gap-2">
+                                        <Mail className="h-5 w-5 text-primary" />
+                                        <CardTitle>Send Newsletter</CardTitle>
+                                    </div>
+                                    <CardDescription>Compose and send a newsletter to all subscribers.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead className="w-[60%]">Title</TableHead>
-                                                <TableHead>Date</TableHead>
-                                                <TableHead className="text-right">Actions</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {allBulletins.map(bulletin => (
-                                                <TableRow key={bulletin.id}>
-                                                    <TableCell className="font-medium">{bulletin.title}</TableCell>
-                                                    <TableCell>{new Date(bulletin.publishedAt).toLocaleDateString()}</TableCell>
-                                                    <TableCell className="text-right">
-                                                         <Button asChild variant="ghost" size="icon">
-                                                            <Link href={`/admin/edit-bulletin/${bulletin.id}`}><Edit className="h-4 w-4" /></Link>
-                                                        </Button>
-                                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteBulletinClick(bulletin)}>
-                                                            <Trash className="h-4 w-4 text-red-500" />
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
+                                    <Form {...newsletterForm}>
+                                        <form onSubmit={newsletterForm.handleSubmit(onNewsletterSubmit)} className="space-y-4">
+                                            <FormField
+                                                control={newsletterForm.control}
+                                                name="title"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Subject</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="Your amazing newsletter title" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={newsletterForm.control}
+                                                name="content"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Body</FormLabel>
+                                                        <FormControl>
+                                                            <Textarea placeholder="Write your newsletter content here. You can use HTML for formatting." {...field} rows={8} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <Button type="submit" className="w-full" disabled={newsletterForm.formState.isSubmitting}>
+                                                {newsletterForm.formState.isSubmitting ? 'Sending...' : 'Send Newsletter to Subscribers'}
+                                            </Button>
+                                        </form>
+                                    </Form>
                                 </CardContent>
                             </Card>
                         </div>
@@ -420,8 +430,6 @@ const AdminPage = () => {
                                     <CardDescription>Update your public author information.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
-                                  <div>
                                     <Form {...profileForm}>
                                         <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
                                             <div className="flex flex-col items-center gap-4">
@@ -499,14 +507,6 @@ const AdminPage = () => {
                                         </Button>
                                         </form>
                                     </Form>
-                                  </div>
-                                  <div className="space-y-4">
-                                      <Label>Live Preview</Label>
-                                      <div className="aurora-border rounded-2xl">
-                                          <AboutTheAuthor previewData={{...watchedProfile, avatar: previewUrl}} />
-                                      </div>
-                                  </div>
-                                </div>
                                 </CardContent>
                             </Card>
 
@@ -519,7 +519,6 @@ const AdminPage = () => {
                                     <CardDescription>Publish a new daily bulletin.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
                                     <Form {...bulletinForm}>
                                         <form onSubmit={bulletinForm.handleSubmit(onBulletinSubmit)} className="space-y-4">
                                         <FormField
@@ -566,11 +565,6 @@ const AdminPage = () => {
                                         </Button>
                                         </form>
                                     </Form>
-                                     <div className="space-y-4">
-                                      <Label>Live Preview</Label>
-                                       <BulletinCard bulletin={{...watchedBulletin, id: 'preview', publishedAt: new Date().toISOString() }} index={0} />
-                                  </div>
-                                  </div>
                                 </CardContent>
                             </Card>
 
@@ -624,23 +618,6 @@ const AdminPage = () => {
                                         </FormItem>
                                         )}
                                     />
-                                    <div className="space-y-2">
-                                        <Label>Live Preview</Label>
-                                        <div className="p-4 rounded-lg border bg-secondary/30">
-                                             <div className="grid grid-cols-[25px_1fr] items-start">
-                                                <span className="flex h-2 w-2 translate-y-1 rounded-full bg-primary" />
-                                                <div className="space-y-1">
-                                                <p className="text-sm font-medium leading-none">{watchedNotification.title || 'Notification Title'}</p>
-                                                <p className="text-sm text-muted-foreground">{watchedNotification.description || 'This is what your notification description will look like.'}</p>
-                                                {watchedNotification.image && (
-                                                    <div className="mt-2 relative aspect-video rounded-md overflow-hidden border">
-                                                        <img src={watchedNotification.image} alt="notification preview" className="object-cover w-full h-full" />
-                                                    </div>
-                                                )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                     <Button type="submit" className="w-full" disabled={notificationForm.formState.isSubmitting}>
                                         {notificationForm.formState.isSubmitting ? 'Sending...' : 'Send Notification'}
                                     </Button>
@@ -717,21 +694,6 @@ const AdminPage = () => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-            <AlertDialog open={isBulletinDeleteDialogOpen} onOpenChange={setBulletinDeleteDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the bulletin
-                            <span className="font-bold"> &quot;{bulletinToDelete?.title}&quot;</span>.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeleteBulletinConfirm} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </div>
     );
 };
@@ -749,3 +711,4 @@ export default AdminPage;
 
 
     
+

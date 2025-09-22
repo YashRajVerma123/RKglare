@@ -9,6 +9,7 @@ const quickLinks = [
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact Us' },
   { href: '/privacy-policy', label: 'Privacy Policy' },
+  { href: '/newsletter', label: 'Newsletter' },
 ];
 
 const Footer = () => {
