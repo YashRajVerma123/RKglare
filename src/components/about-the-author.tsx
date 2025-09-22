@@ -4,7 +4,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import Link from 'next/link';
-import { Instagram, Users, BadgeCheck } from "lucide-react";
+import { Instagram, Users, BadgeCheck, Code } from "lucide-react";
 import { isFollowing } from "@/lib/data";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, useEffect } from "react";
@@ -53,10 +53,18 @@ const AboutTheAuthor = () => {
   
   const componentContent = (
       <div className="p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
-            <Avatar className="h-32 w-32 border-4 border-primary/20 shrink-0">
-                <AvatarImage src={authorAvatar} alt={authorName} />
-                <AvatarFallback>YV</AvatarFallback>
-            </Avatar>
+            <div className="relative group shrink-0">
+                <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 blur opacity-0 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
+                <div className="purple-animated-border rounded-full">
+                    <Avatar className="h-32 w-32 border-4 border-background group-hover:scale-105 transition-transform duration-300">
+                        <AvatarImage src={authorAvatar} alt={authorName} className="grayscale group-hover:grayscale-0 transition-all duration-300" />
+                        <AvatarFallback>YV</AvatarFallback>
+                    </Avatar>
+                </div>
+                 <div className="absolute bottom-1 right-1 bg-gray-800 p-1.5 rounded-full border-2 border-background">
+                    <Code className="h-4 w-4 text-green-400" />
+                </div>
+            </div>
             <div className="flex-1 text-center md:text-left">
                 <div className="flex flex-col items-center md:items-start gap-2">
                     <h3 className="text-2xl font-headline font-bold">{authorName}</h3>
@@ -84,8 +92,8 @@ const AboutTheAuthor = () => {
                             onToggle={handleFollowToggle}
                         />
                     )}
-                     <Link href={instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
-                        <Instagram className="h-4 w-4" />
+                     <Link href={instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-transparent instagram-gradient hover:opacity-80 transition-opacity">
+                        <Instagram className="h-4 w-4 text-[#C13584]" />
                         Follow on Instagram
                      </Link>
                 </div>

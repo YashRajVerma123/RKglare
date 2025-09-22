@@ -165,7 +165,7 @@
     }
     
     .instagram-gradient {
-      @apply bg-gradient-to-r from-yellow-500 via-red-500 to-purple-500 bg-clip-text text-transparent;
+      @apply bg-gradient-to-r from-yellow-400 via-red-500 to-purple-500 bg-clip-text text-transparent;
     }
     
     .insta-border::before {
@@ -190,6 +190,25 @@
     
     .insta-border:hover::before {
         opacity: 1;
+    }
+    
+    .purple-animated-border::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: inherit;
+        padding: 2px;
+        background: conic-gradient(from var(--gradient-angle, 0deg), #a855f7, #6366f1, #a855f7);
+        -webkit-mask: 
+            linear-gradient(#fff 0 0) content-box,
+            linear-gradient(#fff 0 0);
+        mask: 
+            linear-gradient(#fff 0 0) content-box,
+            linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+        animation: spin 4s linear infinite;
     }
 
     .decorative-border {
