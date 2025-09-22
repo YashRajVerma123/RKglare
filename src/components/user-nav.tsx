@@ -1,4 +1,5 @@
 
+
 'use client';
 import { CreditCard, LogOut, User as UserIcon, Upload, Moon, Sun, Loader2, PanelRightOpen, Settings, UserPlus,LogIn } from 'lucide-react';
 import {
@@ -31,6 +32,7 @@ import { usePathname } from 'next/navigation';
 import { Textarea } from './ui/textarea';
 import FollowListDialog from './follow-list-dialog';
 import Link from 'next/link';
+import ProfileCard from './profile-card';
 
 // Helper to convert file to Base64
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
@@ -290,67 +292,79 @@ const UserNav = () => {
 
 
        <Dialog open={isProfileOpen} onOpenChange={setProfileOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle>Edit Profile</DialogTitle>
             <DialogDescription>
               Make changes to your profile here. Click save when you're done.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleProfileUpdate}>
-            <div className="grid gap-4 py-4">
-               <div className="flex flex-col items-center gap-4">
-                  <Avatar className="h-24 w-24">
-                    <AvatarImage src={previewUrl} alt={newUsername} />
-                    <AvatarFallback>{getInitials(newUsername)}</AvatarFallback>
-                  </Avatar>
-                  <Input 
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAvatarChange}
-                    ref={fileInputRef}
-                    className="hidden"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
+              <form onSubmit={handleProfileUpdate} className="space-y-4">
+                <div className="flex flex-col items-center gap-4">
+                    <Avatar className="h-24 w-24">
+                      <AvatarImage src={previewUrl} alt={newUsername} />
+                      <AvatarFallback>{getInitials(newUsername)}</AvatarFallback>
+                    </Avatar>
+                    <Input 
+                      id="avatar-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                      ref={fileInputRef}
+                      className="hidden"
+                    />
+                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Photo
+                    </Button>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
                   />
-                  <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Photo
-                  </Button>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bio">Bio</Label>
+                  <Textarea
+                    id="bio"
+                    value={newBio}
+                    onChange={(e) => setNewBio(e.target.value)}
+                    placeholder="Tell us a little bit about yourself..."
+                    rows={3}
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch 
+                    id="show-email" 
+                    checked={newShowEmail}
+                    onCheckedChange={setNewShowEmail}
+                  />
+                  <Label htmlFor="show-email">Show email on your profile card</Label>
+                </div>
+                <DialogFooter className="pt-4">
+                    <Button variant="ghost" onClick={() => setProfileOpen(false)}>Cancel</Button>
+                    <Button type="submit" disabled={isSaving}>
+                      {isSaving ? 'Saving...' : 'Save changes'}
+                    </Button>
+                </DialogFooter>
+              </form>
+              <div className="space-y-4">
+                  <Label>Live Preview</Label>
+                  {user && (
+                    <ProfileCard user={{
+                      ...user,
+                      name: newUsername,
+                      avatar: previewUrl,
+                      bio: newBio,
+                      showEmail: newShowEmail
+                    }} />
+                  )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={newUsername}
-                  onChange={(e) => setNewUsername(e.target.value)}
-                />
-              </div>
-               <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
-                <Textarea
-                  id="bio"
-                  value={newBio}
-                  onChange={(e) => setNewBio(e.target.value)}
-                  placeholder="Tell us a little bit about yourself..."
-                  rows={3}
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch 
-                  id="show-email" 
-                  checked={newShowEmail}
-                  onCheckedChange={setNewShowEmail}
-                />
-                <Label htmlFor="show-email">Show email on your profile card</Label>
-              </div>
-            </div>
-            <DialogFooter>
-               <Button variant="ghost" onClick={() => setProfileOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? 'Saving...' : 'Save changes'}
-              </Button>
-            </DialogFooter>
-          </form>
+          </div>
         </DialogContent>
       </Dialog>
       {user && (
@@ -366,6 +380,8 @@ const UserNav = () => {
 };
 
 export default UserNav;
+
+    
 
     
 

@@ -38,6 +38,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AnalyticsDashboard from "@/components/analytics-dashboard";
 import AboutTheAuthor from "@/components/about-the-author";
 import { BulletinCard } from "@/app/(pages)/bulletin/page";
+import { Label } from "@/components/ui/label";
 
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -721,6 +722,9 @@ export default AdminPage;
     
 
 
+
+
+    
 
 
     
