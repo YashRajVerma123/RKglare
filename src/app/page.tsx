@@ -1,6 +1,13 @@
 
 import Link from 'next/link';
 import { ArrowRight, BrainCircuit, Rocket, SatelliteDish, Mail } from 'lucide-react';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 
 import { Button } from '@/components/ui/button';
 import { getFeaturedPosts, getRecentPosts, getTrendingPosts } from '@/lib/data';
@@ -9,6 +16,7 @@ import AboutTheAuthor from '@/components/about-the-author';
 import PopularPostCard from '@/components/popular-post-card';
 import EditorsPickCard from '@/components/editors-pick-card';
 import NewsletterForm from '@/components/newsletter-form';
+import FeaturedPostCard from '@/components/featured-post-card';
 
 const topics = [
     {
@@ -65,35 +73,54 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Editor's Picks Section */}
+      {/* Featured Posts Carousel */}
       {featuredPosts.length > 0 && (
-        <section className="container mx-auto px-4">
-          <h2 className="text-3xl font-headline font-bold mb-8 text-center">Editor's Picks</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-2 gap-8 h-auto lg:h-[800px]">
-            {mainPost && (
-              <div className="lg:col-span-2 lg:row-span-2">
-                <EditorsPickCard post={mainPost} layout="large" priority />
-              </div>
-            )}
-            {secondaryPost && (
-              <div className="lg:col-span-1 lg:row-span-1">
-                <EditorsPickCard post={secondaryPost} layout="medium" priority />
-              </div>
-            )}
-            {tertiaryPosts.length > 0 && (
-              <div className="lg:col-span-1 lg:row-span-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-8">
-                {tertiaryPosts.map(post => (
-                  <EditorsPickCard key={post.id} post={post} layout="small" priority />
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
+          <section className="container mx-auto px-4">
+              <h2 className="text-3xl font-headline font-bold mb-8 text-center">Featured Stories</h2>
+              <Carousel
+                  opts={{
+                      align: "start",
+                      loop: true,
+                  }}
+                  className="w-full"
+              >
+                  <CarouselContent>
+                      {featuredPosts.map((post) => (
+                          <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3">
+                              <div className="p-1 h-full">
+                                  <FeaturedPostCard post={post} />
+                              </div>
+                          </CarouselItem>
+                      ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="hidden md:flex" />
+                  <CarouselNext className="hidden md:flex" />
+              </Carousel>
+          </section>
       )}
 
       {/* Recent Posts Section */}
       <section className="container mx-auto px-4">
         <FeedTabs recentPosts={recentPosts} />
+      </section>
+
+      {/* Why Glare? Section */}
+      <section className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-headline font-bold">Why Glare?</h2>
+            <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">We focus on the subjects that are shaping tomorrow, today.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {topics.map((topic, index) => (
+                  <div key={index} className="glass-card text-center p-8 transition-transform transform hover:-translate-y-2">
+                      <div className="inline-block p-4 bg-primary/10 rounded-full mb-4">
+                          {topic.icon}
+                      </div>
+                      <h3 className="text-xl font-headline font-semibold mb-2">{topic.title}</h3>
+                      <p className="text-muted-foreground text-sm">{topic.description}</p>
+                  </div>
+              ))}
+          </div>
       </section>
 
       {/* Newsletter Section */}
