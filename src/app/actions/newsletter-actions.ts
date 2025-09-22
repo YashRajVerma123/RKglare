@@ -51,7 +51,7 @@ export async function sendCustomNewsletter(subject: string, htmlContent: string)
         }
 
         await resend.emails.send({
-            from: 'Glare Blog <noreply@theglare.blog>',
+            from: 'Glare Blog <onboarding@resend.dev>',
             to: subscriberEmails,
             subject: subject,
             html: htmlContent,

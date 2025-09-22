@@ -94,7 +94,7 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
 
         if (subscriberEmails.length > 0) {
             await resend.emails.send({
-                from: 'Glare Blog <noreply@theglare.blog>', // You'll need to verify this domain in Resend
+                from: 'Glare Blog <onboarding@resend.dev>', // You'll need to verify this domain in Resend
                 to: subscriberEmails,
                 subject: newPost.title,
                 react: NewPostEmail({ post: newPost }),
