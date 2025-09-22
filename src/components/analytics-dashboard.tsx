@@ -16,16 +16,18 @@ interface AnalyticsDashboardProps {
   posts: Post[];
 }
 
-const generateChartData = (posts: Post[], days: number) => {
-  const data: { [key: string]: { name: string, views: number } } = {};
+const generateChartData = (posts: Post[], timeRange: string) => {
+  const data: { [key: string]: { name: string, views: number, date: Date } } = {};
   const endDate = new Date();
 
-  if (days === 1) { // Last 24 hours
+  if (timeRange === '1') { // Last 24 hours
     const startDate = subHours(endDate, 23);
     for (let i = 0; i < 24; i++) {
       const date = subHours(endDate, i);
       const formattedDate = format(date, 'ha'); // '12am', '1pm', etc.
-      data[formattedDate] = { name: formattedDate, views: 0 };
+      if (!data[formattedDate]) {
+        data[formattedDate] = { name: formattedDate, views: 0, date };
+      }
     }
     posts.forEach(post => {
       const postDate = parseISO(post.publishedAt);
@@ -36,13 +38,14 @@ const generateChartData = (posts: Post[], days: number) => {
         }
       }
     });
-
+     return Object.values(data).sort((a, b) => a.date.getTime() - b.date.getTime());
   } else { // Days view
+    const days = Number(timeRange);
     const startDate = subDays(endDate, days - 1);
     for (let i = 0; i < days; i++) {
       const date = subDays(endDate, i);
       const formattedDate = format(date, 'MMM d');
-      data[formattedDate] = { name: formattedDate, views: 0 };
+      data[formattedDate] = { name: formattedDate, views: 0, date };
     }
     posts.forEach(post => {
       const postDate = parseISO(post.publishedAt);
@@ -53,42 +56,10 @@ const generateChartData = (posts: Post[], days: number) => {
         }
       }
     });
+    return Object.values(data).sort((a, b) => a.date.getTime() - b.date.getTime());
   }
-
-  return Object.values(data).sort((a, b) => {
-    if (days === 1) {
-      // Custom sort for hours (e.g., '12am', '1am'...'11pm')
-      const hourA = parseInt(a.name.replace(/am|pm/, ''));
-      const periodA = a.name.includes('am') ? 0 : 1;
-      const hourB = parseInt(b.name.replace(/am|pm/, ''));
-      const periodB = b.name.includes('pm') ? 0 : 1;
-
-      // Handle 12am/12pm correctly
-      const realHourA = hourA === 12 ? (periodA === 0 ? 0 : 12) : hourA + (periodA * 12);
-      const realHourB = hourB === 12 ? (periodB === 0 ? 0 : 12) : hourB + (periodB * 12);
-      
-      // Need to find the original date objects to sort properly
-      const now = new Date();
-      const dateA = Object.keys(data).find(key => data[key] === a);
-      const dateB = Object.keys(data).find(key => data[key] === b);
-      
-      // Fallback to simple name sort if keys aren't found
-      if(!dateA || !dateB) return a.name.localeCompare(b.name);
-
-      // This is not perfect as we lose the date part, but for a 24h window it's a proxy.
-      // A better way would be to not use formatted string as key.
-      const d1 = new Date(now);
-      d1.setHours(realHourA, 0, 0, 0);
-
-      const d2 = new Date(now);
-      d2.setHours(realHourB, 0, 0, 0);
-      
-      return d1.getTime() - d2.getTime();
-
-    }
-    return new Date(a.name).getTime() - new Date(b.name).getTime()
-  });
 };
+
 
 const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
   const [timeRange, setTimeRange] = useState('30');
@@ -115,7 +86,7 @@ const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
     fetchAnalytics();
   }, [posts]);
   
-  const chartData = useMemo(() => generateChartData(posts, Number(timeRange)), [posts, timeRange]);
+  const chartData = useMemo(() => generateChartData(posts, timeRange), [posts, timeRange]);
   
   const totalLikes = postAnalytics.reduce((sum, post) => sum + (post.likes || 0), 0);
   const totalViews = totalLikes;
