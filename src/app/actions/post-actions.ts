@@ -9,9 +9,6 @@ import { z } from 'zod';
 import { Resend } from 'resend';
 import NewPostEmail from '@/emails/new-post-email';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-
 const formSchema = z.object({
   title: z.string().min(10, 'Title must be at least 10 characters.'),
   description: z.string().min(20, 'Description must be at least 20 characters.'),
@@ -88,6 +85,7 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
 
     // Send newsletter email
     try {
+        const resend = new Resend(process.env.RESEND_API_KEY);
         const subscribersCollection = collection(db, 'subscribers');
         const subscribersSnapshot = await getDocs(subscribersCollection);
         const subscriberEmails = subscribersSnapshot.docs.map(doc => doc.data().email);

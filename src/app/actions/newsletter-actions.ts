@@ -7,7 +7,6 @@ import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/f
 import { Resend } from 'resend';
 
 const emailSchema = z.string().email();
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function subscribeToNewsletter(email: string): Promise<{ success: boolean; error?: string }> {
   const validation = emailSchema.safeParse(email);
@@ -41,6 +40,7 @@ export async function subscribeToNewsletter(email: string): Promise<{ success: b
 }
 
 export async function sendCustomNewsletter(subject: string, htmlContent: string) {
+    const resend = new Resend(process.env.RESEND_API_KEY);
     try {
         const subscribersCollection = collection(db, 'subscribers');
         const subscribersSnapshot = await getDocs(subscribersCollection);
