@@ -45,6 +45,7 @@ const AboutTheAuthor = () => {
   const authorAvatar = mainAuthor?.avatar || "https://i.ibb.co/TChNTL8/pfp.png";
   const authorName = mainAuthor?.name || "Yash Raj Verma";
   const authorBio = mainAuthor?.bio || "Hi, I'm Yash Raj Verma. Welcome to Glare, my personal blog where I explore the rapidly evolving worlds of technology, AI, space, and breaking news. I break down complex topics into clear, engaging insights. Thanks for reading.";
+  const developerBio = "Hi there, I'm Yash Raj Verma, the developer behind Glare. This project is my personal playground for blending cutting-edge web technologies with a passion for clean, readable content. I built Glare from the ground up using Next.js, Firebase, and AI to create a fast, modern, and engaging user experience. Thanks for visiting!";
   const instagramUrl = mainAuthor?.instagramUrl || "https://instagram.com/v.yash.raj";
   const signature = mainAuthor?.signature || "V.Yash.Raj";
   const followerCount = mainAuthor?.followers || 0;
@@ -73,7 +74,7 @@ const AboutTheAuthor = () => {
                     </div>
                 </div>
                 <p className="text-muted-foreground mt-2 mb-4">
-                  {authorBio}
+                  {isHomePage ? developerBio : authorBio}
                 </p>
                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
                     {mainAuthor && user && user.id !== mainAuthor.id && !isLoading && (
