@@ -58,7 +58,7 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
          throw new Error('Author details could not be found.');
     }
 
-    const slug = values.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+    const newSlug = values.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
     const tagsArray = values.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
 
     let trendingUntil: Date | null = null;
@@ -67,9 +67,9 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
         sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
         trendingUntil = sevenDaysFromNow;
     }
-
+    
     const newPostData = {
-        slug,
+        slug: newSlug,
         title: values.title,
         description: values.description,
         content: values.content,
@@ -87,146 +87,160 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
     };
     
     const postsCollection = collection(db, 'posts');
-    
-    await runTransaction(db, async (transaction) => {
-        if (newPostData.trending && newPostData.trendingPosition) {
-            const position = newPostData.trendingPosition;
-            
-            const trendingQuery = query(
-                postsCollection,
-                where('trending', '==', true),
-                where('trendingPosition', '>=', position),
-                orderBy('trendingPosition', 'asc')
-            );
-            const trendingSnapshot = await getDocs(trendingQuery);
-            
-            for (const postDoc of trendingSnapshot.docs) {
-                const postData = postDoc.data();
-                const newPosition = (postData.trendingPosition || 0) + 1;
-                
-                if (newPosition > 10) {
-                    transaction.update(postDoc.ref, {
-                        trending: false,
-                        trendingPosition: null,
-                        trendingUntil: null
-                    });
-                } else {
-                    transaction.update(postDoc.ref, { trendingPosition: newPosition });
+    const batch = writeBatch(db);
+
+    if (newPostData.trending && newPostData.trendingPosition) {
+        const position = newPostData.trendingPosition;
+        
+        // Fetch all current trending posts
+        const trendingQuery = query(
+            postsCollection,
+            where('trending', '==', true)
+        );
+        const trendingSnapshot = await getDocs(trendingQuery);
+        let trendingPosts = trendingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // Sort them by position
+        trendingPosts.sort((a, b) => (a.trendingPosition || 11) - (b.trendingPosition || 11));
+
+        // Make space for the new post
+        if (trendingPosts.some(p => p.trendingPosition === position)) {
+            for (let i = trendingPosts.length - 1; i >= 0; i--) {
+                const post = trendingPosts[i];
+                if ((post.trendingPosition || 0) >= position) {
+                    const newPosition = (post.trendingPosition || 0) + 1;
+                    const postRef = doc(db, 'posts', post.id);
+                    if (newPosition > 10) {
+                        batch.update(postRef, {
+                            trending: false,
+                            trendingPosition: null,
+                            trendingUntil: null,
+                        });
+                    } else {
+                        batch.update(postRef, { trendingPosition: newPosition });
+                    }
                 }
             }
         }
-        
-        const newDocRef = doc(collection(db, 'posts'));
-        transaction.set(newDocRef, newPostData);
-    });
+    }
+    
+    const newDocRef = doc(collection(db, 'posts'));
+    batch.set(newDocRef, newPostData);
+    await batch.commit();
+
 
     revalidatePath('/');
     revalidatePath('/posts');
     revalidatePath('/admin');
     
-    return slug;
+    return newSlug;
 }
 
 export async function updatePost(postId: string, values: z.infer<typeof formSchema>): Promise<string> {
   const postRef = doc(db, 'posts', postId);
   const newSlug = values.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
-  await runTransaction(db, async (transaction) => {
-    const oldPostSnap = await transaction.get(postRef);
-    if (!oldPostSnap.exists()) {
-      throw new Error("Post not found");
-    }
-    const oldPostData = oldPostSnap.data();
+  const oldPostSnap = await getDoc(postRef);
+  if (!oldPostSnap.exists()) {
+    throw new Error("Post not found");
+  }
+  const oldPostData = oldPostSnap.data();
 
-    const tagsArray = values.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+  const tagsArray = values.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+  const isNowTrending = values.trending;
+  let newPosition = values.trendingPosition || null;
 
-    let trendingUntil: Date | null;
-    if (values.trending) {
-        if (!oldPostData?.trending) {
-            const sevenDaysFromNow = new Date();
-            sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-            trendingUntil = sevenDaysFromNow;
-        } else {
-            trendingUntil = oldPostData?.trendingUntil ? oldPostData.trendingUntil.toDate() : null;
-        }
-    } else {
-        trendingUntil = null;
-    }
+  // Fetch all current trending posts
+  const postsCollection = collection(db, 'posts');
+  const trendingQuery = query(postsCollection, where('trending', '==', true));
+  const trendingSnapshot = await getDocs(trendingQuery);
+  // Exclude the current post from the initial list, as its status might change
+  let trendingPosts = trendingSnapshot.docs
+    .map(doc => ({ id: doc.id, ...(doc.data() as Post) }))
+    .filter(p => p.id !== postId);
 
-    const updatedData: { [key: string]: any } = {
-      slug: newSlug,
-      title: values.title,
-      description: values.description,
-      content: values.content,
-      coverImage: values.coverImage,
-      tags: tagsArray,
-      featured: values.featured,
-      trending: values.trending,
-      trendingPosition: values.trendingPosition || null,
-      trendingUntil: trendingUntil,
-      readTime: values.readTime,
-      summary: values.summary || '',
+  // If the post is now trending, add it to the list for re-ranking
+  if (isNowTrending && newPosition) {
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+    
+    const currentPostForRanking: Post = {
+        id: postId,
+        ...oldPostData,
+        ...values,
+        slug: newSlug,
+        tags: tagsArray,
+        trendingPosition: newPosition,
+        trendingUntil: oldPostData.trending && oldPostData.trendingUntil ? oldPostData.trendingUntil.toDate().toISOString() : sevenDaysFromNow.toISOString(),
+        publishedAt: oldPostData.publishedAt.toDate().toISOString(),
+        likes: oldPostData.likes || 0
     };
     
-    const newPosition = updatedData.trendingPosition;
-    const oldPosition = oldPostData.trendingPosition;
-    const isNowTrending = updatedData.trending;
-    const wasTrending = oldPostData.trending;
+    // Remove any existing post at the new position
+    trendingPosts = trendingPosts.filter(p => p.trendingPosition !== newPosition);
+    trendingPosts.push(currentPostForRanking);
+  }
 
-    const postsCollection = collection(db, 'posts');
+  // Sort all posts by their intended position
+  trendingPosts.sort((a, b) => (a.trendingPosition || 11) - (b.trendingPosition || 11));
 
-    if (isNowTrending && newPosition && (newPosition !== oldPosition || !wasTrending)) {
-        const trendingQuery = query(
-            postsCollection,
-            where('trending', '==', true),
-            where('trendingPosition', '>=', newPosition),
-            orderBy('trendingPosition', 'asc')
-        );
-        const snapshot = await getDocs(trendingQuery);
-        
-        for (const postDoc of snapshot.docs) {
-            if (postDoc.id === postId) continue;
+  const batch = writeBatch(db);
+  const updatedTrendingIds = new Set<string>();
 
-            const postData = postDoc.data();
-            const shiftedPosition = (postData.trendingPosition || 0) + 1;
-
-            if (shiftedPosition > 10) {
-                 transaction.update(postDoc.ref, {
-                    trending: false,
-                    trendingPosition: null,
-                    trendingUntil: null
-                });
-            } else {
-                transaction.update(postDoc.ref, { trendingPosition: shiftedPosition });
-            }
-        }
+  // Re-assign positions 1-10
+  trendingPosts.forEach((post, index) => {
+    const newPos = index + 1;
+    if (newPos <= 10) {
+      const pRef = doc(db, 'posts', post.id);
+      if (post.trendingPosition !== newPos) {
+        batch.update(pRef, { trendingPosition: newPos });
+      }
+      updatedTrendingIds.add(post.id);
     }
-    
-    if (!isNowTrending && wasTrending && oldPosition) {
-        const trendingQuery = query(
-            postsCollection,
-            where('trending', '==', true),
-            where('trendingPosition', '>', oldPosition),
-            orderBy('trendingPosition', 'asc')
-        );
-        const snapshot = await getDocs(trendingQuery);
-
-        for (const postDoc of snapshot.docs) {
-            const postData = postDoc.data();
-            transaction.update(postDoc.ref, { trendingPosition: (postData.trendingPosition || 1) - 1 });
-        }
-    }
-    
-    transaction.update(postRef, updatedData);
   });
-  
-  const finalPostSnap = await getDoc(postRef);
-  const finalPostData = finalPostSnap.data();
+
+  // Any posts that were trending but are no longer in the top 10
+  trendingSnapshot.docs.forEach(docSnap => {
+    if (!updatedTrendingIds.has(docSnap.id)) {
+      batch.update(docSnap.ref, {
+        trending: false,
+        trendingPosition: null,
+        trendingUntil: null,
+      });
+    }
+  });
+
+  // Finally, update the actual post being edited
+  const finalUpdateData: { [key: string]: any } = {
+    slug: newSlug,
+    title: values.title,
+    description: values.description,
+    content: values.content,
+    coverImage: values.coverImage,
+    tags: tagsArray,
+    featured: values.featured,
+    readTime: values.readTime,
+    summary: values.summary || '',
+    trending: isNowTrending,
+    trendingPosition: isNowTrending ? newPosition : null,
+  };
+
+  if (isNowTrending && !oldPostData.trending) {
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+    finalUpdateData.trendingUntil = sevenDaysFromNow;
+  } else if (!isNowTrending) {
+    finalUpdateData.trendingUntil = null;
+  }
+
+  batch.update(postRef, finalUpdateData);
+
+  await batch.commit();
 
   revalidatePath('/');
   revalidatePath('/posts');
-  if (finalPostData?.slug) revalidatePath(`/posts/${finalPostData.slug}`);
-  if (finalPostData?.slug !== newSlug) revalidatePath(`/posts/${newSlug}`);
+  if (oldPostData?.slug) revalidatePath(`/posts/${oldPostData.slug}`);
+  revalidatePath(`/posts/${newSlug}`);
   revalidatePath('/admin');
 
   return newSlug;
