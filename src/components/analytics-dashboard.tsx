@@ -19,6 +19,7 @@ interface AnalyticsDashboardProps {
 const generateChartData = (posts: Post[], timeRange: string) => {
   const data: { [key: string]: { name: string, views: number, date: Date } } = {};
   const endDate = new Date();
+  const impressionsPerLike = 5; // Each like is estimated to represent 5 views/impressions
 
   if (timeRange === '1') { // Last 24 hours
     const startDate = subHours(endDate, 23);
@@ -34,7 +35,7 @@ const generateChartData = (posts: Post[], timeRange: string) => {
       if (postDate >= startDate && postDate <= endDate) {
         const formattedDate = format(postDate, 'ha');
         if (data[formattedDate]) {
-          data[formattedDate].views += (post.likes || 0);
+          data[formattedDate].views += (post.likes || 0) * impressionsPerLike;
         }
       }
     });
@@ -52,7 +53,7 @@ const generateChartData = (posts: Post[], timeRange: string) => {
       if (postDate >= startDate && postDate <= endDate) {
         const formattedDate = format(postDate, 'MMM d');
         if (data[formattedDate]) {
-          data[formattedDate].views += (post.likes || 0);
+          data[formattedDate].views += (post.likes || 0) * impressionsPerLike;
         }
       }
     });
@@ -74,8 +75,8 @@ const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
         totalCommentsCount += comments.length;
         return {
           ...post,
-          views: post.likes || 0,
-          impressions: (post.likes || 0) * 5,
+          views: (post.likes || 0) * 5, // Simple estimation: 1 like = 5 views
+          impressions: (post.likes || 0) * 10, // Simple estimation: 1 like = 10 impressions
           commentsCount: comments.length,
         };
       });
@@ -89,20 +90,21 @@ const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
   const chartData = useMemo(() => generateChartData(posts, timeRange), [posts, timeRange]);
   
   const totalLikes = postAnalytics.reduce((sum, post) => sum + (post.likes || 0), 0);
-  const totalViews = totalLikes;
+  const totalViews = postAnalytics.reduce((sum, post) => sum + post.views, 0);
   const totalImpressions = postAnalytics.reduce((sum, post) => sum + post.impressions, 0);
+
 
   return (
     <div className="space-y-8">
       <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
         <Card className="glass-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Pageviews (Likes)</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Pageviews (Est.)</CardTitle>
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalViews.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Using total likes as a proxy for views.</p>
+            <p className="text-xs text-muted-foreground">Estimated based on likes.</p>
           </CardContent>
         </Card>
         <Card className="glass-card">
@@ -127,7 +129,7 @@ const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
         </Card>
          <Card className="glass-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Impressions</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Impressions (Est.)</CardTitle>
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -142,7 +144,7 @@ const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
               <div>
                 <CardTitle>Audience Overview</CardTitle>
-                <CardDescription>A summary of your content's likes over time.</CardDescription>
+                <CardDescription>A summary of your content's estimated pageviews over time.</CardDescription>
               </div>
               <Select value={timeRange} onValueChange={setTimeRange}>
                   <SelectTrigger className="w-[180px]">
@@ -172,7 +174,7 @@ const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
                     }}
                  />
                 <Legend iconType="circle"/>
-                <Line type="monotone" dataKey="views" name="Likes" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--primary))" }} activeDot={{ r: 6 }} />
+                <Line type="monotone" dataKey="views" name="Pageviews (Est.)" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: "hsl(var(--primary))" }} activeDot={{ r: 6 }} />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
@@ -190,7 +192,7 @@ const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
                         <TableHead>Post</TableHead>
                         <TableHead className="text-right">Likes</TableHead>
                         <TableHead className="text-right">Comments</TableHead>
-                        <TableHead className="text-right">Impressions (Est.)</TableHead>
+                        <TableHead className="text-right">Pageviews (Est.)</TableHead>
                         <TableHead className="text-right">Read Time</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -202,9 +204,9 @@ const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
                                 {post.title}
                                </Link>
                            </TableCell>
-                           <TableCell className="text-right">{post.views.toLocaleString()}</TableCell>
+                           <TableCell className="text-right">{(post.likes || 0).toLocaleString()}</TableCell>
                            <TableCell className="text-right">{post.commentsCount.toLocaleString()}</TableCell>
-                           <TableCell className="text-right">{post.impressions.toLocaleString()}</TableCell>
+                           <TableCell className="text-right">{post.views.toLocaleString()}</TableCell>
                            <TableCell className="text-right text-primary font-semibold">{post.readTime} min</TableCell>
                        </TableRow>
                    ))}
