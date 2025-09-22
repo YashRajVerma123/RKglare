@@ -12,6 +12,7 @@ import FollowButton from "./follow-button";
 import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
+import { Button } from "./ui/button";
 
 const AboutTheAuthor = () => {
   const { user, mainAuthor, updateMainAuthorFollowerCount } = useAuth();
@@ -54,13 +55,10 @@ const AboutTheAuthor = () => {
   const componentContent = (
       <div className="p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
             <div className="relative group shrink-0">
-                <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 blur opacity-0 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
-                <div className="purple-animated-border rounded-full">
-                    <Avatar className="h-32 w-32 border-4 border-background group-hover:scale-105 transition-transform duration-300">
-                        <AvatarImage src={authorAvatar} alt={authorName} className="grayscale group-hover:grayscale-0 transition-all duration-300" />
-                        <AvatarFallback>YV</AvatarFallback>
-                    </Avatar>
-                </div>
+                <Avatar className="h-32 w-32 border-4 border-background">
+                    <AvatarImage src={authorAvatar} alt={authorName} />
+                    <AvatarFallback>YV</AvatarFallback>
+                </Avatar>
                  <div className="absolute bottom-1 right-1 bg-gray-800 p-1.5 rounded-full border-2 border-background">
                     <Code className="h-4 w-4 text-green-400" />
                 </div>
@@ -76,26 +74,30 @@ const AboutTheAuthor = () => {
                     )}
                 </div>
                 <div className="flex items-center justify-center md:justify-start gap-4 my-2 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                        <Users className="h-4 w-4" />
-                        <span>{followerCount} Followers</span>
-                    </div>
+                    {!isHomePage && (
+                        <div className="flex items-center gap-1">
+                            <Users className="h-4 w-4" />
+                            <span>{followerCount} Followers</span>
+                        </div>
+                    )}
                 </div>
                 <p className="text-muted-foreground mt-2 mb-4">
                   {isHomePage ? developerBio : authorBio}
                 </p>
                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
-                    {mainAuthor && user && user.id !== mainAuthor.id && !isLoading && (
+                    {mainAuthor && user && user.id !== mainAuthor.id && !isLoading && !isHomePage && (
                         <FollowButton
                             authorId={mainAuthor.id}
                             isFollowing={isFollowingState}
                             onToggle={handleFollowToggle}
                         />
                     )}
-                     <Link href={instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-transparent instagram-gradient hover:opacity-80 transition-opacity">
-                        <Instagram className="h-4 w-4 text-[#C13584]" />
-                        Follow on Instagram
-                     </Link>
+                     <Button asChild variant="outline" className="insta-button-outline group/button">
+                        <Link href={instagramUrl} target="_blank" rel="noopener noreferrer">
+                            <Instagram className="h-4 w-4 mr-2 text-pink-500" />
+                            <span className="group-hover/button:instagram-gradient">Follow on Instagram</span>
+                        </Link>
+                     </Button>
                 </div>
             </div>
              <div className="self-end mt-4 md:mt-0">

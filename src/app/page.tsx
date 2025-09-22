@@ -140,10 +140,8 @@ export default async function HomePage() {
           <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-headline font-bold">About the Developer</h2>
           </div>
-          <div className="insta-border rounded-2xl p-0.5">
-            <div className="bg-background rounded-[15px]">
-              <AboutTheAuthor />
-            </div>
+          <div className="aurora-border rounded-2xl">
+            <AboutTheAuthor />
           </div>
       </section>
     </div>
