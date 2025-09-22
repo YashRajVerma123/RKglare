@@ -99,6 +99,21 @@ export default async function HomePage() {
           </section>
       )}
 
+      {/* Trending Posts Section */}
+      {trendingPosts.length > 0 && (
+        <section className="container mx-auto px-4">
+            <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-headline font-bold">Trending Posts</h2>
+                <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">Hand-picked articles that are generating buzz right now.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {trendingPosts.map((post, index) => (
+                    <PopularPostCard key={post.id} post={post} rank={index + 1} />
+                ))}
+            </div>
+        </section>
+      )}
+
       {/* Recent Posts Section */}
       <section className="container mx-auto px-4">
         <FeedTabs recentPosts={recentPosts} />
@@ -138,21 +153,6 @@ export default async function HomePage() {
                 </div>
            </div>
        </section>
-
-      {/* Trending Posts Section */}
-      {trendingPosts.length > 0 && (
-        <section className="container mx-auto px-4">
-            <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-headline font-bold">Trending Posts</h2>
-                <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">Hand-picked articles that are generating buzz right now.</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {trendingPosts.map((post, index) => (
-                    <PopularPostCard key={post.id} post={post} rank={index + 1} />
-                ))}
-            </div>
-        </section>
-      )}
 
       {/* About the Developer Section */}
       <section className="container mx-auto px-4">

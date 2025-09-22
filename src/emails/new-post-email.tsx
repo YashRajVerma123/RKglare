@@ -22,7 +22,7 @@ const baseUrl = process.env.VERCEL_URL
   : 'http://localhost:9003';
 
 export default function NewPostEmail({ post }: NewPostEmailProps) {
-  const postUrl = `${baseUrl}/posts/${post.slug}`;
+  const postUrl = `https://theglare.netlify.app/posts/${post.slug}`;
   const previewText = `New on Glare: ${post.title}`;
 
   return (
@@ -51,7 +51,7 @@ export default function NewPostEmail({ post }: NewPostEmailProps) {
             </Button>
             <Hr style={hr} />
             <Text style={footer}>
-              You're receiving this email because you subscribed to the Glare newsletter.
+              You're receiving this email because you subscribed to the Glare newsletter. You can unsubscribe at any time.
             </Text>
           </Section>
         </Container>
@@ -62,7 +62,7 @@ export default function NewPostEmail({ post }: NewPostEmailProps) {
 
 // Styles
 const main = {
-  backgroundColor: '#ffffff',
+  backgroundColor: '#f6f9fc',
   fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
 };
 
@@ -70,11 +70,13 @@ const container = {
   margin: '0 auto',
   padding: '20px 0 48px',
   width: '580px',
+  backgroundColor: '#ffffff',
+  borderRadius: '8px',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
 };
 
 const header = {
-  padding: '0 20px',
-  borderBottom: '1px solid #eaeaea',
+  padding: '20px',
   textAlign: 'center' as const,
 };
 
@@ -82,10 +84,11 @@ const logo = {
   fontSize: '36px',
   fontWeight: 'bold',
   color: '#7c3aed',
+  fontFamily: 'var(--font-space-grotesk), sans-serif',
 };
 
 const mainImageContainer = {
-  paddingTop: '32px',
+  padding: '0 20px',
 };
 
 const mainImage = {
@@ -93,25 +96,26 @@ const mainImage = {
 };
 
 const content = {
-  padding: '0 20px',
+  padding: '20px 40px',
 };
 
 const heading = {
-  fontSize: '28px',
+  fontSize: '24px',
   fontWeight: 'bold',
-  marginTop: '32px',
-  color: '#333',
+  marginTop: '24px',
+  color: '#1a1a1a',
+  lineHeight: '1.3',
 };
 
 const paragraph = {
   fontSize: '16px',
   lineHeight: '26px',
-  color: '#555',
+  color: '#555555',
 };
 
 const button = {
   backgroundColor: '#7c3aed',
-  borderRadius: '5px',
+  borderRadius: '8px',
   color: '#fff',
   fontSize: '16px',
   fontWeight: 'bold',
@@ -119,16 +123,17 @@ const button = {
   textAlign: 'center' as const,
   display: 'block',
   width: '200px',
-  padding: '12px 20px',
-  margin: '32px 0',
+  padding: '14px 20px',
+  margin: '32px auto',
 };
 
 const hr = {
-  borderColor: '#cccccc',
+  borderColor: '#e6ebf1',
   margin: '20px 0',
 };
 
 const footer = {
   color: '#888888',
   fontSize: '12px',
+  textAlign: 'center' as const,
 };
