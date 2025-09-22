@@ -162,15 +162,6 @@ const UserNav = () => {
       return <div className="h-9 w-9 rounded-full bg-muted animate-pulse" />;
   }
   
-  // For mobile sheet
-   if (pathname.startsWith('/admin')) {
-      return null;
-  }
-
-  if (loading) {
-    return <div className="h-9 w-9 rounded-full bg-muted animate-pulse" />;
-  }
-
   const getInitials = (name: string) => {
     const names = name.split(' ');
     if (names.length > 1 && names[0] && names[1]) {
@@ -179,57 +170,8 @@ const UserNav = () => {
     return name.substring(0, 2);
   };
   
-  // Full component for mobile sheet
-  const FullUserNav = () => {
-      if (!user) {
-          return (
-             <Button variant="default" size="lg" className="w-full" onClick={() => setSignInOpen(true)}>
-              Sign In
-            </Button>
-          )
-      }
-      return (
-          <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-4">
-                  <Avatar className="h-16 w-16">
-                      <AvatarImage src={user.avatar} alt={user.name} />
-                      <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                      <p className="font-semibold text-lg">{user.name}</p>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
-                  </div>
-              </div>
-              <Button variant="outline" onClick={handleOpenProfile}>
-                  <Settings className="mr-2" /> Edit Profile
-              </Button>
-               {isAdmin && (
-                  <Button asChild variant="outline">
-                      <Link href="/admin">
-                          <PanelRightOpen className="mr-2" /> Admin Dashboard
-                      </Link>
-                  </Button>
-                )}
-               <div className="flex items-center justify-between rounded-lg border p-3">
-                  <div className="flex items-center gap-2">
-                    <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                    <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                    <span className="ml-2">Theme</span>
-                  </div>
-                  <Switch
-                      checked={theme === 'dark'}
-                      onCheckedChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                  />
-               </div>
-              <Button variant="destructive" onClick={signOut}>
-                <LogOut className="mr-2" /> Log Out
-              </Button>
-          </div>
-      )
-  }
-  
-  if (pathname.startsWith('/mobile-sheet')) {
-      return <FullUserNav />
+  if (loading) {
+    return <div className="h-9 w-9 rounded-full bg-muted animate-pulse" />;
   }
 
   return (

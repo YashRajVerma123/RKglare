@@ -82,7 +82,7 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
         author,
         publishedAt: new Date().toISOString(),
         readTime: values.readTime,
-        summary: values.summary,
+        summary: values.summary || '',
     };
     
     const postsCollection = collection(db, 'posts');
@@ -136,7 +136,7 @@ export async function updatePost(postId: string, values: z.infer<typeof formSche
     trendingPosition: values.trendingPosition || null,
     trendingUntil: trendingUntil ? new Date(trendingUntil) : null,
     readTime: values.readTime,
-    summary: values.summary,
+    summary: values.summary || '',
   };
 
   await updateDoc(postRef, updatedData);
