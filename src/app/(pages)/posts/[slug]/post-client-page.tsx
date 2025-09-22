@@ -8,7 +8,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock, Flame } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import BlogPostCard from '@/components/blog-post-card';
 import CommentSection from '@/components/comment-section';
@@ -88,6 +88,14 @@ export default function PostClientPage({ post, relatedPosts, initialComments }: 
                 </div>
             </div>
             <h1 className="text-3xl md:text-5xl font-title font-light tracking-tight mb-4">{post.title}</h1>
+            {post.trending && post.trendingPosition && (
+              <div className="mb-6">
+                <Badge className="bg-orange-500/10 text-orange-500 border-orange-500/20 hover:bg-orange-500/20 text-sm badge-shine">
+                  <Flame className="h-4 w-4 mr-2" />
+                  Trending at #{post.trendingPosition}
+                </Badge>
+              </div>
+            )}
             <p className="text-lg text-muted-foreground mb-6">{post.description}</p>
             <div className="flex items-center space-x-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
