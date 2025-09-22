@@ -6,7 +6,8 @@ import { Post, Author } from '@/lib/data';
 import { db } from '@/lib/firebase-server'; // Use server db
 import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, getDocs, limit, getDoc, setDoc } from 'firebase/firestore';
 import { z } from 'zod';
-import { Resend } from 'resend';
+import sgMail from '@sendgrid/mail';
+import { render } from 'react-email';
 import NewPostEmail from '@/emails/new-post-email';
 
 const formSchema = z.object({
@@ -85,18 +86,24 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
 
     // Send newsletter email
     try {
-        const resend = new Resend(process.env.RESEND_API_KEY);
+        if (!process.env.SENDGRID_API_KEY) {
+            throw new Error('SENDGRID_API_KEY is not configured.');
+        }
+        sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
         const subscribersCollection = collection(db, 'subscribers');
         const subscribersSnapshot = await getDocs(subscribersCollection);
         const subscriberEmails = subscribersSnapshot.docs.map(doc => doc.data().email);
 
         if (subscriberEmails.length > 0) {
-            await resend.emails.send({
-                from: 'Glare Blog <onboarding@resend.dev>', // You'll need to verify this domain in Resend
-                to: subscriberEmails,
-                subject: newPost.title,
-                react: NewPostEmail({ post: newPost }),
-            });
+            const emailHtml = render(NewPostEmail({ post: newPost }));
+            const msg = {
+              to: subscriberEmails,
+              from: 'yashrajverma916@gmail.com', // Use your verified single sender email
+              subject: newPost.title,
+              html: emailHtml,
+            };
+            await sgMail.send(msg);
             console.log(`Newsletter sent to ${subscriberEmails.length} subscribers.`);
         }
     } catch (error) {

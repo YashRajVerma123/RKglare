@@ -4,7 +4,7 @@
 import { z } from 'zod';
 import { db } from '@/lib/firebase-server';
 import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
-import { Resend } from 'resend';
+import sgMail from '@sendgrid/mail';
 
 const emailSchema = z.string().email();
 
@@ -40,7 +40,11 @@ export async function subscribeToNewsletter(email: string): Promise<{ success: b
 }
 
 export async function sendCustomNewsletter(subject: string, htmlContent: string) {
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    if (!process.env.SENDGRID_API_KEY) {
+        throw new Error("SENDGRID_API_KEY is not configured.");
+    }
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
     try {
         const subscribersCollection = collection(db, 'subscribers');
         const subscribersSnapshot = await getDocs(subscribersCollection);
@@ -50,12 +54,14 @@ export async function sendCustomNewsletter(subject: string, htmlContent: string)
             throw new Error("There are no subscribers to send to.");
         }
 
-        await resend.emails.send({
-            from: 'Glare Blog <onboarding@resend.dev>',
+        const msg = {
             to: subscriberEmails,
+            from: 'yashrajverma916@gmail.com', // This MUST be your verified single sender email
             subject: subject,
             html: htmlContent,
-        });
+        };
+
+        await sgMail.sendMultiple(msg);
 
         console.log(`Custom newsletter sent to ${subscriberEmails.length} subscribers.`);
         return { success: true };
