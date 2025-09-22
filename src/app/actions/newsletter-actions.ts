@@ -39,7 +39,7 @@ export async function subscribeToNewsletter(email: string) {
     // Send a welcome email
     try {
         await resend.emails.send({
-            from: 'newsletter@theglare.netlify.app', // IMPORTANT: This must be a verified domain on Resend
+            from: 'newsletter@glare.ac', // IMPORTANT: This must be a verified domain on Resend
             to: email,
             subject: 'Welcome to the Glare Newsletter!',
             html: `<h1>Welcome!</h1><p>You've successfully subscribed to the Glare newsletter. We're excited to have you.</p>`,
@@ -66,7 +66,7 @@ export async function sendNewsletterAction(values: z.infer<typeof newsletterSche
     
     try {
         const { data, error } = await resend.emails.send({
-            from: 'newsletter@theglare.netlify.app', // IMPORTANT: This must be a verified domain on Resend
+            from: 'newsletter@glare.ac', // IMPORTANT: This must be a verified domain on Resend
             to: subscribers, // Resend can handle arrays of recipients
             subject: values.title,
             html: values.content,
