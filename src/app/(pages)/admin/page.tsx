@@ -30,7 +30,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { addNotificationAction, deleteNotificationAction } from "@/app/actions/notification-actions";
-import { addBulletinAction } from "@/app/actions/bulletin-actions";
+import { addBulletinAction, deleteBulletinAction } from "@/app/actions/bulletin-actions";
 import { Separator } from "@/components/ui/separator";
 import { updateAuthorProfile } from "@/app/actions/user-actions";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -38,6 +38,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AnalyticsDashboard from "@/components/analytics-dashboard";
 import AboutTheAuthor from "@/components/about-the-author";
 import { generateNewsletterMailto } from "@/app/actions/newsletter-actions";
+import { Label } from "@/components/ui/label";
+import { BulletinCard } from "@/app/(pages)/bulletin/page";
 
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -80,8 +82,10 @@ const AdminPage = () => {
     const [allBulletins, setAllBulletins] = useState<Bulletin[]>([]);
     const [isPostDeleteDialogOpen, setPostDeleteDialogOpen] = useState(false);
     const [isNotifDeleteDialogOpen, setNotifDeleteDialogOpen] = useState(false);
+    const [isBulletinDeleteDialogOpen, setBulletinDeleteDialogOpen] = useState(false);
     const [postToDelete, setPostToDelete] = useState<Post | null>(null);
     const [notificationToDelete, setNotificationToDelete] = useState<Notification | null>(null);
+    const [bulletinToDelete, setBulletinToDelete] = useState<Bulletin | null>(null);
     const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState(user?.avatar || '');
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -121,6 +125,10 @@ const AdminPage = () => {
             signature: user?.signature || '',
         }
     });
+    
+    const watchedProfile = profileForm.watch();
+    const watchedBulletin = bulletinForm.watch();
+    const watchedNotification = notificationForm.watch();
 
     useEffect(() => {
         if (user) {
@@ -175,6 +183,11 @@ const AdminPage = () => {
         setNotificationToDelete(notification);
         setNotifDeleteDialogOpen(true);
     };
+    
+    const handleDeleteBulletinClick = (bulletin: Bulletin) => {
+        setBulletinToDelete(bulletin);
+        setBulletinDeleteDialogOpen(true);
+    };
 
     const handleDeletePostConfirm = async () => {
         if (!postToDelete) return;
@@ -200,6 +213,19 @@ const AdminPage = () => {
         }
         setNotifDeleteDialogOpen(false);
         setNotificationToDelete(null);
+    };
+    
+     const handleDeleteBulletinConfirm = async () => {
+        if (!bulletinToDelete) return;
+        try {
+            await deleteBulletinAction(bulletinToDelete.id);
+            setAllBulletins(allBulletins.filter(b => b.id !== bulletinToDelete!.id));
+            toast({ title: "Bulletin Deleted", description: `"${bulletinToDelete.title}" has been deleted.` });
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to delete bulletin.", variant: "destructive" });
+        }
+        setBulletinDeleteDialogOpen(false);
+        setBulletinToDelete(null);
     };
 
     const onNotificationSubmit = async (values: z.infer<typeof notificationSchema>) => {
@@ -336,8 +362,8 @@ const AdminPage = () => {
                     </div>
                     
                     <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 max-w-full mx-auto">
-                        <div className="xl:col-span-2">
-                            <Card className="glass-card mb-8">
+                        <div className="xl:col-span-2 space-y-8">
+                            <Card className="glass-card">
                                 <CardHeader>
                                     <CardTitle>Manage Posts</CardTitle>
                                     <CardDescription>Here you can edit or delete existing posts.</CardDescription>
@@ -434,83 +460,92 @@ const AdminPage = () => {
                                     <CardDescription>Update your public author information.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <Form {...profileForm}>
-                                        <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
-                                            <div className="flex flex-col items-center gap-4">
-                                                <Avatar className="h-24 w-24">
-                                                    <AvatarImage src={previewUrl} alt={user?.name} />
-                                                    <AvatarFallback>{getInitials(user?.name || '')}</AvatarFallback>
-                                                </Avatar>
-                                                <Input 
-                                                    id="avatar-upload"
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={handleAvatarChange}
-                                                    ref={fileInputRef}
-                                                    className="hidden"
+                                    <div className="grid grid-cols-1 gap-6">
+                                        <Form {...profileForm}>
+                                            <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
+                                                <div className="flex flex-col items-center gap-4">
+                                                    <Avatar className="h-24 w-24">
+                                                        <AvatarImage src={previewUrl} alt={user?.name} />
+                                                        <AvatarFallback>{getInitials(user?.name || '')}</AvatarFallback>
+                                                    </Avatar>
+                                                    <Input 
+                                                        id="avatar-upload"
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={handleAvatarChange}
+                                                        ref={fileInputRef}
+                                                        className="hidden"
+                                                    />
+                                                    <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                                                        <Upload className="mr-2 h-4 w-4" />
+                                                        Change Photo
+                                                    </Button>
+                                                </div>
+                                                <FormField
+                                                    control={profileForm.control}
+                                                    name="name"
+                                                    render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Author Name</FormLabel>
+                                                        <FormControl>
+                                                        <Input placeholder="Yash Raj Verma" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                    )}
                                                 />
-                                                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                                                    <Upload className="mr-2 h-4 w-4" />
-                                                    Change Photo
-                                                </Button>
-                                            </div>
-                                            <FormField
-                                                control={profileForm.control}
-                                                name="name"
-                                                render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Author Name</FormLabel>
-                                                    <FormControl>
-                                                    <Input placeholder="Yash Raj Verma" {...field} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                                )}
-                                            />
-                                            <FormField
-                                                control={profileForm.control}
-                                                name="bio"
-                                                render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Author Bio</FormLabel>
-                                                    <FormControl>
-                                                    <Textarea placeholder="A short bio about yourself..." {...field} rows={4} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                                )}
-                                            />
-                                            <FormField
-                                                control={profileForm.control}
-                                                name="instagramUrl"
-                                                render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Instagram URL</FormLabel>
-                                                    <FormControl>
-                                                    <Input placeholder="https://instagram.com/..." {...field} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                                )}
-                                            />
-                                            <FormField
-                                                control={profileForm.control}
-                                                name="signature"
-                                                render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Signature Text</FormLabel>
-                                                    <FormControl>
-                                                    <Input placeholder="Y. R. Verma" {...field} />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                                )}
-                                            />
-                                        <Button type="submit" className="w-full" disabled={profileForm.formState.isSubmitting}>
-                                            {profileForm.formState.isSubmitting ? 'Saving...' : 'Save Profile'}
-                                        </Button>
-                                        </form>
-                                    </Form>
+                                                <FormField
+                                                    control={profileForm.control}
+                                                    name="bio"
+                                                    render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Author Bio</FormLabel>
+                                                        <FormControl>
+                                                        <Textarea placeholder="A short bio about yourself..." {...field} rows={4} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                    )}
+                                                />
+                                                <FormField
+                                                    control={profileForm.control}
+                                                    name="instagramUrl"
+                                                    render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Instagram URL</FormLabel>
+                                                        <FormControl>
+                                                        <Input placeholder="https://instagram.com/..." {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                    )}
+                                                />
+                                                <FormField
+                                                    control={profileForm.control}
+                                                    name="signature"
+                                                    render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Signature Text</FormLabel>
+                                                        <FormControl>
+                                                        <Input placeholder="Y. R. Verma" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                    )}
+                                                />
+                                            <Button type="submit" className="w-full" disabled={profileForm.formState.isSubmitting}>
+                                                {profileForm.formState.isSubmitting ? 'Saving...' : 'Save Profile'}
+                                            </Button>
+                                            </form>
+                                        </Form>
+                                         <div className="space-y-2">
+                                            <Label>Live Preview</Label>
+                                            <AboutTheAuthor previewData={{
+                                                ...watchedProfile,
+                                                avatar: previewUrl,
+                                            }} />
+                                        </div>
+                                    </div>
                                 </CardContent>
                             </Card>
 
@@ -523,52 +558,63 @@ const AdminPage = () => {
                                     <CardDescription>Publish a new daily bulletin.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <Form {...bulletinForm}>
-                                        <form onSubmit={bulletinForm.handleSubmit(onBulletinSubmit)} className="space-y-4">
-                                        <FormField
-                                            control={bulletinForm.control}
-                                            name="title"
-                                            render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Title</FormLabel>
-                                                <FormControl>
-                                                <Input placeholder="Daily Market Wrap-Up" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={bulletinForm.control}
-                                            name="content"
-                                            render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Content</FormLabel>
-                                                <FormControl>
-                                                <Textarea placeholder="Markets closed mixed today..." {...field} rows={4} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={bulletinForm.control}
-                                            name="coverImage"
-                                            render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Image URL</FormLabel>
-                                                <FormControl>
-                                                <Input placeholder="https://picsum.photos/1200/800" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                            )}
-                                        />
-                                        <Button type="submit" className="w-full" disabled={bulletinForm.formState.isSubmitting}>
-                                            {bulletinForm.formState.isSubmitting ? 'Publishing...' : 'Publish Bulletin'}
-                                        </Button>
-                                        </form>
-                                    </Form>
+                                    <div className="grid grid-cols-1 gap-6">
+                                        <Form {...bulletinForm}>
+                                            <form onSubmit={bulletinForm.handleSubmit(onBulletinSubmit)} className="space-y-4">
+                                            <FormField
+                                                control={bulletinForm.control}
+                                                name="title"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Title</FormLabel>
+                                                    <FormControl>
+                                                    <Input placeholder="Daily Market Wrap-Up" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={bulletinForm.control}
+                                                name="content"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Content</FormLabel>
+                                                    <FormControl>
+                                                    <Textarea placeholder="Markets closed mixed today..." {...field} rows={4} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={bulletinForm.control}
+                                                name="coverImage"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Image URL</FormLabel>
+                                                    <FormControl>
+                                                    <Input placeholder="https://picsum.photos/1200/800" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <Button type="submit" className="w-full" disabled={bulletinForm.formState.isSubmitting}>
+                                                {bulletinForm.formState.isSubmitting ? 'Publishing...' : 'Publish Bulletin'}
+                                            </Button>
+                                            </form>
+                                        </Form>
+                                        <div className="space-y-2">
+                                            <Label>Live Preview</Label>
+                                            <BulletinCard bulletin={{
+                                                id: 'preview',
+                                                publishedAt: new Date().toISOString(),
+                                                ...watchedBulletin,
+                                                coverImage: watchedBulletin.coverImage || 'https://picsum.photos/1200/800',
+                                            }} index={0} />
+                                        </div>
+                                    </div>
                                 </CardContent>
                             </Card>
 
@@ -581,85 +627,138 @@ const AdminPage = () => {
                                     <CardDescription>Publish a new announcement to all users.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                <Form {...notificationForm}>
-                                    <form onSubmit={notificationForm.handleSubmit(onNotificationSubmit)} className="space-y-4">
-                                    <FormField
-                                        control={notificationForm.control}
-                                        name="title"
-                                        render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Title</FormLabel>
-                                            <FormControl>
-                                            <Input placeholder="New Feature Alert!" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={notificationForm.control}
-                                        name="description"
-                                        render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Description</FormLabel>
-                                            <FormControl>
-                                            <Textarea placeholder="Check out our new comment system!" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={notificationForm.control}
-                                        name="image"
-                                        render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Image URL (Optional)</FormLabel>
-                                            <FormControl>
-                                            <Input placeholder="https://example.com/image.png" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                        )}
-                                    />
-                                    <Button type="submit" className="w-full" disabled={notificationForm.formState.isSubmitting}>
-                                        {notificationForm.formState.isSubmitting ? 'Sending...' : 'Send Notification'}
-                                    </Button>
-                                    </form>
-                                </Form>
+                                    <div className="grid grid-cols-1 gap-6">
+                                        <Form {...notificationForm}>
+                                            <form onSubmit={notificationForm.handleSubmit(onNotificationSubmit)} className="space-y-4">
+                                            <FormField
+                                                control={notificationForm.control}
+                                                name="title"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Title</FormLabel>
+                                                    <FormControl>
+                                                    <Input placeholder="New Feature Alert!" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={notificationForm.control}
+                                                name="description"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Description</FormLabel>
+                                                    <FormControl>
+                                                    <Textarea placeholder="Check out our new comment system!" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={notificationForm.control}
+                                                name="image"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Image URL (Optional)</FormLabel>
+                                                    <FormControl>
+                                                    <Input placeholder="https://example.com/image.png" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <Button type="submit" className="w-full" disabled={notificationForm.formState.isSubmitting}>
+                                                {notificationForm.formState.isSubmitting ? 'Sending...' : 'Send Notification'}
+                                            </Button>
+                                            </form>
+                                        </Form>
+                                        <div className="space-y-2">
+                                            <Label>Live Preview</Label>
+                                             <div className="p-4 rounded-lg border bg-card text-card-foreground">
+                                                <div className="grid grid-cols-[25px_1fr] items-start">
+                                                    <span className="flex h-2 w-2 translate-y-1 rounded-full bg-primary" />
+                                                    <div className="space-y-1">
+                                                        <p className="text-sm font-medium leading-none">{watchedNotification.title || "Notification Title"}</p>
+                                                        <p className="text-sm text-muted-foreground">{watchedNotification.description || "Notification description will appear here."}</p>
+                                                        {watchedNotification.image && (
+                                                            <div className="mt-2 relative aspect-video rounded-md overflow-hidden border">
+                                                                <img src={watchedNotification.image} alt="Preview" className="object-cover w-full h-full" />
+                                                            </div>
+                                                        )}
+                                                        <p className="text-xs text-muted-foreground/70 pt-1">{new Date().toLocaleString()}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </CardContent>
                             </Card>
 
                             <Card className="glass-card">
                                 <CardHeader>
-                                    <CardTitle>Manage Notifications</CardTitle>
-                                    <CardDescription>Edit or delete sent notifications.</CardDescription>
+                                    <CardTitle>Manage Content</CardTitle>
+                                    <CardDescription>Edit or delete existing content.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="space-y-4">
-                                        {allNotifications.length > 0 ? allNotifications.map((notif, index) => (
-                                            <div key={notif.id}>
-                                            <div className="flex justify-between items-start gap-4">
-                                                <div className="space-y-1 flex-1">
-                                                    <p className="font-medium text-sm">{notif.title}</p>
-                                                    <p className="text-xs text-muted-foreground">{notif.description}</p>
-                                                    {notif.image && <ImageIcon className="h-4 w-4 inline-block text-muted-foreground" />}
-                                                </div>
-                                                <div className="flex items-center">
-                                                    <Button asChild variant="ghost" size="icon">
-                                                        <Link href={`/admin/edit-notification/${notif.id}`}><Edit className="h-4 w-4" /></Link>
-                                                    </Button>
-                                                    <Button variant="ghost" size="icon" onClick={() => handleDeleteNotifClick(notif)}>
-                                                        <Trash className="h-4 w-4 text-red-500" />
-                                                    </Button>
-                                                </div>
+                                    <Tabs defaultValue="bulletins" className="w-full">
+                                        <TabsList className="grid w-full grid-cols-2">
+                                            <TabsTrigger value="bulletins">Bulletins</TabsTrigger>
+                                            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+                                        </TabsList>
+                                        <TabsContent value="bulletins">
+                                            <div className="space-y-4 pt-4">
+                                                {allBulletins.length > 0 ? allBulletins.map((item, index) => (
+                                                    <div key={item.id}>
+                                                    <div className="flex justify-between items-start gap-4">
+                                                        <div className="space-y-1 flex-1">
+                                                            <p className="font-medium text-sm">{item.title}</p>
+                                                            <p className="text-xs text-muted-foreground">{item.content}</p>
+                                                        </div>
+                                                        <div className="flex items-center">
+                                                            <Button asChild variant="ghost" size="icon">
+                                                                <Link href={`/admin/edit-bulletin/${item.id}`}><Edit className="h-4 w-4" /></Link>
+                                                            </Button>
+                                                            <Button variant="ghost" size="icon" onClick={() => handleDeleteBulletinClick(item)}>
+                                                                <Trash className="h-4 w-4 text-red-500" />
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                    {index < allBulletins.length - 1 && <Separator className="mt-4" />}
+                                                    </div>
+                                                )) : (
+                                                <p className="text-sm text-muted-foreground text-center">No bulletins sent yet.</p>
+                                                )}
                                             </div>
-                                            {index < allNotifications.length - 1 && <Separator className="mt-4" />}
+                                        </TabsContent>
+                                        <TabsContent value="notifications">
+                                            <div className="space-y-4 pt-4">
+                                                {allNotifications.length > 0 ? allNotifications.map((notif, index) => (
+                                                    <div key={notif.id}>
+                                                    <div className="flex justify-between items-start gap-4">
+                                                        <div className="space-y-1 flex-1">
+                                                            <p className="font-medium text-sm">{notif.title}</p>
+                                                            <p className="text-xs text-muted-foreground">{notif.description}</p>
+                                                            {notif.image && <ImageIcon className="h-4 w-4 inline-block text-muted-foreground" />}
+                                                        </div>
+                                                        <div className="flex items-center">
+                                                            <Button asChild variant="ghost" size="icon">
+                                                                <Link href={`/admin/edit-notification/${notif.id}`}><Edit className="h-4 w-4" /></Link>
+                                                            </Button>
+                                                            <Button variant="ghost" size="icon" onClick={() => handleDeleteNotifClick(notif)}>
+                                                                <Trash className="h-4 w-4 text-red-500" />
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                    {index < allNotifications.length - 1 && <Separator className="mt-4" />}
+                                                    </div>
+                                                )) : (
+                                                <p className="text-sm text-muted-foreground text-center">No notifications sent yet.</p>
+                                                )}
                                             </div>
-                                        )) : (
-                                        <p className="text-sm text-muted-foreground text-center">No notifications sent yet.</p>
-                                        )}
-                                    </div>
+                                        </TabsContent>
+                                    </Tabs>
                                 </CardContent>
                             </Card>
                         </div>
@@ -698,6 +797,21 @@ const AdminPage = () => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+             <AlertDialog open={isBulletinDeleteDialogOpen} onOpenChange={setBulletinDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the bulletin
+                            <span className="font-bold"> &quot;{bulletinToDelete?.title}&quot;</span>.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteBulletinConfirm} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };
@@ -705,15 +819,3 @@ const AdminPage = () => {
 export default AdminPage;
 
     
-
-    
-
-
-
-
-    
-
-
-    
-
-

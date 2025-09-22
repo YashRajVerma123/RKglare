@@ -96,7 +96,7 @@ const UserNav = () => {
         });
         setPreviewUrl(user.avatar);
     }
-  }, [user, profileForm]);
+  }, [user, profileForm, isProfileOpen]);
 
   const handleSignIn = async () => {
     setIsSigningIn(true);
@@ -423,9 +423,5 @@ const UserNav = () => {
 };
 
 export default UserNav;
-
-    
-
-    
 
     
