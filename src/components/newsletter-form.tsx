@@ -7,8 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Send } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { subscribeToNewsletter } from '@/app/actions/newsletter-actions';
 
 const formSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
@@ -24,13 +23,25 @@ export default function NewsletterForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // Simulate newsletter subscription
-    console.log('Newsletter subscription for:', values.email);
-    toast({
-      title: 'Subscription Successful!',
-      description: 'Thanks for subscribing. You\'re on the list!',
-    });
-    form.reset();
+    try {
+      const result = await subscribeToNewsletter(values.email);
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      
+      toast({
+        title: 'Subscription Successful!',
+        description: "Thanks for subscribing. You're on the list!",
+      });
+      form.reset();
+
+    } catch (error) {
+       toast({
+        title: 'Subscription Failed',
+        description: (error as Error).message || 'Could not subscribe. Please try again.',
+        variant: 'destructive',
+      });
+    }
   }
 
   return (
