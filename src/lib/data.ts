@@ -125,6 +125,24 @@ const postConverter = {
     }
 }
 
+export type Notification = {
+  id: string;
+  title: string;
+  description: string;
+  createdAt: string; // ISO String
+  read: boolean;
+  image?: string;
+};
+
+export type Bulletin = {
+  id: string;
+  title: string;
+  content: string;
+  coverImage: string;
+  publishedAt: string; // ISO String
+};
+
+
 const notificationConverter = {
     fromFirestore: (snapshot: any, options: any): Notification => {
         const data = snapshot.data(options);
@@ -479,3 +497,5 @@ export type UserData = {
     likedComments: { [commentId: string]: boolean };
     bookmarks: { [postId: string]: { bookmarkedAt: string, scrollPosition?: number } };
 }
+
+    
