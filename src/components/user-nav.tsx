@@ -37,6 +37,8 @@ import FollowListDialog from './follow-list-dialog';
 import Link from 'next/link';
 import ProfileCard from './profile-card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
+import { updateAuthorProfile } from '@/app/actions/user-actions';
+import { ScrollArea } from './ui/scroll-area';
 
 // Helper to convert file to Base64
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
@@ -50,6 +52,8 @@ const profileFormSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters.'),
     bio: z.string().optional(),
     showEmail: z.boolean().default(false),
+    instagramUrl: z.string().url('Please enter a valid Instagram URL.').optional().or(z.literal('')),
+    signature: z.string().optional(),
 });
 
 
@@ -77,6 +81,8 @@ const UserNav = () => {
       name: user?.name || '',
       bio: user?.bio || '',
       showEmail: user?.showEmail || false,
+      instagramUrl: user?.instagramUrl || '',
+      signature: user?.signature || '',
     },
   });
 
@@ -93,6 +99,8 @@ const UserNav = () => {
             name: user.name,
             bio: user.bio || '',
             showEmail: user.showEmail || false,
+            instagramUrl: user.instagramUrl || '',
+            signature: user.signature || '',
         });
         setPreviewUrl(user.avatar);
     }
@@ -137,6 +145,7 @@ const UserNav = () => {
           avatar: newAvatarUrl,
       };
 
+      await updateAuthorProfile(user.id, updateData);
       await updateUserProfile(updateData);
 
       toast({
@@ -171,6 +180,8 @@ const UserNav = () => {
             name: user.name,
             bio: user.bio || '',
             showEmail: user.showEmail || false,
+            instagramUrl: user.instagramUrl || '',
+            signature: user.signature || '',
         });
         setPreviewUrl(user.avatar);
         setNewAvatarFile(null);
@@ -186,7 +197,7 @@ const UserNav = () => {
   const getInitials = (name: string) => {
     const names = name.split(' ');
     if (names.length > 1 && names[0] && names[1]) {
-      return `${names[0][0]}${names[1][0]}`;
+      return `\${names[0][0]}\${names[1][0]}`;
     }
     return name ? name.substring(0, 2) : '';
   };
@@ -316,98 +327,128 @@ const UserNav = () => {
 
        <Dialog open={isProfileOpen} onOpenChange={setProfileOpen}>
         <DialogContent className="sm:max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Edit Profile</DialogTitle>
-            <DialogDescription>
-              Make changes to your profile here. Click save when you're done.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
-              <Form {...profileForm}>
-                <form onSubmit={profileForm.handleSubmit(handleProfileUpdate)} className="space-y-4">
-                  <div className="flex flex-col items-center gap-4">
-                      <Avatar className="h-24 w-24">
-                        <AvatarImage src={previewUrl} alt={watchedProfile.name} />
-                        <AvatarFallback>{getInitials(watchedProfile.name || '')}</AvatarFallback>
-                      </Avatar>
-                      <Input 
-                        id="avatar-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleAvatarChange}
-                        ref={fileInputRef}
-                        className="hidden"
-                      />
-                      <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                        <Upload className="mr-2 h-4 w-4" />
-                        Upload Photo
-                      </Button>
-                  </div>
-                  <FormField
-                    control={profileForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={profileForm.control}
-                    name="bio"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Bio</FormLabel>
-                        <FormControl>
-                           <Textarea
-                              placeholder="Tell us a little bit about yourself..."
-                              rows={3}
-                              {...field}
+           <ScrollArea className="max-h-[90vh]">
+            <div className="p-6">
+                <DialogHeader>
+                    <DialogTitle>Edit Profile</DialogTitle>
+                    <DialogDescription>
+                    Make changes to your profile here. Click save when you're done.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
+                    <Form {...profileForm}>
+                        <form onSubmit={profileForm.handleSubmit(handleProfileUpdate)} className="space-y-4">
+                        <div className="flex flex-col items-center gap-4">
+                            <Avatar className="h-24 w-24">
+                                <AvatarImage src={previewUrl} alt={watchedProfile.name} />
+                                <AvatarFallback>{getInitials(watchedProfile.name || '')}</AvatarFallback>
+                            </Avatar>
+                            <Input 
+                                id="avatar-upload"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleAvatarChange}
+                                ref={fileInputRef}
+                                className="hidden"
                             />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                   <FormField
-                    control={profileForm.control}
-                    name="showEmail"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormLabel>Show email on your profile card</FormLabel>
-                      </FormItem>
-                    )}
-                  />
+                            <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                                <Upload className="mr-2 h-4 w-4" />
+                                Upload Photo
+                            </Button>
+                        </div>
+                        <FormField
+                            control={profileForm.control}
+                            name="name"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Name</FormLabel>
+                                <FormControl>
+                                <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={profileForm.control}
+                            name="bio"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Bio</FormLabel>
+                                <FormControl>
+                                <Textarea
+                                    placeholder="Tell us a little bit about yourself..."
+                                    rows={3}
+                                    {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={profileForm.control}
+                            name="instagramUrl"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Instagram URL</FormLabel>
+                                <FormControl>
+                                <Input placeholder="https://instagram.com/your-profile" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={profileForm.control}
+                            name="signature"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Signature</FormLabel>
+                                <FormControl>
+                                <Input placeholder="Your Signature" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={profileForm.control}
+                            name="showEmail"
+                            render={({ field }) => (
+                            <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                <FormControl>
+                                <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
+                                </FormControl>
+                                <FormLabel>Show email on your profile card</FormLabel>
+                            </FormItem>
+                            )}
+                        />
 
-                  <DialogFooter className="pt-4">
-                      <Button variant="ghost" onClick={() => setProfileOpen(false)}>Cancel</Button>
-                      <Button type="submit" disabled={isSaving}>
-                        {isSaving ? 'Saving...' : 'Save changes'}
-                      </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-              <div className="space-y-4">
-                  <Label>Live Preview</Label>
-                  {user && (
-                    <ProfileCard user={{
-                      ...user,
-                      ...watchedProfile,
-                      avatar: previewUrl,
-                    }} />
-                  )}
-              </div>
-          </div>
+                        <DialogFooter className="pt-4">
+                            <Button variant="ghost" onClick={() => setProfileOpen(false)}>Cancel</Button>
+                            <Button type="submit" disabled={isSaving}>
+                                {isSaving ? 'Saving...' : 'Save changes'}
+                            </Button>
+                        </DialogFooter>
+                        </form>
+                    </Form>
+                    <div className="space-y-4">
+                        <Label>Live Preview</Label>
+                        {user && (
+                            <ProfileCard user={{
+                            ...user,
+                            ...watchedProfile,
+                            avatar: previewUrl,
+                            }} />
+                        )}
+                    </div>
+                </div>
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
       {user && (
@@ -423,5 +464,3 @@ const UserNav = () => {
 };
 
 export default UserNav;
-
-    

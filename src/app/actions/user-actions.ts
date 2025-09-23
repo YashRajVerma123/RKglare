@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import { revalidatePath } from 'next/cache';
@@ -16,7 +15,7 @@ const profileSchema = z.object({
   showEmail: z.boolean().optional(),
 });
 
-export async function updateAuthorProfile(authorId: string, values: z.infer<typeof profileSchema>): Promise<{ success: boolean }> {
+export async function updateAuthorProfile(authorId: string, values: Partial<z.infer<typeof profileSchema>>): Promise<{ success: boolean }> {
   if (!authorId) {
     throw new Error('Author ID is required.');
   }
@@ -25,14 +24,16 @@ export async function updateAuthorProfile(authorId: string, values: z.infer<type
   
   // Construct object with only defined values to avoid overwriting fields with undefined
   const updateData: { [key: string]: any } = {};
-  if (values.name) updateData.name = values.name;
-  if (values.bio) updateData.bio = values.bio;
-  if (values.instagramUrl) updateData.instagramUrl = values.instagramUrl;
-  if (values.signature) updateData.signature = values.signature;
+  if (values.name !== undefined) updateData.name = values.name;
+  if (values.bio !== undefined) updateData.bio = values.bio;
+  if (values.instagramUrl !== undefined) updateData.instagramUrl = values.instagramUrl;
+  if (values.signature !== undefined) updateData.signature = values.signature;
   if (values.avatar) updateData.avatar = values.avatar;
   if (values.showEmail !== undefined) updateData.showEmail = values.showEmail;
 
-  await updateDoc(authorRef, updateData);
+  if (Object.keys(updateData).length > 0) {
+    await updateDoc(authorRef, updateData);
+  }
 
   // Revalidate paths where author info is shown
   revalidatePath('/admin');

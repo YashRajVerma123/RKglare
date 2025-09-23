@@ -9,6 +9,8 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { getClientFirebaseConfig } from '@/app/actions/config-actions';
 import { initializeClientApp } from '@/lib/firebase-client';
 import { getUserData } from '@/app/actions/user-data-actions';
+import { updateAuthorProfile } from '@/app/actions/user-actions';
+
 
 interface AuthContextType {
   user: Author | null;
@@ -18,14 +20,7 @@ interface AuthContextType {
   isAdmin: boolean;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
-  updateUserProfile: (updates: { 
-      name?: string; 
-      avatar?: string;
-      bio?: string;
-      instagramUrl?: string;
-      signature?: string;
-      showEmail?: boolean;
-  }) => Promise<void>;
+  updateUserProfile: (updates: Partial<Author>) => Promise<void>;
   updateFollowingCount: (change: number) => void;
   updateFollowerCount: (change: number) => void;
   updateMainAuthorFollowerCount: (change: number) => void; // New updater
@@ -46,7 +41,7 @@ const formatUser = (user: FirebaseUser, firestoreData?: any): Author => {
         id: user.uid,
         name: firestoreData?.name || user.displayName || "No Name",
         email: user.email || "no-email@example.com",
-        avatar: firestoreData?.avatar || user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
+        avatar: firestoreData?.avatar || user.photoURL || `https://i.pravatar.cc/150?u=\${user.uid}`,
         bio: firestoreData?.bio,
         instagramUrl: firestoreData?.instagramUrl,
         signature: firestoreData?.signature,
@@ -180,35 +175,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, [auth]);
 
-  const updateUserProfile = useCallback(async (updates: { 
-      name?: string; 
-      avatar?: string;
-      bio?: string;
-      instagramUrl?: string;
-      signature?: string;
-      showEmail?: boolean;
-  }) => {
+  const updateUserProfile = useCallback(async (updates: Partial<Author>) => {
     if (!auth?.currentUser) throw new Error("Not authenticated");
-    
-    const updateData: { [key: string]: any } = {};
-    if (updates.name) updateData.name = updates.name;
-    if (updates.avatar) updateData.avatar = updates.avatar;
-    if (updates.bio) updateData.bio = updates.bio;
-    if (updates.instagramUrl) updateData.instagramUrl = updates.instagramUrl;
-    if (updates.signature) updateData.signature = updates.signature;
-    if (updates.showEmail !== undefined) updateData.showEmail = updates.showEmail;
 
-    if (Object.keys(updateData).length > 0) {
-        const userRef = doc(db, 'users', auth.currentUser.uid);
-        await setDoc(userRef, updateData, { merge: true });
-    }
+    setUser(prev => prev ? { ...prev, ...updates } : null);
     
     if (mainAuthor && auth.currentUser.uid === mainAuthor.id) {
-        setMainAuthor(prev => prev ? {...prev, ...updateData} : null);
+        setMainAuthor(prev => prev ? {...prev, ...updates} : null);
     }
 
-    const firestoreData = await fetchUserFromFirestore(auth.currentUser);
-    setUser(formatUser(auth.currentUser, firestoreData));
   }, [auth, mainAuthor]);
   
   const updateFollowingCount = (change: number) => {
