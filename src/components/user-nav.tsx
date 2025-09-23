@@ -56,6 +56,15 @@ const profileFormSchema = z.object({
     signature: z.string().optional(),
 });
 
+const getInitials = (name: string) => {
+    if (!name) return '';
+    const names = name.split(' ');
+    if (names.length > 1 && names[0] && names[1]) {
+      return `${names[0][0]}${names[1][0]}`;
+    }
+    return name.substring(0, 2);
+};
+
 
 // This is the main component for the header.
 const UserNav = () => {
@@ -193,14 +202,6 @@ const UserNav = () => {
       setFollowListType(type);
       setFollowListOpen(true);
   }
-
-  const getInitials = (name: string) => {
-    const names = name.split(' ');
-    if (names.length > 1 && names[0] && names[1]) {
-      return `\${names[0][0]}\${names[1][0]}`;
-    }
-    return name ? name.substring(0, 2) : '';
-  };
   
   if (!isMounted) {
       // On the server or during first client render, return a placeholder.
