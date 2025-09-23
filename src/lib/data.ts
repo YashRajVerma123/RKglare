@@ -84,25 +84,26 @@ export type Bulletin = {
   publishedAt: string; // ISO String
 };
 
+const safeToISOString = (date: any): string | null => {
+    if (!date) return null;
+    if (typeof date.toDate === 'function') { // It's a Firestore Timestamp
+        return date.toDate().toISOString();
+    }
+    if (typeof date === 'string') { // It's already a string
+        return date;
+    }
+    try {
+        return new Date(date).toISOString(); // Try to parse other formats
+    } catch (e) {
+        return null;
+    }
+}
+
 
 // Firestore data converters
 const postConverter = {
     fromFirestore: (snapshot: any, options: any): Post => {
         const data = snapshot.data(options);
-        
-        let trendingUntil = null;
-        if (data.trendingUntil) {
-             if (typeof data.trendingUntil.toDate === 'function') {
-                trendingUntil = (data.trendingUntil as Timestamp).toDate().toISOString();
-             } else {
-                 try {
-                     // Handle cases where it might be a string or other formats
-                     trendingUntil = new Date(data.trendingUntil).toISOString();
-                 } catch (e) {
-                     trendingUntil = null;
-                 }
-             }
-        }
 
         return {
             id: snapshot.id,
@@ -112,13 +113,13 @@ const postConverter = {
             content: data.content,
             coverImage: data.coverImage,
             author: data.author,
-            publishedAt: (data.publishedAt as Timestamp).toDate().toISOString(),
+            publishedAt: safeToISOString(data.publishedAt)!,
             tags: data.tags,
             readTime: data.readTime,
             featured: data.featured,
             trending: data.trending,
             trendingPosition: data.trendingPosition,
-            trendingUntil: trendingUntil,
+            trendingUntil: safeToISOString(data.trendingUntil),
             likes: data.likes || 0,
             summary: data.summary,
         };
@@ -142,7 +143,7 @@ const notificationConverter = {
             id: snapshot.id,
             title: data.title,
             description: data.description,
-            createdAt: (data.createdAt as Timestamp).toDate().toISOString(),
+            createdAt: safeToISOString(data.createdAt)!,
             read: false, // read status is managed client-side
             image: data.image,
         };
@@ -165,7 +166,7 @@ const bulletinConverter = {
             title: data.title,
             content: data.content,
             coverImage: data.coverImage,
-            publishedAt: (data.publishedAt as Timestamp).toDate().toISOString(),
+            publishedAt: safeToISOString(data.publishedAt)!,
         };
     },
     toFirestore: (bulletin: Omit<Bulletin, 'id' | 'publishedAt'> & { publishedAt?: any}) => {
@@ -186,7 +187,7 @@ const commentConverter = {
             id: snapshot.id,
             content: data.content,
             author: data.author,
-            createdAt: (data.createdAt as Timestamp).toDate().toISOString(),
+            createdAt: safeToISOString(data.createdAt)!,
             likes: data.likes,
             highlighted: data.highlighted,
             pinned: data.pinned,
@@ -463,6 +464,7 @@ export type UserData = {
     likedComments: { [commentId: string]: boolean };
     bookmarks: { [postId: string]: { bookmarkedAt: string, scrollPosition?: number } };
 }
+
 
 
 
