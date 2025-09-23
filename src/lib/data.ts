@@ -1,5 +1,4 @@
 
-
 import { db } from '@/lib/firebase-server'; // <-- IMPORTANT: Use server DB
 import { 
     collection, 
@@ -67,35 +66,22 @@ export type Post = {
   summary?: string;
 };
 
-export type Notification = {
-  id: string;
-  title: string;
-  description: string;
-  createdAt: string;
-  read: boolean;
-  image?: string;
-};
-
-export type Bulletin = {
-  id: string;
-  title: string;
-  content: string;
-  coverImage?: string;
-  publishedAt: string; // ISO String
-};
-
 const safeToISOString = (date: any): string | null => {
     if (!date) return null;
-    if (typeof date.toDate === 'function') { // It's a Firestore Timestamp
+    // Check if it's a Firestore Timestamp
+    if (typeof date.toDate === 'function') {
         return date.toDate().toISOString();
     }
-    if (typeof date === 'string') { // It's already a string
+    // If it's already an ISO string, return it
+    if (typeof date === 'string' && new Date(date).toISOString() === date) {
         return date;
     }
+    // Try to parse other formats, like a Date object
     try {
-        return new Date(date).toISOString(); // Try to parse other formats
+        return new Date(date).toISOString();
     } catch (e) {
-        return null;
+        console.error("Could not convert date to ISO string:", date);
+        return null; // Return null if conversion fails
     }
 }
 
@@ -105,12 +91,15 @@ const postConverter = {
     fromFirestore: (snapshot: any, options: any): Post => {
         const data = snapshot.data(options);
 
+        // The 'content' field might be excluded in list views for performance.
+        const content = data.content || '';
+
         return {
             id: snapshot.id,
             slug: data.slug,
             title: data.title,
             description: data.description,
-            content: data.content,
+            content: content,
             coverImage: data.coverImage,
             author: data.author,
             publishedAt: safeToISOString(data.publishedAt)!,
@@ -232,17 +221,42 @@ const sortComments = (comments: Comment[]): Comment[] => {
     });
 };
 
-export const getPosts = unstable_cache(async (): Promise<Post[]> => {
-    const postsCollection = collection(db, 'posts').withConverter(postConverter);
+export const getPosts = unstable_cache(async (includeContent = false): Promise<Post[]> => {
+    const postsCollection = collection(db, 'posts');
     const q = query(postsCollection, orderBy('publishedAt', 'desc'));
     const snapshot = await getDocs(q);
-    const allPosts = snapshot.docs.map(doc => doc.data());
+
+    // Using a new converter to explicitly exclude content for list views
+    const lightPostConverter = {
+        fromFirestore: (snapshot: any, options: any): Post => {
+            const data = snapshot.data(options);
+            return {
+                id: snapshot.id,
+                slug: data.slug,
+                title: data.title,
+                description: data.description,
+                content: includeContent ? data.content : '', // Conditionally include content
+                coverImage: data.coverImage,
+                author: data.author,
+                publishedAt: safeToISOString(data.publishedAt)!,
+                tags: data.tags,
+                readTime: data.readTime,
+                featured: data.featured,
+                trending: data.trending,
+                trendingPosition: data.trendingPosition,
+                trendingUntil: safeToISOString(data.trendingUntil),
+                likes: data.likes || 0,
+                summary: data.summary,
+            };
+        }
+    };
     
-    // Filter out duplicates based on slug, keeping the most recently published one.
+    const allPosts = snapshot.docs.map(doc => lightPostConverter.fromFirestore(doc, {}));
+    
     const uniquePosts = Array.from(new Map(allPosts.map(post => [post.id, post])).values());
     
     return uniquePosts;
-}, ['posts'], { revalidate: 60 }); // Revalidate every 60 seconds
+}, ['posts'], { revalidate: 60 });
 
 export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
     const postsCollection = collection(db, 'posts').withConverter(postConverter);
@@ -253,7 +267,7 @@ export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
 }, ['featured_posts'], { revalidate: 60 });
 
 export const getRecentPosts = unstable_cache(async (count: number): Promise<Post[]> => {
-    const allPosts = await getPosts(); // Leverage the cached getPosts
+    const allPosts = await getPosts(); // This will now fetch lightweight posts
     const nonFeatured = allPosts.filter(p => !p.featured);
     return nonFeatured.slice(0, count);
 }, ['recent_posts'], { revalidate: 60 });
@@ -286,6 +300,7 @@ export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
 
 export const getPost = unstable_cache(async (slug: string): Promise<Post | undefined> => {
     const postsCollection = collection(db, 'posts');
+    // For single post, we always use the full converter to get the content
     const q = query(postsCollection, where('slug', '==', slug), limit(1)).withConverter(postConverter);
     const snapshot = await getDocs(q);
 
@@ -299,7 +314,7 @@ export const getPost = unstable_cache(async (slug: string): Promise<Post | undef
 
 
 export const getRelatedPosts = async (currentPost: Post): Promise<Post[]> => {
-    const allPosts = await getPosts(); // Leverage the cached getPosts function
+    const allPosts = await getPosts(); // This will fetch lightweight posts
     let potentialPosts: Post[] = [];
 
     // Find posts with at least one common tag
@@ -464,10 +479,3 @@ export type UserData = {
     likedComments: { [commentId: string]: boolean };
     bookmarks: { [postId: string]: { bookmarkedAt: string, scrollPosition?: number } };
 }
-
-
-
-
-
-
-

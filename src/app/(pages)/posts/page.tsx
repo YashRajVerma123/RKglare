@@ -4,6 +4,7 @@ import PostsClient from './posts-client';
 import { getPosts, Post } from '@/lib/data';
 
 const PostsPage = async () => {
+  // Fetch lightweight posts (without content) on the server
   const posts = await getPosts();
 
   return (
