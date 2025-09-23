@@ -1,34 +1,23 @@
 
 'use client'
 import { useSearchParams } from 'next/navigation';
-import { getPosts, Post } from '@/lib/data';
+import { Post } from '@/lib/data';
 import BlogPostCard from '@/components/blog-post-card';
 import { useEffect, useState } from 'react';
 
-const PostsClient = () => {
+const PostsClient = ({ initialPosts }: { initialPosts: Post[] }) => {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('q');
-  const [posts, setPosts] = useState<Post[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      setLoading(true);
-      const allPosts = await getPosts();
-      setPosts(allPosts);
-      setLoading(false);
-    }
-    fetchPosts();
-  }, []);
-
-  useEffect(() => {
-    let sortedPosts = [...posts].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    let sortedPosts = [...initialPosts].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
     if (!searchQuery) {
       setFilteredPosts(sortedPosts);
     } else {
       const lowercasedQuery = searchQuery.toLowerCase();
-      const isTagSearch = posts.some(post => post.tags.some(tag => tag.toLowerCase() === lowercasedQuery));
+      const isTagSearch = initialPosts.some(post => post.tags.some(tag => tag.toLowerCase() === lowercasedQuery));
 
       setFilteredPosts(sortedPosts.filter(post => {
         const titleMatch = post.title.toLowerCase().includes(lowercasedQuery);
@@ -42,7 +31,8 @@ const PostsClient = () => {
         return titleMatch || descriptionMatch || tagMatch;
       }));
     }
-  }, [searchQuery, posts]);
+    setLoading(false);
+  }, [searchQuery, initialPosts]);
   
   if (loading) {
     return (
