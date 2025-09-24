@@ -81,9 +81,9 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins 
     const { user, isAdmin, loading: authLoading, updateUserProfile } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
-    const [allPosts, setAllPosts] = useState<Post[]>(initialPosts);
-    const [allNotifications, setAllNotifications] = useState<Notification[]>(initialNotifications);
-    const [allBulletins, setAllBulletins] = useState<Bulletin[]>(initialBulletins);
+    const [allPosts, setAllPosts] = useState<Post[]>([]);
+    const [allNotifications, setAllNotifications] = useState<Notification[]>([]);
+    const [allBulletins, setAllBulletins] = useState<Bulletin[]>([]);
     const [dataLoading, setDataLoading] = useState(true);
     
     const [isPostDeleteDialogOpen, setPostDeleteDialogOpen] = useState(false);
@@ -222,53 +222,74 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins 
 
     const handleDeletePostConfirm = async () => {
         if (!postToDelete) return;
+        
+        const originalPosts = allPosts;
+        
+        // Optimistic UI update
+        setAllPosts(prev => prev.filter(p => p.id !== postToDelete.id));
+        setPostDeleteDialogOpen(false);
+
         try {
             const result = await deletePost(postToDelete.id);
-            if(result.deletedPostId) {
-                setAllPosts(allPosts.filter(p => p.id !== result.deletedPostId));
-                toast({ title: "Post Deleted", description: `"${postToDelete.title}" has been deleted.` });
-            } else {
-                throw new Error("Failed to get confirmation of deletion.");
+            if (result.error) {
+                throw new Error(result.error);
             }
+            toast({ title: "Post Deleted", description: `"${postToDelete.title}" has been deleted.` });
         } catch (error) {
-            toast({ title: "Error", description: "Failed to delete post.", variant: "destructive" });
+            // Revert on error
+            setAllPosts(originalPosts);
+            toast({ title: "Error", description: "Failed to delete post. Your post has been restored.", variant: "destructive" });
+        } finally {
+            setPostToDelete(null);
         }
-        setPostDeleteDialogOpen(false);
-        setPostToDelete(null);
     };
 
     const handleDeleteNotifConfirm = async () => {
         if (!notificationToDelete) return;
+        
+        const originalNotifications = allNotifications;
+
+        // Optimistic UI update
+        setAllNotifications(prev => prev.filter(n => n.id !== notificationToDelete.id));
+        setNotifDeleteDialogOpen(false);
+        
         try {
             const result = await deleteNotificationAction(notificationToDelete.id);
-             if(result.deletedNotificationId) {
-                setAllNotifications(allNotifications.filter(n => n.id !== result.deletedNotificationId));
-                toast({ title: "Notification Deleted", description: `"${notificationToDelete.title}" has been deleted.` });
-             } else {
-                throw new Error("Failed to get confirmation of deletion.");
-             }
+            if (result.error) {
+                throw new Error(result.error);
+            }
+            toast({ title: "Notification Deleted", description: `"${notificationToDelete.title}" has been deleted.` });
         } catch (error) {
-            toast({ title: "Error", description: "Failed to delete notification.", variant: "destructive" });
+            // Revert on error
+            setAllNotifications(originalNotifications);
+            toast({ title: "Error", description: "Failed to delete notification. It has been restored.", variant: "destructive" });
+        } finally {
+            setNotificationToDelete(null);
         }
-        setNotifDeleteDialogOpen(false);
-        setNotificationToDelete(null);
     };
     
      const handleDeleteBulletinConfirm = async () => {
         if (!bulletinToDelete) return;
+        
+        const originalBulletins = allBulletins;
+
+        // Optimistic UI update
+        setAllBulletins(prev => prev.filter(b => b.id !== bulletinToDelete.id));
+        setBulletinDeleteDialogOpen(false);
+        
         try {
             const result = await deleteBulletinAction(bulletinToDelete.id);
-            if (result.deletedBulletinId) {
-                setAllBulletins(allBulletins.filter(b => b.id !== result.deletedBulletinId));
-                toast({ title: "Bulletin Deleted", description: `"${bulletinToDelete.title}" has been deleted.` });
-            } else {
-                 throw new Error("Failed to get confirmation of deletion.");
+            if (result.error) {
+                throw new Error(result.error);
             }
+            toast({ title: "Bulletin Deleted", description: `"${bulletinToDelete.title}" has been deleted.` });
         } catch (error) {
-            toast({ title: "Error", description: "Failed to delete bulletin.", variant: "destructive" });
+            // Revert on error
+            setAllBulletins(originalBulletins);
+            toast({ title: "Error", description: "Failed to delete bulletin. It has been restored.", variant: "destructive" });
+        } finally {
+            setBulletinToDelete(null);
         }
-        setBulletinDeleteDialogOpen(false);
-        setBulletinToDelete(null);
     };
 
     const onNotificationSubmit = async (values: z.infer<typeof notificationSchema>) => {

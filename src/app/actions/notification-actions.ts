@@ -28,10 +28,17 @@ export async function addNotificationAction(values: z.infer<typeof notificationS
     return newNotification;
 }
 
-export async function deleteNotificationAction(notificationId: string): Promise<{ deletedNotificationId: string }> {
-    await deleteNotification(notificationId);
-    revalidatePath('/admin');
-    return { deletedNotificationId: notificationId };
+export async function deleteNotificationAction(notificationId: string): Promise<{ success: boolean, error?: string }> {
+    if (!notificationId) {
+        return { success: false, error: 'Notification ID is required.' };
+    }
+    try {
+        await deleteNotification(notificationId);
+        return { success: true };
+    } catch (e) {
+        console.error("Error deleting notification: ", e);
+        return { success: false, error: "A server error occurred while deleting the notification." };
+    }
 }
 
 export async function updateNotificationAction(notificationId: string, values: z.infer<typeof notificationSchema>) {
@@ -43,3 +50,5 @@ export async function updateNotificationAction(notificationId: string, values: z
     revalidatePath('/admin');
     revalidatePath(`/admin/edit-notification/${notificationId}`);
 }
+
+    

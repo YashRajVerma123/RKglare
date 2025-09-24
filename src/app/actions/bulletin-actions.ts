@@ -31,11 +31,17 @@ export async function addBulletinAction(values: z.infer<typeof bulletinSchema>):
     return newBulletin;
 }
 
-export async function deleteBulletinAction(bulletinId: string): Promise<{ deletedBulletinId: string }> {
-    await deleteBulletin(bulletinId);
-    revalidatePath('/admin');
-    revalidatePath('/bulletin');
-    return { deletedBulletinId: bulletinId };
+export async function deleteBulletinAction(bulletinId: string): Promise<{ success: boolean, error?: string }> {
+    if (!bulletinId) {
+        return { success: false, error: 'Bulletin ID is required.' };
+    }
+    try {
+        await deleteBulletin(bulletinId);
+        return { success: true };
+    } catch (e) {
+        console.error("Error deleting bulletin: ", e);
+        return { success: false, error: "A server error occurred while deleting the bulletin." };
+    }
 }
 
 export async function updateBulletinAction(bulletinId: string, values: z.infer<typeof bulletinSchema>) {
@@ -48,3 +54,5 @@ export async function updateBulletinAction(bulletinId: string, values: z.infer<t
     revalidatePath('/bulletin');
     revalidatePath(`/admin/edit-bulletin/${bulletinId}`);
 }
+
+    
