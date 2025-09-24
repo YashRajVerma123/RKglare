@@ -155,13 +155,13 @@ const notificationConverter = {
             image: data.image,
         };
     },
-    toFirestore: (notification: Omit<Notification, 'id' | 'read' | 'createdAt'> & {createdAt: Date}) => {
-        return {
-            title: notification.title,
-            description: notification.description,
-            image: notification.image,
-            createdAt: notification.createdAt,
-        };
+    toFirestore: (notification: Omit<Notification, 'id' | 'read' | 'createdAt'> & {createdAt?: any}) => {
+        const { id, read, ...rest } = notification;
+        const data: any = rest;
+        if(rest.createdAt) {
+            data.createdAt = Timestamp.fromDate(new Date(rest.createdAt));
+        }
+        return data;
     }
 };
 
@@ -373,12 +373,13 @@ export const getNotifications = async (): Promise<Notification[]> => {
     return snapshot.docs.map(doc => doc.data());
 };
 
-export async function addNotification(notification: { title: string; description: string, image?: string }) {
+export async function addNotification(notification: { title: string; description: string, image?: string }): Promise<string> {
   const notificationsCollection = collection(db, 'notifications');
-  await addDoc(notificationsCollection, {
+  const newDocRef = await addDoc(notificationsCollection, {
     ...notification,
     createdAt: Timestamp.now(),
   });
+  return newDocRef.id;
 }
 
 export async function deleteNotification(notificationId: string): Promise<void> {
@@ -434,12 +435,13 @@ export const getBulletins = async (
     };
 };
 
-export async function addBulletin(bulletin: { title: string; content: string; coverImage?: string }) {
+export async function addBulletin(bulletin: { title: string; content: string; coverImage?: string }): Promise<string> {
   const bulletinsCollection = collection(db, 'bulletins');
-  await addDoc(bulletinsCollection, {
+  const newDocRef = await addDoc(bulletinsCollection, {
     ...bulletin,
     publishedAt: Timestamp.now(),
   });
+  return newDocRef.id;
 }
 
 export async function deleteBulletin(bulletinId: string) {

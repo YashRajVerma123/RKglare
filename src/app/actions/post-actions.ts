@@ -234,7 +234,7 @@ export async function updatePost(postId: string, values: z.infer<typeof formSche
 }
 
 
-export async function deletePost(postId: string): Promise<{ success: boolean }> {
+export async function deletePost(postId: string): Promise<{ deletedPostId: string }> {
   const postRef = doc(db, 'posts', postId);
   
   await runTransaction(db, async (transaction) => {
@@ -268,5 +268,5 @@ export async function deletePost(postId: string): Promise<{ success: boolean }> 
   revalidatePath('/posts');
   revalidatePath('/admin');
   
-  return { success: true };
+  return { deletedPostId: postId };
 }
