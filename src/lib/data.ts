@@ -239,7 +239,7 @@ const sortComments = (comments: Comment[]): Comment[] => {
     });
 };
 
-export const getPosts = unstable_cache(async (includeContent = false): Promise<Post[]> => {
+export const getPosts = unstable_cache(async (includeContent: boolean = true): Promise<Post[]> => {
     const postsCollection = collection(db, 'posts');
     const q = query(postsCollection, orderBy('publishedAt', 'desc'));
     const snapshot = await getDocs(q);

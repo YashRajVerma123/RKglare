@@ -4,8 +4,9 @@ import AdminClientPage from "./admin-client";
 
 // This is now a Server Component
 export default async function AdminPage() {
-    // Fetch all data on the server. This is more efficient and reliable.
-    const posts = await getPosts();
+    // Fetch only data needed for the initial view (analytics) to keep the payload small.
+    // We pass `false` to explicitly exclude the heavy 'content' field.
+    const posts = await getPosts(false);
     const sortedPosts = posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
     
     const notifications = await getNotifications();
