@@ -317,7 +317,7 @@ export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
 }, ['trending_posts'], { revalidate: 60 });
 
 
-export const getPost = unstable_cache(async (slug: string): Promise<Post | undefined> => {
+export const getPost = async (slug: string): Promise<Post | undefined> => {
     const postsCollection = collection(db, 'posts');
     // For single post, we always use the full converter to get the content
     const q = query(postsCollection, where('slug', '==', slug), limit(1)).withConverter(postConverter);
@@ -329,7 +329,7 @@ export const getPost = unstable_cache(async (slug: string): Promise<Post | undef
     
     const post = snapshot.docs[0].data();
     return post;
-}, ['post'], { revalidate: 60 });
+};
 
 
 export const getRelatedPosts = async (currentPost: Post): Promise<Post[]> => {
