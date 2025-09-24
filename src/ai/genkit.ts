@@ -1,7 +1,3 @@
-import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
-
-export const ai = genkit({
-  plugins: [googleAI()],
-  model: 'googleai/gemini-1.5-flash',
-});
+// This file is intentionally left empty as Genkit packages have been removed.
+// This prevents build errors related to missing modules.
+export {};
