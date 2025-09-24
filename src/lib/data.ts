@@ -1,4 +1,5 @@
 
+
 import { db } from '@/lib/firebase-server'; // <-- IMPORTANT: Use server DB
 import { 
     collection, 
@@ -239,7 +240,7 @@ const sortComments = (comments: Comment[]): Comment[] => {
     });
 };
 
-export const getPosts = unstable_cache(async (includeContent: boolean = true): Promise<Post[]> => {
+export const getPosts = async (includeContent: boolean = true): Promise<Post[]> => {
     const postsCollection = collection(db, 'posts');
     const q = query(postsCollection, orderBy('publishedAt', 'desc'));
     const snapshot = await getDocs(q);
@@ -274,7 +275,7 @@ export const getPosts = unstable_cache(async (includeContent: boolean = true): P
     const uniquePosts = Array.from(new Map(allPosts.map(post => [post.id, post])).values());
     
     return uniquePosts;
-}, ['posts'], { revalidate: 60 });
+};
 
 export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
     const postsCollection = collection(db, 'posts').withConverter(postConverter);
@@ -285,7 +286,7 @@ export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
 }, ['featured_posts'], { revalidate: 60 });
 
 export const getRecentPosts = unstable_cache(async (count: number): Promise<Post[]> => {
-    const allPosts = await getPosts(); // This will now fetch lightweight posts
+    const allPosts = await getPosts(false); // This will now fetch lightweight posts
     const nonFeatured = allPosts.filter(p => !p.featured);
     return nonFeatured.slice(0, count);
 }, ['recent_posts'], { revalidate: 60 });
@@ -499,5 +500,7 @@ export type UserData = {
     likedComments: { [commentId: string]: boolean };
     bookmarks: { [postId: string]: { bookmarkedAt: string, scrollPosition?: number } };
 }
+
+    
 
     
