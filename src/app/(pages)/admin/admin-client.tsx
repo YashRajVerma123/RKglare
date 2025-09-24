@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Edit, PlusCircle, Trash, Users, BellRing, Image as ImageIcon, Megaphone, User as UserIcon, Upload, LineChart, Mail, Loader2 } from "lucide-react";
-import { Post, Notification, Bulletin, getPosts, getNotifications, getBulletins } from "@/lib/data";
+import { Post, Notification, Bulletin } from "@/lib/data";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,7 @@ import AboutTheAuthor from "@/components/about-the-author";
 import { generateNewsletterMailto } from "@/app/actions/newsletter-actions";
 import { Label } from "@/components/ui/label";
 import { BulletinCard } from "@/app/(pages)/bulletin/page";
+import { getPosts, getNotifications, getBulletins } from '@/lib/data';
 
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -81,9 +82,9 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins 
     const { user, isAdmin, loading: authLoading, updateUserProfile } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
-    const [allPosts, setAllPosts] = useState<Post[]>([]);
-    const [allNotifications, setAllNotifications] = useState<Notification[]>([]);
-    const [allBulletins, setAllBulletins] = useState<Bulletin[]>([]);
+    const [allPosts, setAllPosts] = useState<Post[]>(initialPosts);
+    const [allNotifications, setAllNotifications] = useState<Notification[]>(initialNotifications);
+    const [allBulletins, setAllBulletins] = useState<Bulletin[]>(initialBulletins);
     const [dataLoading, setDataLoading] = useState(true);
     
     const [isPostDeleteDialogOpen, setPostDeleteDialogOpen] = useState(false);
@@ -893,5 +894,3 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins 
 };
 
 export default AdminClientPage;
-
-    

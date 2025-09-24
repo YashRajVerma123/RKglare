@@ -1,4 +1,5 @@
 
+
 import { notFound } from 'next/navigation';
 import { Post, getPost, getRelatedPosts, getComments, Comment as CommentType } from '@/lib/data';
 import PostActions from '@/components/post-actions';

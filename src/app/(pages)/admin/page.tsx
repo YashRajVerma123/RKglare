@@ -1,4 +1,5 @@
 
+
 import AdminClientPage from "./admin-client";
 
 // This is now a Server Component that passes no data.

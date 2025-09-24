@@ -240,7 +240,7 @@ const sortComments = (comments: Comment[]): Comment[] => {
     });
 };
 
-export const getPosts = async (includeContent: boolean = true): Promise<Post[]> => {
+export const getPosts = unstable_cache(async (includeContent: boolean = true): Promise<Post[]> => {
     const postsCollection = collection(db, 'posts');
     const q = query(postsCollection, orderBy('publishedAt', 'desc'));
     const snapshot = await getDocs(q);
@@ -275,7 +275,7 @@ export const getPosts = async (includeContent: boolean = true): Promise<Post[]> 
     const uniquePosts = Array.from(new Map(allPosts.map(post => [post.id, post])).values());
     
     return uniquePosts;
-};
+}, ['posts_list'], { revalidate: 60 });
 
 export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
     const postsCollection = collection(db, 'posts').withConverter(postConverter);
@@ -317,7 +317,7 @@ export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
 }, ['trending_posts'], { revalidate: 60 });
 
 
-export const getPost = async (slug: string): Promise<Post | undefined> => {
+export const getPost = unstable_cache(async (slug: string): Promise<Post | undefined> => {
     const postsCollection = collection(db, 'posts');
     // For single post, we always use the full converter to get the content
     const q = query(postsCollection, where('slug', '==', slug), limit(1)).withConverter(postConverter);
@@ -329,10 +329,10 @@ export const getPost = async (slug: string): Promise<Post | undefined> => {
     
     const post = snapshot.docs[0].data();
     return post;
-};
+}, ['post_by_slug'], { revalidate: 60 });
 
 
-export const getRelatedPosts = async (currentPost: Post): Promise<Post[]> => {
+export const getRelatedPosts = unstable_cache(async (currentPost: Post): Promise<Post[]> => {
     const allPosts = await getPosts(); // This will fetch lightweight posts
     let potentialPosts: Post[] = [];
 
@@ -353,7 +353,7 @@ export const getRelatedPosts = async (currentPost: Post): Promise<Post[]> => {
     const uniquePosts = Array.from(new Map(filteredPosts.map(p => [p.id, p])).values());
 
     return uniquePosts.slice(0, 3);
-};
+}, ['related_posts'], { revalidate: 60 });
 
 export const getComments = async (postId: string): Promise<Comment[]> => {
     if (!postId) return [];
