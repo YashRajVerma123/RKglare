@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Edit, PlusCircle, Trash, Users, BellRing, Image as ImageIcon, Megaphone, User as UserIcon, Upload, LineChart, Mail, Loader2 } from "lucide-react";
-import { Post, Notification, Bulletin, Author, getPosts, getNotifications, getBulletins } from "@/lib/data";
+import { Post, Notification, Bulletin, getPosts, getNotifications, getBulletins } from "@/lib/data";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -872,3 +872,5 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins 
 };
 
 export default AdminClientPage;
+
+    
