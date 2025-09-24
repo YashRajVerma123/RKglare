@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Edit, PlusCircle, Trash, Users, BellRing, Image as ImageIcon, Megaphone, User as UserIcon, Upload, LineChart, Mail } from "lucide-react";
+import { BarChart, Edit, PlusCircle, Trash, Users, BellRing, Image as ImageIcon, Megaphone, User as UserIcon, Upload, LineChart, Mail, Bot } from "lucide-react";
 import { Post, Notification, Bulletin, Author } from "@/lib/data";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -39,6 +39,7 @@ import AboutTheAuthor from "@/components/about-the-author";
 import { generateNewsletterMailto } from "@/app/actions/newsletter-actions";
 import { Label } from "@/components/ui/label";
 import { BulletinCard } from "@/app/(pages)/bulletin/page";
+import { generateBulletinContent } from "@/ai/flows/bulletin-flow";
 
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -57,6 +58,7 @@ const bulletinSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
   content: z.string().min(20, 'Content must be at least 20 characters.'),
   coverImage: z.string().url('Please enter a valid image URL.'),
+  topic: z.string().optional(),
 });
 
 const profileSchema = z.object({
@@ -93,6 +95,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins 
     const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState(user?.avatar || '');
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
 
     const notificationForm = useForm<z.infer<typeof notificationSchema>>({
       resolver: zodResolver(notificationSchema),
@@ -109,6 +112,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins 
         title: '',
         content: '',
         coverImage: 'https://picsum.photos/1200/800',
+        topic: '',
       },
     });
 
@@ -243,6 +247,27 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins 
       } catch (error) {
         toast({ title: "Error", description: "Failed to publish bulletin.", variant: "destructive" });
       }
+    }
+    
+    const handleGenerateBulletin = async () => {
+        const topic = bulletinForm.getValues("topic");
+        if (!topic) {
+            bulletinForm.setError("topic", { message: "Please enter a topic to generate content."});
+            return;
+        }
+        
+        setIsGenerating(true);
+        try {
+            const result = await generateBulletinContent({ topic });
+            bulletinForm.setValue("title", result.title);
+            bulletinForm.setValue("content", result.content);
+            // @ts-ignore
+            bulletinForm.setValue("coverImage", result.coverImage);
+        } catch (e) {
+            toast({ title: "Error", description: "Failed to generate bulletin content.", variant: "destructive"});
+        } finally {
+            setIsGenerating(false);
+        }
     }
 
     const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -556,6 +581,24 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins 
                                     <div className="grid grid-cols-1 gap-6">
                                         <Form {...bulletinForm}>
                                             <form onSubmit={bulletinForm.handleSubmit(onBulletinSubmit)} className="space-y-4">
+                                            <FormField
+                                                control={bulletinForm.control}
+                                                name="topic"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Topic</FormLabel>
+                                                    <FormControl>
+                                                    <div className="flex gap-2">
+                                                        <Input placeholder="e.g., 'AI in Healthcare'" {...field} />
+                                                        <Button type="button" variant="outline" onClick={handleGenerateBulletin} disabled={isGenerating}>
+                                                            <Bot className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
                                             <FormField
                                                 control={bulletinForm.control}
                                                 name="title"
