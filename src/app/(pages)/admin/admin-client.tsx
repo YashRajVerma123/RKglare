@@ -2,7 +2,7 @@
 'use client';
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Edit, PlusCircle, Trash, Users, BellRing, Image as ImageIcon, Megaphone, User as UserIcon, Upload, LineChart, Mail, Bot } from "lucide-react";
 import { Post, Notification, Bulletin, Author } from "@/lib/data";
@@ -124,14 +124,16 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins 
         },
     });
 
+    const profileFormDefaultValues = useMemo(() => ({
+        name: user?.name || '',
+        bio: user?.bio || '',
+        instagramUrl: user?.instagramUrl || '',
+        signature: user?.signature || '',
+    }), [user]);
+
     const profileForm = useForm<z.infer<typeof profileSchema>>({
         resolver: zodResolver(profileSchema),
-        defaultValues: {
-            name: user?.name || '',
-            bio: user?.bio || '',
-            instagramUrl: user?.instagramUrl || '',
-            signature: user?.signature || '',
-        }
+        defaultValues: profileFormDefaultValues
     });
     
     const watchedProfile = profileForm.watch();
@@ -140,15 +142,10 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins 
 
     useEffect(() => {
         if (user) {
-            profileForm.reset({
-                name: user.name,
-                bio: user.bio || '',
-                instagramUrl: user.instagramUrl || '',
-                signature: user.signature || '',
-            });
+            profileForm.reset(profileFormDefaultValues);
             setPreviewUrl(user.avatar);
         }
-    }, [user, profileForm]);
+    }, [user, profileForm, profileFormDefaultValues]);
 
     useEffect(() => {
         if (!loading && !isAdmin) {
