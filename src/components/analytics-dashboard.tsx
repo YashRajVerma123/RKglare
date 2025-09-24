@@ -3,23 +3,27 @@
 
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Post } from '@/lib/data';
+import { Post, Comment, getComments } from '@/lib/data';
 import { Eye, Heart, MessageSquare } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useState, useMemo, useEffect } from 'react';
 import { subDays, subHours, format, parseISO } from 'date-fns';
-import { getComments } from '@/lib/data';
 
 interface AnalyticsDashboardProps {
   posts: Post[];
 }
 
-const generateChartData = (posts: Post[], timeRange: string) => {
-  const data: { [key: string]: { name: string, views: number, likes: number, date: Date } } = {};
-  const impressionsPerLike = 5;
+interface PostAnalytic extends Post {
+    views: number;
+    impressions: number;
+    commentsCount: number;
+}
 
+const generateChartData = (posts: PostAnalytic[], timeRange: string) => {
+  const data: { [key: string]: { name: string, views: number, likes: number, date: Date } } = {};
+  
   const initializeDataPoint = (name: string, date: Date) => ({ name, views: 0, likes: 0, date });
 
   if (timeRange === '1') { // Last 24 hours
@@ -36,7 +40,7 @@ const generateChartData = (posts: Post[], timeRange: string) => {
       if (postDate >= startDate) {
         const formattedDate = format(postDate, 'ha');
         if (data[formattedDate]) {
-          data[formattedDate].views += (post.likes || 0) * impressionsPerLike;
+          data[formattedDate].views += post.views;
           data[formattedDate].likes += (post.likes || 0);
         }
       }
@@ -55,7 +59,7 @@ const generateChartData = (posts: Post[], timeRange: string) => {
       if (postDate >= startDate) {
         const formattedDate = format(postDate, 'MMM d');
         if (data[formattedDate]) {
-          data[formattedDate].views += (post.likes || 0) * impressionsPerLike;
+          data[formattedDate].views += post.views;
           data[formattedDate].likes += (post.likes || 0);
         }
       }
@@ -67,35 +71,50 @@ const generateChartData = (posts: Post[], timeRange: string) => {
 
 const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
   const [timeRange, setTimeRange] = useState('30');
-  const [postAnalytics, setPostAnalytics] = useState<any[]>([]);
-  const [totalComments, setTotalComments] = useState(0);
+  const [postAnalytics, setPostAnalytics] = useState<PostAnalytic[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAnalytics = async () => {
-      let totalCommentsCount = 0;
-      const analyticsPromises = posts.map(async post => {
-        const comments = await getComments(post.id);
-        totalCommentsCount += comments.length;
-        return {
-          ...post,
-          views: (post.likes || 0) * 5, // Simple estimation: 1 like = 5 views
-          impressions: (post.likes || 0) * 10, // Simple estimation: 1 like = 10 impressions
-          commentsCount: comments.length,
-        };
-      });
-      const resolvedAnalytics = await Promise.all(analyticsPromises);
-      setPostAnalytics(resolvedAnalytics.sort((a,b) => b.views - a.views));
-      setTotalComments(totalCommentsCount);
+    const processAnalytics = async () => {
+        setLoading(true);
+        const analyticsData = posts.map(post => {
+            return {
+            ...post,
+            views: (post.likes || 0) * 5, // Simple estimation: 1 like = 5 views
+            impressions: (post.likes || 0) * 10, // Simple estimation: 1 like = 10 impressions
+            commentsCount: 0, // Will be fetched, but initialize
+            };
+        });
+
+        // Fetch comments in parallel
+        const commentPromises = analyticsData.map(post => getComments(post.id));
+        const commentsPerPost = await Promise.all(commentPromises);
+        
+        analyticsData.forEach((post, index) => {
+            post.commentsCount = commentsPerPost[index].length;
+        });
+        
+        setPostAnalytics(analyticsData.sort((a,b) => b.views - a.views));
+        setLoading(false);
     }
-    fetchAnalytics();
+    processAnalytics();
   }, [posts]);
   
-  const chartData = useMemo(() => generateChartData(posts, timeRange), [posts, timeRange]);
+  const chartData = useMemo(() => generateChartData(postAnalytics, timeRange), [postAnalytics, timeRange]);
   
   const totalLikes = postAnalytics.reduce((sum, post) => sum + (post.likes || 0), 0);
   const totalViews = postAnalytics.reduce((sum, post) => sum + post.views, 0);
   const totalImpressions = postAnalytics.reduce((sum, post) => sum + post.impressions, 0);
+  const totalComments = postAnalytics.reduce((sum, post) => sum + post.commentsCount, 0);
 
+
+  if (loading) {
+    return (
+        <div className="flex justify-center items-center h-96">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+        </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

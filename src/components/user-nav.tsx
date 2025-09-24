@@ -20,7 +20,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -84,15 +84,17 @@ const UserNav = () => {
   const [isFollowListOpen, setFollowListOpen] = useState(false);
   const [followListType, setFollowListType] = useState<'followers' | 'following'>('followers');
 
+  const profileFormDefaultValues = useMemo(() => ({
+    name: user?.name || '',
+    bio: user?.bio || '',
+    showEmail: user?.showEmail || false,
+    instagramUrl: user?.instagramUrl || '',
+    signature: user?.signature || '',
+  }), [user]);
+
   const profileForm = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues: {
-      name: user?.name || '',
-      bio: user?.bio || '',
-      showEmail: user?.showEmail || false,
-      instagramUrl: user?.instagramUrl || '',
-      signature: user?.signature || '',
-    },
+    defaultValues: profileFormDefaultValues,
   });
 
   const watchedProfile = profileForm.watch();
@@ -103,17 +105,11 @@ const UserNav = () => {
 
 
   useEffect(() => {
-    if (user) {
-        profileForm.reset({
-            name: user.name,
-            bio: user.bio || '',
-            showEmail: user.showEmail || false,
-            instagramUrl: user.instagramUrl || '',
-            signature: user.signature || '',
-        });
+    if (user && isProfileOpen) {
+        profileForm.reset(profileFormDefaultValues);
         setPreviewUrl(user.avatar);
     }
-  }, [user, profileForm, isProfileOpen]);
+  }, [user, profileForm, isProfileOpen, profileFormDefaultValues]);
 
   const handleSignIn = async () => {
     setIsSigningIn(true);

@@ -1,15 +1,45 @@
 
-
+import { getPosts, getNotifications, getBulletins } from "@/lib/data";
 import AdminClientPage from "./admin-client";
+
+<<<<<<< HEAD
+import AdminClientPage from "./admin-client";
+=======
+const AdminPage = async () => {
+    // Fetch all data on the server, but get lightweight posts
+    const postsData = getPosts(false);
+    const notificationsData = getNotifications();
+    const bulletinsData = getBulletins(100);
+
+    const [posts, notifications, bulletinsResponse] = await Promise.all([
+        postsData,
+        notificationsData,
+        bulletinsData
+    ]);
+
+    const sortedPosts = posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+>>>>>>> 972acc7cf2902c830a05beb22da8a9331c12a09a
 
 // This is now a Server Component that passes no data.
 // All data fetching is handled on the client to avoid Next.js data cache limits.
 export default async function AdminPage() {
     return (
         <AdminClientPage
+<<<<<<< HEAD
             initialPosts={[]}
             initialNotifications={[]}
             initialBulletins={[]}
         />
     );
 }
+=======
+            initialPosts={sortedPosts}
+            initialNotifications={notifications}
+            initialBulletins={bulletinsResponse.bulletins}
+        />
+    );
+};
+
+export default AdminPage;
+    
+>>>>>>> 972acc7cf2902c830a05beb22da8a9331c12a09a

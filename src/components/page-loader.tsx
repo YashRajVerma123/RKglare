@@ -17,7 +17,9 @@ export default function PageLoader() {
 
   useEffect(() => {
     if (!isMounted) return;
-    setLoading(false);
+    // Set a timeout to ensure the fade-out animation completes
+    const timer = setTimeout(() => setLoading(false), 300);
+    return () => clearTimeout(timer);
   }, [pathname, searchParams, isMounted]);
 
   useEffect(() => {
@@ -28,12 +30,13 @@ export default function PageLoader() {
       
       if (anchor && anchor.href && 
           anchor.target !== '_blank' && 
+          !anchor.href.startsWith('#') &&
           new URL(anchor.href).origin === window.location.origin) {
         
-        const currentPath = window.location.pathname + window.location.search;
-        const targetPath = new URL(anchor.href).pathname + new URL(anchor.href).search;
+        const currentUrl = new URL(window.location.href);
+        const targetUrl = new URL(anchor.href);
 
-        if (currentPath !== targetPath) {
+        if (currentUrl.pathname !== targetUrl.pathname || currentUrl.search !== targetUrl.search) {
           setLoading(true);
         }
       }

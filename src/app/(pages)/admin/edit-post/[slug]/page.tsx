@@ -17,10 +17,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Upload, Eye, Pencil } from 'lucide-react';
+import { ArrowLeft, Upload, Eye, Pencil, Bot } from 'lucide-react';
 import Link from 'next/link';
 import PostClientPage from '../../../posts/[slug]/post-client-page';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { generatePostContent } from '@/ai/flows/post-flow';
+import { Separator } from '@/components/ui/separator';
 
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -40,6 +42,7 @@ const formSchema = z.object({
   trendingPosition: z.coerce.number().min(1).max(10).optional().nullable(),
   readTime: z.coerce.number().min(1, 'Read time must be at least 1 minute.'),
   summary: z.string().optional(),
+  topic: z.string().optional(), // For AI generation
 }).refine(data => {
     if (data.trending && !data.trendingPosition) {
         return false;
@@ -58,6 +61,7 @@ export default function EditPostPage({ params: { slug } }: { params: { slug: str
   const [loading, setLoading] = useState(true);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -72,6 +76,7 @@ export default function EditPostPage({ params: { slug } }: { params: { slug: str
       trendingPosition: undefined,
       readTime: 5,
       summary: '',
+      topic: '',
     },
   });
 
@@ -88,6 +93,7 @@ export default function EditPostPage({ params: { slug } }: { params: { slug: str
           ...fetchedPost,
           tags: fetchedPost.tags.join(', '),
           trendingPosition: fetchedPost.trendingPosition,
+          topic: fetchedPost.title, // Use title as a default topic
         });
         setImagePreview(fetchedPost.coverImage);
       }
@@ -122,6 +128,32 @@ export default function EditPostPage({ params: { slug } }: { params: { slug: str
       form.setValue('coverImage', base64, { shouldValidate: true, shouldDirty: true });
     }
   };
+
+  const handleGeneratePost = async () => {
+    const topic = form.getValues("topic");
+    if (!topic) {
+        form.setError("topic", { message: "Please enter a topic to generate the post." });
+        return;
+    }
+    
+    setIsGenerating(true);
+    try {
+        const result = await generatePostContent({ topic });
+        form.setValue("title", result.title);
+        form.setValue("description", result.description);
+        form.setValue("content", result.content);
+        form.setValue("tags", result.tags.join(', '));
+        // @ts-ignore
+        form.setValue("coverImage", result.coverImage);
+        // @ts-ignore
+        setImagePreview(result.coverImage);
+        toast({ title: "Content Generated!", description: "The AI has generated the post content for you." });
+    } catch (e) {
+        toast({ title: "Error", description: "Failed to generate post content.", variant: "destructive"});
+    } finally {
+        setIsGenerating(false);
+    }
+  }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -172,6 +204,29 @@ export default function EditPostPage({ params: { slug } }: { params: { slug: str
                 <TabsContent value="write">
                   <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                      <div className="space-y-2 p-4 border rounded-lg">
+                          <FormField
+                            control={form.control}
+                            name="topic"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="flex items-center gap-2"><Bot className="h-5 w-5 text-primary" /> AI Content Generator</FormLabel>
+                                <FormControl>
+                                <div className="flex gap-2">
+                                    <Input placeholder="Enter a topic to generate or rewrite content" {...field} />
+                                    <Button type="button" variant="secondary" onClick={handleGeneratePost} disabled={isGenerating}>
+                                        {isGenerating ? 'Generating...' : 'Generate/Rewrite'}
+                                    </Button>
+                                </div>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                          />
+                      </div>
+                      
+                      <Separator />
+
                       <FormField
                       control={form.control}
                       name="title"
@@ -355,3 +410,5 @@ export default function EditPostPage({ params: { slug } }: { params: { slug: str
     </div>
   );
 }
+
+    
