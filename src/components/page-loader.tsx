@@ -17,9 +17,8 @@ export default function PageLoader() {
 
   useEffect(() => {
     if (!isMounted) return;
-    // Set a timeout to ensure the fade-out animation completes
-    const timer = setTimeout(() => setLoading(false), 300);
-    return () => clearTimeout(timer);
+    // Page has finished loading, so hide the loader immediately.
+    setLoading(false);
   }, [pathname, searchParams, isMounted]);
 
   useEffect(() => {
