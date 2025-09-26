@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk, Dancing_Script, Work_Sans, Nunito } from "next/font/google";
 import { cn } from "@/lib/utils";
@@ -11,7 +12,7 @@ import { Suspense } from "react";
 import SplashScreen from "@/components/splash-screen";
 import Script from "next/script";
 
-const spaceGrotesk = Space_Grotesk({
+const spaceGrotesk = Space__Grotesk({
   subsets: ['latin'],
   variable: '--font-space-grotesk',
 });
@@ -36,7 +37,6 @@ const nunito = Nunito({
 
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://theglare.netlify.app'),
   title: {
     default: "Glare",
     template: "%s | Glare",
