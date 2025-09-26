@@ -14,43 +14,43 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   
   const staticPages: MetadataRoute.Sitemap = [
     {
-      url: `/`,
+      url: `https://theglare.netlify.app`,
       lastModified: new Date().toISOString(),
       changeFrequency: 'daily',
       priority: 1,
     },
     {
-      url: `/posts`,
+      url: `https://theglare.netlify.app/posts`,
       lastModified: new Date().toISOString(),
       changeFrequency: 'daily',
       priority: 0.9,
     },
     {
-      url: `/about`,
+      url: `https://theglare.netlify.app/about`,
       lastModified: new Date().toISOString(),
       changeFrequency: 'monthly',
       priority: 0.7,
     },
      {
-      url: `/contact`,
+      url: `https://theglare.netlify.app/contact`,
       lastModified: new Date().toISOString(),
       changeFrequency: 'yearly',
       priority: 0.5,
     },
     {
-      url: `/privacy-policy`,
+      url: `https://theglare.netlify.app/privacy-policy`,
       lastModified: new Date().toISOString(),
       changeFrequency: 'yearly',
       priority: 0.5,
     },
     {
-      url: `/newsletter`,
+      url: `https://theglare.netlify.app/newsletter`,
       lastModified: new Date().toISOString(),
       changeFrequency: 'monthly',
       priority: 0.6,
     },
     {
-      url: `/bulletin`,
+      url: `https://theglare.netlify.app/bulletin`,
       lastModified: new Date().toISOString(),
       changeFrequency: 'daily',
       priority: 0.8,
