@@ -6,7 +6,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const posts = await getPosts();
 
   const postEntries: MetadataRoute.Sitemap = posts.map(({ slug, publishedAt }) => ({
-    url: `/posts/${slug}`,
+    url: `https://theglare.netlify.app/posts/${slug}`,
     lastModified: publishedAt,
     changeFrequency: 'weekly',
     priority: 0.8,
