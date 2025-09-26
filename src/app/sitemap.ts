@@ -4,9 +4,10 @@ import { getPosts } from '@/lib/data'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const posts = await getPosts();
+  const baseUrl = 'https://theglare.netlify.app';
 
   const postEntries: MetadataRoute.Sitemap = posts.map(({ slug, publishedAt }) => ({
-    url: `https://theglare.netlify.app/posts/${slug}`,
+    url: `${baseUrl}/posts/${slug}`,
     lastModified: publishedAt,
     changeFrequency: 'weekly',
     priority: 0.8,
@@ -14,43 +15,43 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   
   const staticPages: MetadataRoute.Sitemap = [
     {
-      url: `https://theglare.netlify.app`,
+      url: `${baseUrl}/`,
       lastModified: new Date().toISOString(),
       changeFrequency: 'daily',
       priority: 1,
     },
     {
-      url: `https://theglare.netlify.app/posts`,
+      url: `${baseUrl}/posts`,
       lastModified: new Date().toISOString(),
       changeFrequency: 'daily',
       priority: 0.9,
     },
     {
-      url: `https://theglare.netlify.app/about`,
+      url: `${baseUrl}/about`,
       lastModified: new Date().toISOString(),
       changeFrequency: 'monthly',
       priority: 0.7,
     },
      {
-      url: `https://theglare.netlify.app/contact`,
+      url: `${baseUrl}/contact`,
       lastModified: new Date().toISOString(),
       changeFrequency: 'yearly',
       priority: 0.5,
     },
     {
-      url: `https://theglare.netlify.app/privacy-policy`,
+      url: `${baseUrl}/privacy-policy`,
       lastModified: new Date().toISOString(),
       changeFrequency: 'yearly',
       priority: 0.5,
     },
     {
-      url: `https://theglare.netlify.app/newsletter`,
+      url: `${baseUrl}/newsletter`,
       lastModified: new Date().toISOString(),
       changeFrequency: 'monthly',
       priority: 0.6,
     },
     {
-      url: `https://theglare.netlify.app/bulletin`,
+      url: `${baseUrl}/bulletin`,
       lastModified: new Date().toISOString(),
       changeFrequency: 'daily',
       priority: 0.8,
