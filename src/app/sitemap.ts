@@ -14,46 +14,46 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   
   const staticPages: MetadataRoute.Sitemap = [
     {
-      url: `https://theglare.netlify.app/`,
+      url: 'https://theglare.netlify.app/',
       lastModified: new Date().toISOString(),
       changeFrequency: 'daily',
       priority: 1,
     },
     {
-      url: `https://theglare.netlify.app/posts`,
+      url: 'https://theglare.netlify.app/posts',
       lastModified: new Date().toISOString(),
       changeFrequency: 'daily',
       priority: 0.9,
     },
+     {
+      url: 'https://theglare.netlify.app/bulletin',
+      lastModified: new Date().toISOString(),
+      changeFrequency: 'daily',
+      priority: 0.8,
+    },
     {
-      url: `https://theglare.netlify.app/about`,
+      url: 'https://theglare.netlify.app/about',
       lastModified: new Date().toISOString(),
       changeFrequency: 'monthly',
       priority: 0.7,
     },
-     {
-      url: `https://theglare.netlify.app/contact`,
-      lastModified: new Date().toISOString(),
-      changeFrequency: 'yearly',
-      priority: 0.5,
-    },
     {
-      url: `https://theglare.netlify.app/privacy-policy`,
-      lastModified: new Date().toISOString(),
-      changeFrequency: 'yearly',
-      priority: 0.5,
-    },
-    {
-      url: `https://theglare.netlify.app/newsletter`,
+      url: 'https://theglare.netlify.app/newsletter',
       lastModified: new Date().toISOString(),
       changeFrequency: 'monthly',
       priority: 0.6,
     },
-    {
-      url: `https://theglare.netlify.app/bulletin`,
+     {
+      url: 'https://theglare.netlify.app/contact',
       lastModified: new Date().toISOString(),
-      changeFrequency: 'daily',
-      priority: 0.8,
+      changeFrequency: 'yearly',
+      priority: 0.5,
+    },
+    {
+      url: 'https://theglare.netlify.app/privacy-policy',
+      lastModified: new Date().toISOString(),
+      changeFrequency: 'yearly',
+      priority: 0.5,
     },
   ];
 
