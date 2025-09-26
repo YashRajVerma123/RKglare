@@ -37,6 +37,7 @@ const nunito = Nunito({
 
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://theglare.netlify.app'),
   title: {
     default: "Glare",
     template: "%s | Glare",
