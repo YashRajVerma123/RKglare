@@ -10,7 +10,6 @@ import PageLoader from "@/components/page-loader";
 import { Suspense } from "react";
 import SplashScreen from "@/components/splash-screen";
 import Script from "next/script";
-import { Analytics } from "@vercel/analytics/next";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -37,6 +36,7 @@ const nunito = Nunito({
 
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://theglare.netlify.app'),
   title: {
     default: "Glare",
     template: "%s | Glare",
@@ -58,7 +58,6 @@ export default function RootLayout({
         <meta name="theme-color" content="#7c3aed" />
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2103302400076966"
      crossOrigin="anonymous"></script>
-        <meta name="google-site-verification" content="UTSh-7bs9sk6dnG1fVfNsg62XRRBU0_JRI1w75NZlZs" />
       </head>
       <body
         className={cn(
