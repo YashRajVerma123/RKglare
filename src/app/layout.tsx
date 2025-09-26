@@ -58,6 +58,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#7c3aed" />
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2103302400076966"
      crossOrigin="anonymous"></script>
+        <meta name="google-site-verification" content="UTSh-7bs9sk6dnG1fVfNsg62XRRBU0_JRI1w75NZlZs" />
       </head>
       <body
         className={cn(
