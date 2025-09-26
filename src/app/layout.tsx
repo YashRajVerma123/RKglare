@@ -1,6 +1,5 @@
 
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk, Dancing_Script, Work_Sans, Nunito } from "next/font/google";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 import { ClientProviders } from "@/components/client-providers";
@@ -11,32 +10,11 @@ import PageLoader from "@/components/page-loader";
 import { Suspense } from "react";
 import SplashScreen from "@/components/splash-screen";
 import Script from "next/script";
-
-const spaceGrotesk = Space__Grotesk({
-  subsets: ['latin'],
-  variable: '--font-space-grotesk',
-});
-
-const dancingScript = Dancing_Script({
-  subsets: ['latin'],
-  variable: '--font-dancing-script',
-  weight: '700'
-});
-
-const workSans = Work_Sans({
-  subsets: ['latin'],
-  variable: '--font-work-sans',
-  weight: ['300', '400', '500', '600', '700', '800'], // Including 300 for light
-});
-
-const nunito = Nunito({
-  subsets: ['latin'],
-  variable: '--font-nunito',
-  weight: '300'
-});
+import { spaceGrotesk, workSans, dancingScript, nunito } from "./fonts";
 
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://theglare.netlify.app'),
   title: {
     default: "Glare",
     template: "%s | Glare",
