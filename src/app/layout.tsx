@@ -1,7 +1,7 @@
-// app/layout.tsx
+// src/app/layout.tsx
 import type { Metadata } from "next";
 import { cn } from "@/lib/utils";
-import "./globals.css";
+import "../globals.css";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/toaster";
@@ -10,11 +10,7 @@ import { Suspense } from "react";
 import SplashScreen from "@/components/splash-screen";
 import Script from "next/script";
 import { spaceGrotesk, workSans, dancingScript, nunito } from "./fonts";
-import { Analytics } from "@vercel/analytics/react"; // Change to the client-side version
-
-// You are importing ClientProviders, which contains AuthProvider, so all
-// client-side logic should be moved into a wrapper component for clarity.
-import ProvidersWrapper from "@/components/providers-wrapper"; 
+import ProvidersWrapper from "@/components/providers-wrapper"; // Path to the client-side wrapper
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://theglare.vercel.app'),
@@ -92,4 +88,3 @@ export default function RootLayout({
     </html>
   );
 }
-
