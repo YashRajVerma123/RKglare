@@ -11,6 +11,7 @@ import { Suspense } from "react";
 import SplashScreen from "@/components/splash-screen";
 import Script from "next/script";
 import { spaceGrotesk, workSans, dancingScript, nunito } from "./fonts";
+import { Analytics } from "@vercel/analytics/next";
 
 
 export const metadata: Metadata = {
