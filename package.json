@@ -13,6 +13,9 @@
     "db:seed": "tsx src/scripts/seed.ts",
     "db:reset-followers": "tsx src/scripts/reset-followers.ts",
     "postbuild": "next-sitemap"
+              
+            
+    }
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
