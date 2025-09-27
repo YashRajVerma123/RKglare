@@ -36,6 +36,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#7c3aed" />
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2103302400076966"
      crossOrigin="anonymous"></script>
+        <meta name="google-site-verification" content="vVS4lyOVugEqlbEBJPkMRGw768T2DkiXThG-X51xKGE" />
       </head>
       <body
         className={cn(
