@@ -9,36 +9,9 @@ import PageLoader from "@/components/page-loader";
 import { Suspense } from "react";
 import SplashScreen from "@/components/splash-screen";
 import Script from "next/script";
-<<<<<<< HEAD
-import { Analytics } from "@vercel/analytics/next"
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  variable: '--font-space-grotesk',
-});
-
-const dancingScript = Dancing_Script({
-  subsets: ['latin'],
-  variable: '--font-dancing-script',
-  weight: '700'
-});
-
-const workSans = Work_Sans({
-  subsets: ['latin'],
-  variable: '--font-work-sans',
-  weight: ['300', '400', '500', '600', '700', '800'], // Including 300 for light
-});
-
-const nunito = Nunito({
-  subsets: ['latin'],
-  variable: '--font-nunito',
-  weight: '300'
-});
-
-=======
+// Correctly resolved imports, combining previous changes
 import { spaceGrotesk, workSans, dancingScript, nunito } from "./fonts";
 import ProvidersWrapper from "@/components/providers-wrapper"; // Path to the client-side wrapper
->>>>>>> da6367b9eb324990e455230d2ee2a4bcba7891e1
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://theglare.vercel.app'),
@@ -111,13 +84,7 @@ export default function RootLayout({
             <Footer />
           </div>
           <div id="post-actions-container"></div>
-<<<<<<< HEAD
-        </ClientProviders>
-         {children}
-        <Analytics />
-=======
         </ProvidersWrapper>
->>>>>>> da6367b9eb324990e455230d2ee2a4bcba7891e1
       </body>
     </html>
   );
