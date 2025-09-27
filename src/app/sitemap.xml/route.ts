@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAllPosts } from '@/lib/posts';
 
-const SITE_URL = 'https://yourdomain.com'; // replace with your real domain
+const SITE_URL = 'https://theglare.vercel.app'; // replace with your real domain
 
 export async function GET() {
   const posts = await getAllPosts(); // Fetch all posts dynamically
