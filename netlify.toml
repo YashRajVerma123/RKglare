@@ -7,3 +7,46 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+##############################################
+# ✅ Force Correct MIME Type for Sitemaps
+##############################################
+
+[[headers]]
+  for = "/sitemap*.xml"
+  [headers.values]
+    Content-Type = "application/xml"
+
+[[headers]]
+  for = "/main-sitemap*.xml"
+  [headers.values]
+    Content-Type = "application/xml"
+
+[[headers]]
+  for = "/robots.txt"
+  [headers.values]
+    Content-Type = "text/plain"
+
+
+##############################################
+# ✅ Redirect Any Rogue Sitemap URLs to Main One
+##############################################
+
+[[redirects]]
+  from = "/sitemap_index.xml"
+  to = "/sitemap.xml"
+  status = 301
+
+[[redirects]]
+  from = "/sitemap-0.xml"
+  to = "/sitemap.xml"
+  status = 301
+
+[[redirects]]
+  from = "/server-sitemap.xml"
+  to = "/sitemap.xml"
+  status = 301
+
+[[redirects]]
+  from = "/main-sitemap.xml"
+  to = "/sitemap.xml"
+  status = 301
