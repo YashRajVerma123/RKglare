@@ -1,7 +1,7 @@
 // src/app/layout.tsx
 import type { Metadata } from "next";
 import { cn } from "@/lib/utils";
-import "../globals.css";
+import "@/globals.css"; // Corrected import path
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,7 +9,6 @@ import PageLoader from "@/components/page-loader";
 import { Suspense } from "react";
 import SplashScreen from "@/components/splash-screen";
 import Script from "next/script";
-// Correctly resolved imports, combining previous changes
 import { spaceGrotesk, workSans, dancingScript, nunito } from "./fonts";
 import ProvidersWrapper from "@/components/providers-wrapper"; // Path to the client-side wrapper
 
@@ -89,3 +88,4 @@ export default function RootLayout({
     </html>
   );
 }
+
