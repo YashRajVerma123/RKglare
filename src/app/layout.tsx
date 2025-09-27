@@ -1,7 +1,7 @@
 // src/app/layout.tsx
 import type { Metadata } from "next";
 import { cn } from "@/lib/utils";
-import "@/globals.css"; // Corrected import path
+import "src/app/globals.css"; // Corrected import path
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/toaster";
