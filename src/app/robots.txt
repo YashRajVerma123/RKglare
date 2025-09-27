@@ -2,4 +2,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://theglare.netlify.app/sitemap.xml
+Sitemap: https://theglare.vercel.app/sitemap.xml
