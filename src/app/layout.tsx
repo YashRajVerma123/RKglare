@@ -14,7 +14,7 @@ import { spaceGrotesk, workSans, dancingScript, nunito } from "./fonts";
 
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://theglare.netlify.app'),
+  metadataBase: new URL('https://theglare.vercel.app'),
   title: {
     default: "Glare",
     template: "%s | Glare",

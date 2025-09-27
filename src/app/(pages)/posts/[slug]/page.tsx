@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       title: post.title,
       description: post.description,
       type: 'article',
-      url: `https://theglare.netlify.app/posts/${post.slug}`,
+      url: `https://theglare.vercel.app/posts/${post.slug}`,
       images: [
         {
           url: post.coverImage,
@@ -78,14 +78,14 @@ export default async function PostPage({ params }: { params: { slug: string } })
     dateModified: post.publishedAt,
     mainEntityOfPage: {
         '@type': 'WebPage',
-        '@id': `https://theglare.netlify.app/posts/${post.slug}`,
+        '@id': `https://theglare.vercel.app/posts/${post.slug}`,
     },
     publisher: {
         '@type': 'Organization',
         name: 'Glare',
         logo: {
             '@type': 'ImageObject',
-            url: 'https://theglare.netlify.app/logo.png',
+            url: 'https://theglare.vercel.app/logo.png',
         },
     },
     aggregateRating: {
