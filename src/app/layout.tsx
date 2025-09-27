@@ -1,8 +1,7 @@
-
+// app/layout.tsx
 import type { Metadata } from "next";
 import { cn } from "@/lib/utils";
 import "./globals.css";
-import { ClientProviders } from "@/components/client-providers";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,8 +10,11 @@ import { Suspense } from "react";
 import SplashScreen from "@/components/splash-screen";
 import Script from "next/script";
 import { spaceGrotesk, workSans, dancingScript, nunito } from "./fonts";
-import { Analytics } from "@vercel/analytics/next";
+import { Analytics } from "@vercel/analytics/react"; // Change to the client-side version
 
+// You are importing ClientProviders, which contains AuthProvider, so all
+// client-side logic should be moved into a wrapper component for clarity.
+import ProvidersWrapper from "@/components/providers-wrapper"; 
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://theglare.vercel.app'),
@@ -48,34 +50,33 @@ export default function RootLayout({
           nunito.variable
         )}
       >
-         {children}
-            <Analytics />
-        <svg width="0" height="0" style={{ position: 'absolute' }}>
-          <defs>
-            <linearGradient id="instagram-gradient-svg" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style={{ stopColor: '#feda75' }} />
-              <stop offset="50%" style={{ stopColor: '#d62976' }} />
-              <stop offset="100%" style={{ stopColor: '#4f5bd5' }} />
-            </linearGradient>
-          </defs>
-        </svg>
-        <Script
-          strategy="afterInteractive"
-          src="https://www.googletagmanager.com/gtag/js?id=G-XV6E6GR0RD"
-        />
-        <Script
-          id="google-analytics"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-XV6E6GR0RD');
-            `,
-          }}
-        />
-        <ClientProviders>
+        <ProvidersWrapper>
+          <svg width="0" height="0" style={{ position: 'absolute' }}>
+            <defs>
+              <linearGradient id="instagram-gradient-svg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style={{ stopColor: '#feda75' }} />
+                <stop offset="50%" style={{ stopColor: '#d62976' }} />
+                <stop offset="100%" style={{ stopColor: '#4f5bd5' }} />
+              </linearGradient>
+            </defs>
+          </svg>
+          <Script
+            strategy="afterInteractive"
+            src="https://www.googletagmanager.com/gtag/js?id=G-XV6E6GR0RD"
+          />
+          <Script
+            id="google-analytics"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-XV6E6GR0RD');
+              `,
+            }}
+          />
+          <Toaster />
           <SplashScreen />
           <Suspense fallback={null}>
             <PageLoader />
@@ -85,10 +86,10 @@ export default function RootLayout({
             <main className="flex-grow pt-20">{children}</main>
             <Footer />
           </div>
-          <Toaster />
           <div id="post-actions-container"></div>
-        </ClientProviders>
+        </ProvidersWrapper>
       </body>
     </html>
   );
 }
+
