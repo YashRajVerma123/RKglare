@@ -278,17 +278,12 @@ export const getPosts = unstable_cache(async (includeContent: boolean = true): P
 }, ['all_posts'], { revalidate: 60 });
 
 
-export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
-    const postsCollection = collection(db, 'posts').withConverter(postConverter);
-    const q = query(
-        postsCollection, 
-        where('featured', '==', true)
-    );
-    const snapshot = await getDocs(q);
-    const posts = snapshot.docs.map(doc => doc.data());
-    // Sort in code instead of in the query to avoid needing an index
-    return posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-}, ['featured_posts'], { revalidate: 60 });
+export const getFeaturedPosts = async (): Promise<Post[]> => {
+    const allPosts = await getPosts(false);
+    return allPosts
+        .filter(p => p.featured)
+        .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+};
 
 
 export const getRecentPosts = async (count: number): Promise<Post[]> => {
