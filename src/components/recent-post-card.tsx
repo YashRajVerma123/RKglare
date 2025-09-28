@@ -40,7 +40,7 @@ const RecentPostCard = ({ post }: RecentPostCardProps) => {
           <div className="text-xs text-muted-foreground flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mb-4">
               <div className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
-                  <span>{new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                  <span>{new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}</span>
               </div>
               <div className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />

@@ -113,7 +113,7 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
               <Separator orientation="vertical" className="h-4"/>
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
-                <span>{new Date(post.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                <span>{new Date(post.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
