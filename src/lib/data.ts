@@ -240,7 +240,7 @@ const sortComments = (comments: Comment[]): Comment[] => {
     });
 };
 
-export const getPosts = async (includeContent: boolean = true): Promise<Post[]> => {
+export const getPosts = unstable_cache(async (includeContent: boolean = true): Promise<Post[]> => {
     const postsCollection = collection(db, 'posts');
     const q = query(postsCollection, orderBy('publishedAt', 'desc'));
     const snapshot = await getDocs(q);
@@ -275,21 +275,21 @@ export const getPosts = async (includeContent: boolean = true): Promise<Post[]> 
     const uniquePosts = Array.from(new Map(allPosts.map(post => [post.id, post])).values());
     
     return uniquePosts;
+}, ['all_posts'], { revalidate: 60 });
+
+
+export const getFeaturedPosts = async (): Promise<Post[]> => {
+    const allPosts = await getPosts(false);
+    return allPosts
+        .filter(p => p.featured)
+        .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 };
 
-export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
-    const postsCollection = collection(db, 'posts').withConverter(postConverter);
-    const q = query(postsCollection, where('featured', '==', true));
-    const snapshot = await getDocs(q);
-    const posts = snapshot.docs.map(doc => doc.data());
-    return posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-}, ['featured_posts'], { revalidate: 60 });
-
-export const getRecentPosts = unstable_cache(async (count: number): Promise<Post[]> => {
+export const getRecentPosts = async (count: number): Promise<Post[]> => {
     const allPosts = await getPosts(false); // This will now fetch lightweight posts
     const nonFeatured = allPosts.filter(p => !p.featured);
     return nonFeatured.slice(0, count);
-}, ['recent_posts'], { revalidate: 60 });
+};
 
 
 export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
@@ -505,3 +505,6 @@ export type UserData = {
 
     
 
+
+
+    
