@@ -78,7 +78,7 @@ const Header = () => {
                 </DropdownMenu>
                 <NotificationBell />
                 
-                <div className="px-4">
+                <div className="px-6">
                     <Logo />
                 </div>
 
