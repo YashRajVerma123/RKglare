@@ -71,8 +71,8 @@ const AboutTheAuthor = ({ previewData }: AboutTheAuthorProps) => {
             <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
             <div className="relative group flex items-center justify-center">
                 <div className="relative profile-image-hover purple-animated-border rounded-full p-1">
-                    <Avatar className="h-32 w-32 border-2 border-transparent">
-                        <AvatarImage src={authorAvatar} alt={authorName} />
+                    <Avatar className="h-32 w-32 border-2 border-transparent flex items-center justify-center">
+                        <AvatarImage src={authorAvatar} alt={authorName} className="object-center" />
                         <AvatarFallback>YV</AvatarFallback>
                     </Avatar>
                 </div>
