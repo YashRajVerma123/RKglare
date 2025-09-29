@@ -297,7 +297,7 @@ export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
     );
     const snapshot = await getDocs(q);
     
-    const posts = snapshot.docs.map(doc => doc.data());
+    const posts = snapshot.docs.map(doc => doc.data()).filter(post => post.trendingUntil !== null && new Date(post.trendingUntil) >= now);
 
     return posts.slice(0, 10);
 }, ['trending_posts'], { revalidate: 3600, tags: ['posts', 'trending'] });
