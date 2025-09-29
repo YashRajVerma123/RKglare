@@ -99,7 +99,7 @@ export default function RootLayout({
           <Suspense fallback={null}>
             <PageLoader />
           </Suspense>
-          <div className="relative z-10 flex flex-col min-h-screen">
+          <div className="relative z-10 flex flex-col min-h-screen page-transition">
             <Header />
             <main className="flex-grow pt-20">{children}</main>
             <Footer />

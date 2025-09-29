@@ -4,8 +4,9 @@
 import { useState, useEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { Suspense } from 'react';
 
-export default function PageLoader() {
+function PageLoaderContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
@@ -17,12 +18,12 @@ export default function PageLoader() {
 
   useEffect(() => {
     if (!isMounted) return;
-    // Page has finished loading, so hide the loader immediately.
     setLoading(false);
   }, [pathname, searchParams, isMounted]);
 
   useEffect(() => {
     if (!isMounted) return;
+    
     const handleLinkClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const anchor = target.closest('a');
@@ -66,4 +67,13 @@ export default function PageLoader() {
         </div>
     </div>
   );
+}
+
+
+export default function PageLoader() {
+  return (
+    <Suspense fallback={null}>
+      <PageLoaderContent />
+    </Suspense>
+  )
 }

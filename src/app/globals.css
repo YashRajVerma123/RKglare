@@ -76,6 +76,9 @@
   * {
     @apply border-border;
   }
+  html {
+    @apply scroll-smooth;
+  }
   body {
     @apply bg-background text-foreground;
     min-height: 100vh;
@@ -256,6 +259,18 @@
     .profile-image-hover:hover img {
         filter: grayscale(0%);
         transform: scale(1.05);
+    }
+
+    .page-transition {
+      @apply transition-opacity duration-300 ease-in-out;
+    }
+
+    .page-loading {
+        @apply opacity-0;
+    }
+
+    .page-loaded {
+        @apply opacity-100;
     }
 }
 
