@@ -8,10 +8,9 @@ import {
   Bookmark,
   Home,
   Newspaper,
-  Rss,
   Info,
-  Mail,
   Send,
+  PanelRightOpen,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -30,10 +29,9 @@ import {
 const navLinks = [
   { href: '/', label: 'Home', icon: <Home className="h-4 w-4" /> },
   { href: '/posts', label: 'Posts', icon: <Newspaper className="h-4 w-4" /> },
-  { href: '/bulletin', label: 'Bulletin', icon: <Rss className="h-4 w-4" /> },
+  { href: '/bulletin', label: 'Bulletin', icon: <PanelRightOpen className="h-4 w-4" /> },
   { href: '/about', label: 'About', icon: <Info className="h-4 w-4" /> },
   { href: '/bookmarks', label: 'Bookmarks', icon: <Bookmark className="h-4 w-4" /> },
-  { href: '/contact', label: 'Contact Us', icon: <Mail className="h-4 w-4" /> },
   { href: '/newsletter', label: 'Newsletter', icon: <Send className="h-4 w-4" /> },
 ];
 
