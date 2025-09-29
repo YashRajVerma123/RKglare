@@ -5,7 +5,7 @@ import { Post } from "@/lib/data";
 import { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { Button } from "./ui/button";
-import { Heart, Share2, Copy, Bookmark, Newspaper, Loader2, MessageSquare, Bot, RefreshCw, EyeOff } from "lucide-react";
+import { Heart, Share2, Copy, Bookmark, Newspaper, Loader2, MessageSquare, Bot, RefreshCw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -122,7 +122,6 @@ export default function PostActions({ post }: { post: Post }) {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
-  const [isZenMode, setIsZenMode] = useState(false);
 
   const isBookmarked = user ? bookmarks[post.id] !== undefined : false;
 
@@ -198,13 +197,6 @@ export default function PostActions({ post }: { post: Post }) {
     }
   }
 
-  const toggleZenMode = () => {
-    setIsZenMode(!isZenMode);
-    document.querySelector('header')?.classList.toggle('opacity-0');
-    document.querySelector('header')?.classList.toggle('pointer-events-none');
-    document.querySelector('footer')?.classList.toggle('hidden');
-  };
-
   if (!isMounted || !portalContainer) {
     return null;
   }
@@ -224,11 +216,6 @@ export default function PostActions({ post }: { post: Post }) {
       label: "Comments",
       icon: <MessageSquare className="h-5 w-5" />,
       onClick: handleScrollToComments,
-    },
-    {
-      label: isZenMode ? "Exit Zen Mode" : "Zen Mode",
-      icon: <EyeOff className="h-5 w-5" />,
-      onClick: toggleZenMode,
     },
     {
       label: "Share",
