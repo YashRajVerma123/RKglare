@@ -291,25 +291,29 @@ export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
     const q = query(
         postsCollection, 
         where('trending', '==', true),
-        where('trendingUntil', '>=', now),
-        orderBy('trendingUntil', 'desc'),
+        where('trendingPosition', '!=', null),
         orderBy('trendingPosition', 'asc')
     );
     const snapshot = await getDocs(q);
     
-    const posts = snapshot.docs.map(doc => doc.data()).filter(post => post.trendingUntil !== null && new Date(post.trendingUntil) >= now);
+    const posts = snapshot.docs.map(doc => doc.data()).filter(post => {
+        if (!post.trendingUntil) return false;
+        try {
+            return new Date(post.trendingUntil) >= now;
+        } catch (e) {
+            return false;
+        }
+    });
 
     return posts.slice(0, 10);
 }, ['trending_posts'], { revalidate: 3600, tags: ['posts', 'trending'] });
 
 
 export const getPost = async (slug: string): Promise<Post | undefined> => {
-    // Add a guard clause to prevent querying with an undefined slug.
-    if (!slug) {
-        return undefined;
-    }
-    
      return unstable_cache(async (slug: string) => {
+        if (!slug) {
+            return undefined;
+        }
         const postsCollection = collection(db, 'posts');
         const q = query(postsCollection, where('slug', '==', slug), limit(1)).withConverter(postConverter);
         const snapshot = await getDocs(q);
@@ -325,22 +329,23 @@ export const getPost = async (slug: string): Promise<Post | undefined> => {
 
 
 export const getRelatedPosts = unstable_cache(async (currentPost: Post): Promise<Post[]> => {
-    const allPosts = await getPosts(false);
+    if (!currentPost) return [];
     
-    // Filter out the current post
+    const allPosts = await getPosts(false); // Fetch lightweight posts
     const otherPosts = allPosts.filter(p => p.id !== currentPost.id);
 
-    // If the current post has no tags, return the 3 most recent other posts.
     if (!currentPost.tags || currentPost.tags.length === 0) {
-        return otherPosts.slice(0, 3);
+        // Fallback for posts without tags: return most recent
+        return otherPosts
+            .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+            .slice(0, 3);
     }
     
     const currentPostTags = new Set(currentPost.tags);
 
-    // Score other posts based on common tags
     const scoredPosts = otherPosts.map(post => {
         let score = 0;
-        if (post.tags) {
+        if (post.tags && post.tags.length > 0) {
             for (const tag of post.tags) {
                 if (currentPostTags.has(tag)) {
                     score++;
@@ -350,17 +355,17 @@ export const getRelatedPosts = unstable_cache(async (currentPost: Post): Promise
         return { ...post, score };
     });
 
-    // Sort by score (descending), then by publication date (descending)
     scoredPosts.sort((a, b) => {
         if (b.score !== a.score) {
             return b.score - a.score;
         }
+        // If score is the same, prioritize newer posts
         return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
     });
 
-    // Return the top 3
     return scoredPosts.slice(0, 3);
 }, ['related_posts'], { revalidate: 3600, tags: ['posts'] });
+
 
 export const getComments = async (postId: string): Promise<Comment[]> => {
      return unstable_cache(async (postId: string) => {
@@ -479,3 +484,4 @@ export type UserData = {
     likedComments: { [commentId: string]: boolean };
     bookmarks: { [postId: string]: { bookmarkedAt: string, scrollPosition?: number } };
 }
+
