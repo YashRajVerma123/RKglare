@@ -49,10 +49,9 @@ const Header = () => {
       )}
     >
       <div className="container mx-auto px-4 mt-4">
-        <div className="glass-card flex items-center justify-between p-2">
+        <div className="aurora-border flex items-center justify-between p-2 rounded-xl">
             {/* Left Section */}
-            <div className="flex items-center gap-1 md:flex-1">
-            {/* Universal Nav Menu */}
+            <div className="flex items-center gap-1">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -85,7 +84,7 @@ const Header = () => {
             </div>
 
             {/* Right Section */}
-            <div className="flex items-center justify-end flex-1">
+            <div className="flex items-center justify-end">
                 <SearchBar />
                 <div className="flex items-center gap-1">
                 <UserNav />
