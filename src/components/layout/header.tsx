@@ -11,6 +11,7 @@ import {
   Info,
   Send,
   PanelRightOpen,
+  Mail,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -45,52 +46,52 @@ const Header = () => {
     <header
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out',
-        'py-3 bg-background/80 backdrop-blur-lg border-b border-border/10'
       )}
     >
-      <div className="container mx-auto px-4 flex items-center justify-between">
-        {/* Left Section */}
-        <div className="flex items-center gap-1 md:flex-1">
-          {/* Universal Nav Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-6 w-6" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="font-content w-48">
-              {navLinks.map((link) => (
-                <DropdownMenuItem key={link.href} asChild>
-                  <Link
-                      href={link.href}
-                      className={cn(
-                        'flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary',
-                        pathname === link.href ? 'text-primary' : 'text-foreground/80'
-                      )}
-                    >
-                      {link.icon}
-                      <span>{link.label}</span>
-                    </Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <NotificationBell />
-        </div>
+      <div className="container mx-auto px-4 mt-4">
+        <div className="glass-card flex items-center justify-between p-2">
+            {/* Left Section */}
+            <div className="flex items-center gap-1 md:flex-1">
+            {/* Universal Nav Menu */}
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                    <Menu className="h-6 w-6" />
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="font-content w-48">
+                {navLinks.map((link) => (
+                    <DropdownMenuItem key={link.href} asChild>
+                    <Link
+                        href={link.href}
+                        className={cn(
+                            'flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary',
+                            pathname === link.href ? 'text-primary' : 'text-foreground/80'
+                        )}
+                        >
+                        {link.icon}
+                        <span>{link.label}</span>
+                        </Link>
+                    </DropdownMenuItem>
+                ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+            <NotificationBell />
+            </div>
 
-        {/* Center Section (Logo) */}
-        <div className="absolute left-1/2 -translate-x-1/2">
-            <Logo />
-        </div>
+            {/* Center Section (Logo) */}
+            <div className="absolute left-1/2 -translate-x-1/2">
+                <Logo />
+            </div>
 
-        {/* Right Section */}
-        <div className="flex items-center justify-end flex-1">
-            <SearchBar />
-            <div className="flex items-center gap-1">
-              <UserNav />
+            {/* Right Section */}
+            <div className="flex items-center justify-end flex-1">
+                <SearchBar />
+                <div className="flex items-center gap-1">
+                <UserNav />
+                </div>
             </div>
         </div>
-
       </div>
     </header>
   );
