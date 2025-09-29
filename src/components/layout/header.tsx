@@ -52,7 +52,7 @@ const Header = () => {
     >
       <div className="container mx-auto px-4 mt-4">
         <div className="flex items-center justify-center">
-            <div className="flex items-center justify-between p-2 rounded-full bg-background/30 backdrop-blur-xl border border-white/10 shadow-lg w-full max-w-md">
+            <div className="flex items-center justify-between p-2 rounded-full bg-background/30 backdrop-blur-xl border border-white/10 shadow-lg w-full max-w-lg">
                 <div className="flex items-center">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
