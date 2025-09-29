@@ -94,3 +94,4 @@ export async function getFollowList(userId: string, type: 'followers' | 'followi
     
     return usersSnapshot.docs.map(d => d.data());
 }
+

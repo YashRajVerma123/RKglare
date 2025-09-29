@@ -157,7 +157,7 @@ const notificationConverter = {
         };
     },
     toFirestore: (notification: Omit<Notification, 'id' | 'read' | 'createdAt'> & {createdAt?: any}) => {
-        const { id, read, ...rest } = notification;
+        const { id, read, ...rest } = notification as any;
         const data: any = rest;
         if(rest.createdAt) {
             data.createdAt = Timestamp.fromDate(new Date(rest.createdAt));
@@ -178,7 +178,7 @@ const bulletinConverter = {
         };
     },
     toFirestore: (bulletin: Omit<Bulletin, 'id' | 'publishedAt'> & { publishedAt?: any}) => {
-        const { id, ...rest } = bulletin;
+        const { id, ...rest } = bulletin as any;
         const data: any = rest;
         if(rest.publishedAt) {
             data.publishedAt = Timestamp.fromDate(new Date(rest.publishedAt));
@@ -278,12 +278,13 @@ export const getPosts = unstable_cache(async (includeContent: boolean = true): P
 }, ['posts'], { revalidate: 3600, tags: ['posts'] });
 
 
-export const getFeaturedPosts = async (): Promise<Post[]> => {
+export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
     const allPosts = await getPosts(false);
     return allPosts
         .filter(p => p.featured)
         .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-};
+}, ['featured_posts'], { revalidate: 3600, tags: ['posts', 'featured'] });
+
 
 
 export const getRecentPosts = unstable_cache(async (count: number): Promise<Post[]> => {
@@ -371,12 +372,12 @@ export const getComments = async (postId: string): Promise<Comment[]> => {
     }, ['comments', postId], { revalidate: 3600, tags: ['comments', `comments:${postId}`] })();
 };
 
-export const getNotifications = unstable_cache(async (): Promise<Notification[]> => {
+export const getNotifications = async (): Promise<Notification[]> => {
     const notificationsCollection = collection(db, 'notifications').withConverter(notificationConverter);
     const q = query(notificationsCollection, orderBy('createdAt', 'desc'), limit(50));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => doc.data());
-}, ['notifications'], { revalidate: 3600, tags: ['notifications'] });
+};
 
 export async function addNotification(notification: { title: string; description: string, image?: string }): Promise<string> {
   const notificationsCollection = collection(db, 'notifications');
@@ -512,15 +513,3 @@ export type UserData = {
     likedComments: { [commentId: string]: boolean };
     bookmarks: { [postId: string]: { bookmarkedAt: string, scrollPosition?: number } };
 }
-
-    
-
-    
-
-
-
-    
-
-    
-
-    
