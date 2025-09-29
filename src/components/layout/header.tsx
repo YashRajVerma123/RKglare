@@ -52,7 +52,7 @@ const Header = () => {
     >
       <div className="container mx-auto px-4 mt-4">
         <div className="flex items-center justify-center">
-            <div className="flex items-center justify-center gap-2 p-2 rounded-full bg-background/30 backdrop-blur-xl border border-white/10 shadow-lg">
+            <div className="flex items-center justify-center gap-0 p-2 rounded-full bg-background/30 backdrop-blur-xl border border-white/10 shadow-lg">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -78,7 +78,7 @@ const Header = () => {
                 </DropdownMenu>
                 <NotificationBell />
                 
-                <div className="px-6">
+                <div className="px-8">
                     <Logo />
                 </div>
 
