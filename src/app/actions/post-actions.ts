@@ -1,7 +1,7 @@
 
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { Post, Author } from '@/lib/data';
 import { db } from '@/lib/firebase-server'; // Use server db
 import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, getDocs, limit, getDoc, setDoc, runTransaction, writeBatch, orderBy } from 'firebase/firestore';
@@ -123,9 +123,9 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
         }
     });
 
+    revalidateTag('posts');
     revalidatePath('/');
     revalidatePath('/posts');
-    revalidatePath('/admin');
     
     return newSlug;
 }
@@ -225,10 +225,14 @@ export async function updatePost(postId: string, values: z.infer<typeof formSche
     }
   });
 
-  revalidatePath('/');
-  revalidatePath('/posts');
+  revalidateTag('posts');
+  if (values.featured) {
+    revalidateTag('featured');
+  }
+  if (values.trending) {
+      revalidateTag('trending');
+  }
   revalidatePath(`/posts/${newSlug}`);
-  revalidatePath('/admin');
 
   return newSlug;
 }
@@ -248,7 +252,7 @@ export async function deletePost(postId: string): Promise<{ success: boolean, er
     // a non-critical side effect that can be handled by a background job.
     await deleteDoc(postRef);
 
-    // No revalidation needed as client will handle UI update.
+    revalidateTag('posts');
     return { success: true };
   } catch (e) {
     console.error("Error deleting post: ", e);

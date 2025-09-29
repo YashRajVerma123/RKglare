@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { addBulletin, deleteBulletin, updateBulletin, Bulletin } from '@/lib/data';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-server';
 
@@ -26,7 +26,7 @@ export async function addBulletinAction(values: z.infer<typeof bulletinSchema>):
     const newBulletin = newBulletinDoc.data() as Bulletin;
 
 
-    revalidatePath('/admin');
+    revalidateTag('bulletins');
     revalidatePath('/bulletin');
     return newBulletin;
 }
@@ -37,6 +37,7 @@ export async function deleteBulletinAction(bulletinId: string): Promise<{ succes
     }
     try {
         await deleteBulletin(bulletinId);
+        revalidateTag('bulletins');
         return { success: true };
     } catch (e) {
         console.error("Error deleting bulletin: ", e);
@@ -50,8 +51,7 @@ export async function updateBulletinAction(bulletinId: string, values: z.infer<t
         content: values.content,
         coverImage: values.coverImage || undefined,
     });
-    revalidatePath('/admin');
-    revalidatePath('/bulletin');
+    revalidateTag('bulletins');
     revalidatePath(`/admin/edit-bulletin/${bulletinId}`);
 }
 

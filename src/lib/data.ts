@@ -275,7 +275,7 @@ export const getPosts = unstable_cache(async (includeContent: boolean = true): P
     const uniquePosts = Array.from(new Map(allPosts.map(post => [post.id, post])).values());
     
     return uniquePosts;
-}, ['all_posts'], { revalidate: 60 });
+}, ['posts'], { revalidate: 3600, tags: ['posts'] });
 
 
 export const getFeaturedPosts = async (): Promise<Post[]> => {
@@ -286,11 +286,11 @@ export const getFeaturedPosts = async (): Promise<Post[]> => {
 };
 
 
-export const getRecentPosts = async (count: number): Promise<Post[]> => {
+export const getRecentPosts = unstable_cache(async (count: number): Promise<Post[]> => {
     const allPosts = await getPosts(false); // This will now fetch lightweight posts
     const nonFeatured = allPosts.filter(p => !p.featured);
     return nonFeatured.slice(0, count);
-};
+}, ['recent_posts'], { revalidate: 3600, tags: ['posts'] });
 
 
 export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
@@ -315,21 +315,22 @@ export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
     posts = posts.sort((a,b) => (a.trendingPosition || 11) - (b.trendingPosition || 11));
 
     return posts.slice(0, 10);
-}, ['trending_posts'], { revalidate: 60 });
+}, ['trending_posts'], { revalidate: 3600, tags: ['posts', 'trending'] });
 
 
 export const getPost = async (slug: string): Promise<Post | undefined> => {
-    const postsCollection = collection(db, 'posts');
-    // For single post, we always use the full converter to get the content
-    const q = query(postsCollection, where('slug', '==', slug), limit(1)).withConverter(postConverter);
-    const snapshot = await getDocs(q);
+     return unstable_cache(async (slug: string) => {
+        const postsCollection = collection(db, 'posts');
+        const q = query(postsCollection, where('slug', '==', slug), limit(1)).withConverter(postConverter);
+        const snapshot = await getDocs(q);
 
-    if (snapshot.empty) {
-        return undefined;
-    }
-    
-    const post = snapshot.docs[0].data();
-    return post;
+        if (snapshot.empty) {
+            return undefined;
+        }
+        
+        const post = snapshot.docs[0].data();
+        return post;
+    }, ['post', slug], { revalidate: 3600, tags: ['posts', `post:${slug}`] })();
 };
 
 
@@ -354,26 +355,28 @@ export const getRelatedPosts = unstable_cache(async (currentPost: Post): Promise
     const uniquePosts = Array.from(new Map(filteredPosts.map(p => [p.id, p])).values());
 
     return uniquePosts.slice(0, 3);
-}, ['related_posts'], { revalidate: 60 });
+}, ['related_posts'], { revalidate: 3600, tags: ['posts'] });
 
 export const getComments = async (postId: string): Promise<Comment[]> => {
-    if (!postId) return [];
-    
-    const commentsCollection = collection(db, 'posts', postId, 'comments').withConverter(commentConverter);
-    const q = query(commentsCollection, orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
-    
-    let comments = snapshot.docs.map(doc => doc.data());
-    
-    return sortComments(comments);
+     return unstable_cache(async (postId: string) => {
+        if (!postId) return [];
+        
+        const commentsCollection = collection(db, 'posts', postId, 'comments').withConverter(commentConverter);
+        const q = query(commentsCollection, orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
+        
+        let comments = snapshot.docs.map(doc => doc.data());
+        
+        return sortComments(comments);
+    }, ['comments', postId], { revalidate: 3600, tags: ['comments', `comments:${postId}`] })();
 };
 
-export const getNotifications = async (): Promise<Notification[]> => {
+export const getNotifications = unstable_cache(async (): Promise<Notification[]> => {
     const notificationsCollection = collection(db, 'notifications').withConverter(notificationConverter);
     const q = query(notificationsCollection, orderBy('createdAt', 'desc'), limit(50));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => doc.data());
-};
+}, ['notifications'], { revalidate: 3600, tags: ['notifications'] });
 
 export async function addNotification(notification: { title: string; description: string, image?: string }): Promise<string> {
   const notificationsCollection = collection(db, 'notifications');
@@ -395,18 +398,20 @@ export async function updateNotification(notificationId: string, updates: { titl
 }
 
 export const getNotification = async (id: string): Promise<Notification | null> => {
-    const notifRef = doc(db, 'notifications', id).withConverter(notificationConverter);
-    const snapshot = await getDoc(notifRef);
-    if (snapshot.exists()) {
-        return snapshot.data();
-    }
-    return null;
+     return unstable_cache(async (id: string) => {
+        const notifRef = doc(db, 'notifications', id).withConverter(notificationConverter);
+        const snapshot = await getDoc(notifRef);
+        if (snapshot.exists()) {
+            return snapshot.data();
+        }
+        return null;
+    }, ['notification', id], { revalidate: 3600, tags: ['notifications', `notification:${id}`] })();
 }
 
 
 // New Bulletin Functions
 
-export const getBulletins = async (
+export const getBulletins = unstable_cache(async (
     pageSize: number = 3,
     startAfterDocId?: string
 ): Promise<{ bulletins: Bulletin[]; lastDocId?: string }> => {
@@ -435,7 +440,7 @@ export const getBulletins = async (
         bulletins,
         lastDocId: lastVisibleDoc?.id
     };
-};
+}, ['bulletins'], { revalidate: 3600, tags: ['bulletins'] });
 
 export async function addBulletin(bulletin: { title: string; content: string; coverImage?: string }): Promise<string> {
   const bulletinsCollection = collection(db, 'bulletins');
@@ -457,34 +462,40 @@ export async function updateBulletin(bulletinId: string, updates: { title: strin
 }
 
 export const getBulletin = async (id: string): Promise<Bulletin | null> => {
-    const bulletinRef = doc(db, 'bulletins', id).withConverter(bulletinConverter);
-    const snapshot = await getDoc(bulletinRef);
-    if (snapshot.exists()) {
-        return snapshot.data();
-    }
-    return null;
+     return unstable_cache(async (id: string) => {
+        const bulletinRef = doc(db, 'bulletins', id).withConverter(bulletinConverter);
+        const snapshot = await getDoc(bulletinRef);
+        if (snapshot.exists()) {
+            return snapshot.data();
+        }
+        return null;
+    }, ['bulletin', id], { revalidate: 3600, tags: ['bulletins', `bulletin:${id}`] })();
 };
 
 export const getAuthorByEmail = async (email: string): Promise<Author | null> => {
-    const usersCollection = collection(db, 'users');
-    const q = query(usersCollection, where('email', '==', email), limit(1)).withConverter(authorConverter);
-    const snapshot = await getDocs(q);
+    return unstable_cache(async (email: string) => {
+        const usersCollection = collection(db, 'users');
+        const q = query(usersCollection, where('email', '==', email), limit(1)).withConverter(authorConverter);
+        const snapshot = await getDocs(q);
 
-    if (snapshot.empty) {
-        return null;
-    }
-    return snapshot.docs[0].data();
+        if (snapshot.empty) {
+            return null;
+        }
+        return snapshot.docs[0].data();
+    }, ['author', email], { revalidate: 3600, tags: ['users', `author-email:${email}`] })();
 };
 
 
 export const getAuthorById = async (id: string): Promise<Author | null> => {
-  const userRef = doc(db, 'users', id).withConverter(authorConverter);
-  const snapshot = await getDoc(userRef);
+  return unstable_cache(async (id: string) => {
+      const userRef = doc(db, 'users', id).withConverter(authorConverter);
+      const snapshot = await getDoc(userRef);
 
-  if (!snapshot.exists()) {
-    return null;
-  }
-  return snapshot.data();
+      if (!snapshot.exists()) {
+        return null;
+      }
+      return snapshot.data();
+  }, ['author', id], { revalidate: 3600, tags: ['users', `author-id:${id}`] })();
 };
 
 export async function isFollowing(followerId: string, authorId: string): Promise<boolean> {
@@ -507,5 +518,9 @@ export type UserData = {
     
 
 
+
+    
+
+    
 
     

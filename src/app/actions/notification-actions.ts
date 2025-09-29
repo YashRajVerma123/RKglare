@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { addNotification, deleteNotification, updateNotification, Notification } from '@/lib/data';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-server';
 
@@ -24,7 +24,7 @@ export async function addNotificationAction(values: z.infer<typeof notificationS
     const newNotifDoc = await getDoc(doc(db, 'notifications', newNotifId));
     const newNotification = newNotifDoc.data() as Notification;
     
-    revalidatePath('/admin');
+    revalidateTag('notifications');
     return newNotification;
 }
 
@@ -34,6 +34,7 @@ export async function deleteNotificationAction(notificationId: string): Promise<
     }
     try {
         await deleteNotification(notificationId);
+        revalidateTag('notifications');
         return { success: true };
     } catch (e) {
         console.error("Error deleting notification: ", e);
@@ -47,7 +48,7 @@ export async function updateNotificationAction(notificationId: string, values: z
         description: values.description,
         image: values.image || undefined,
     });
-    revalidatePath('/admin');
+    revalidateTag('notifications');
     revalidatePath(`/admin/edit-notification/${notificationId}`);
 }
 

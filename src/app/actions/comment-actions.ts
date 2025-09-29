@@ -1,7 +1,7 @@
 
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { Author, Comment } from '@/lib/data';
 import { db } from '@/lib/firebase-server'; // Use server db
 import { collection, doc, addDoc, updateDoc, deleteDoc, runTransaction, Timestamp, getDoc, writeBatch, where, query, getDocs, setDoc } from 'firebase/firestore';
@@ -46,6 +46,7 @@ export async function addComment(
     };
 
     if (postSlug) {
+      revalidateTag(`comments:${postId}`);
       revalidatePath(`/posts/${postSlug}`);
     }
     
@@ -72,6 +73,7 @@ export async function toggleCommentLike(postId: string, commentId: string, isLik
         const postDoc = await getDoc(postRef);
         const postSlug = postDoc.data()?.slug;
         if (postSlug) {
+            revalidateTag(`comments:${postId}`);
             revalidatePath(`/posts/${postSlug}`);
         }
 
@@ -105,6 +107,7 @@ export async function updateComment(postId: string, commentId: string, newConten
     const updatedComment = { ...commentData, id: commentId, content: newContent, createdAt: (commentData.createdAt as Timestamp).toDate().toISOString() } as Comment;
 
     if (postSlug) {
+        revalidateTag(`comments:${postId}`);
         revalidatePath(`/posts/${postSlug}`);
     }
     
@@ -143,6 +146,7 @@ export async function deleteComment(postId: string, commentId: string, authorId:
     const postDoc = await getDoc(postRef);
     const postSlug = postDoc.data()?.slug;
     if (postSlug) {
+        revalidateTag(`comments:${postId}`);
         revalidatePath(`/posts/${postSlug}`);
     }
     return { success: true };
@@ -171,6 +175,7 @@ export async function toggleCommentHighlight(postId: string, commentId: string, 
     const updatedComment = { ...commentData, id: commentId, highlighted: newHighlightedState, createdAt: (commentData.createdAt as Timestamp).toDate().toISOString() } as Comment;
 
     if (postSlug) {
+        revalidateTag(`comments:${postId}`);
         revalidatePath(`/posts/${postSlug}`);
     }
     return { success: true, updatedComment };
@@ -198,7 +203,10 @@ export async function toggleCommentPin(postId: string, commentId: string, isAdmi
     const updatedComment = { ...commentData, id: commentId, pinned: newPinnedState, createdAt: (commentData.createdAt as Timestamp).toDate().toISOString() } as Comment;
     
     if (postSlug) {
+        revalidateTag(`comments:${postId}`);
         revalidatePath(`/posts/${postSlug}`);
     }
     return { success: true, updatedComment };
 }
+
+    
