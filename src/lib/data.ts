@@ -320,21 +320,23 @@ export const getPost = async (slug: string): Promise<Post | undefined> => {
 
 
 export const getRelatedPosts = unstable_cache(async (currentPost: Post): Promise<Post[]> => {
-    const allPosts = await getPosts(false); 
+    const allPosts = await getPosts(false);
     let potentialPosts: Post[] = [];
 
     // Find posts with at least one common tag
     if (currentPost.tags && currentPost.tags.length > 0) {
         const currentPostTags = new Set(currentPost.tags);
-        const taggedPosts = allPosts.filter(p => p.tags.some(tag => currentPostTags.has(tag)));
+        const taggedPosts = allPosts.filter(p => 
+            p.tags && p.tags.some(tag => currentPostTags.has(tag))
+        );
         potentialPosts.push(...taggedPosts);
     }
     
     // Add all posts to ensure we have fallbacks
     potentialPosts.push(...allPosts);
 
-    // Filter out the current post and remove duplicates
-    const filteredPosts = potentialPosts.filter(p => p.slug !== currentPost.slug);
+    // Filter out the current post
+    const filteredPosts = potentialPosts.filter(p => p.id !== currentPost.id);
 
     // Remove duplicates based on id
     const uniquePosts = Array.from(new Map(filteredPosts.map(p => [p.id, p])).values());
