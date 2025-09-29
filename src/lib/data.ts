@@ -326,27 +326,40 @@ export const getPost = async (slug: string): Promise<Post | undefined> => {
 
 export const getRelatedPosts = unstable_cache(async (currentPost: Post): Promise<Post[]> => {
     const allPosts = await getPosts(false);
-    let potentialPosts: Post[] = [];
+    
+    // Filter out the current post
+    const otherPosts = allPosts.filter(p => p.id !== currentPost.id);
 
-    // Find posts with at least one common tag
-    if (currentPost.tags && currentPost.tags.length > 0) {
-        const currentPostTags = new Set(currentPost.tags);
-        const taggedPosts = allPosts.filter(p => 
-            p.tags && p.tags.some(tag => currentPostTags.has(tag))
-        );
-        potentialPosts.push(...taggedPosts);
+    // If the current post has no tags, return the 3 most recent other posts.
+    if (!currentPost.tags || currentPost.tags.length === 0) {
+        return otherPosts.slice(0, 3);
     }
     
-    // Add all posts to ensure we have fallbacks
-    potentialPosts.push(...allPosts);
+    const currentPostTags = new Set(currentPost.tags);
 
-    // Filter out the current post
-    const filteredPosts = potentialPosts.filter(p => p.id !== currentPost.id);
+    // Score other posts based on common tags
+    const scoredPosts = otherPosts.map(post => {
+        let score = 0;
+        if (post.tags) {
+            for (const tag of post.tags) {
+                if (currentPostTags.has(tag)) {
+                    score++;
+                }
+            }
+        }
+        return { ...post, score };
+    });
 
-    // Remove duplicates based on id
-    const uniquePosts = Array.from(new Map(filteredPosts.map(p => [p.id, p])).values());
+    // Sort by score (descending), then by publication date (descending)
+    scoredPosts.sort((a, b) => {
+        if (b.score !== a.score) {
+            return b.score - a.score;
+        }
+        return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+    });
 
-    return uniquePosts.slice(0, 3);
+    // Return the top 3
+    return scoredPosts.slice(0, 3);
 }, ['related_posts'], { revalidate: 3600, tags: ['posts'] });
 
 export const getComments = async (postId: string): Promise<Comment[]> => {
