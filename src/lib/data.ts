@@ -286,7 +286,6 @@ export const getRecentPosts = unstable_cache(async (count: number): Promise<Post
 
 export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
     const postsCollection = collection(db, 'posts').withConverter(postConverter);
-    const now = new Date();
     
     const q = query(
         postsCollection, 
@@ -296,10 +295,11 @@ export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
     );
     const snapshot = await getDocs(q);
     
+    const now = new Date();
     const posts = snapshot.docs.map(doc => doc.data()).filter(post => {
         if (!post.trendingUntil) return false;
         try {
-            return new Date(post.trendingUntil) >= now;
+            return new Date(post.trendingUntil) > now;
         } catch (e) {
             return false;
         }
@@ -309,23 +309,21 @@ export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
 }, ['trending_posts'], { revalidate: 3600, tags: ['posts', 'trending'] });
 
 
-export const getPost = async (slug: string): Promise<Post | undefined> => {
-     return unstable_cache(async (slug: string) => {
-        if (!slug) {
-            return undefined;
-        }
-        const postsCollection = collection(db, 'posts');
-        const q = query(postsCollection, where('slug', '==', slug), limit(1)).withConverter(postConverter);
-        const snapshot = await getDocs(q);
+export const getPost = unstable_cache(async (slug: string): Promise<Post | undefined> => {
+    if (!slug) {
+        return undefined;
+    }
+    const postsCollection = collection(db, 'posts');
+    const q = query(postsCollection, where('slug', '==', slug), limit(1)).withConverter(postConverter);
+    const snapshot = await getDocs(q);
 
-        if (snapshot.empty) {
-            return undefined;
-        }
-        
-        const post = snapshot.docs[0].data();
-        return post;
-    }, ['post', slug], { revalidate: 3600, tags: ['posts', `post:${slug}`] })();
-};
+    if (snapshot.empty) {
+        return undefined;
+    }
+    
+    const post = snapshot.docs[0].data();
+    return post;
+}, ['post'], { revalidate: 3600, tags: ['posts'] });
 
 
 export const getRelatedPosts = unstable_cache(async (currentPost: Post): Promise<Post[]> => {
@@ -484,4 +482,5 @@ export type UserData = {
     likedComments: { [commentId: string]: boolean };
     bookmarks: { [postId: string]: { bookmarkedAt: string, scrollPosition?: number } };
 }
+
 
