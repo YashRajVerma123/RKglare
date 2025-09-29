@@ -10,7 +10,6 @@ import Logo from '@/components/logo';
 import { Button } from '@/components/ui/button';
 import UserNav from '@/components/user-nav';
 import NotificationBell from '@/components/notification-bell';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import SearchBar from '@/components/search-bar';
 import {
   DropdownMenu,
@@ -24,6 +23,7 @@ const navLinks = [
   { href: '/posts', label: 'Posts' },
   { href: '/bulletin', label: 'Bulletin' },
   { href: '/about', label: 'About' },
+  { href: '/bookmarks', label: 'Bookmarks', icon: <Bookmark className="h-4 w-4" /> },
 ];
 
 const Header = () => {
@@ -44,47 +44,30 @@ const Header = () => {
       <div className="container mx-auto px-4 flex items-center justify-between">
         {/* Left Section */}
         <div className="flex items-center gap-0 md:flex-1">
-            {/* Mobile Left Icons */}
-            <div className="flex items-center md:hidden">
-              <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <Menu className="h-6 w-6" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="font-content">
-                    {navLinks.map((link) => (
-                      <DropdownMenuItem key={link.href} asChild>
-                        <Link
-                            href={link.href}
-                            className={cn(
-                              'text-sm font-medium transition-colors hover:text-primary',
-                              pathname === link.href ? 'text-primary' : 'text-foreground/80'
-                            )}
-                          >
-                            {link.label}
-                          </Link>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                 <SearchBar />
-                <Button asChild variant="ghost" size="icon" className={cn(pathname === '/bookmarks' && 'text-primary')}>
-                    <Link href="/bookmarks">
-                        <Bookmark className="h-5 w-5"/>
-                        <span className="sr-only">Bookmarks</span>
+          {/* Universal Nav Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-6 w-6" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="font-content w-48">
+              {navLinks.map((link) => (
+                <DropdownMenuItem key={link.href} asChild>
+                  <Link
+                      href={link.href}
+                      className={cn(
+                        'flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary',
+                        pathname === link.href ? 'text-primary' : 'text-foreground/80'
+                      )}
+                    >
+                      {link.icon}
+                      <span>{link.label}</span>
                     </Link>
-                </Button>
-            </div>
-            
-            {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-0 font-headline">
-                {navLinks.map((link) => (
-                <Button key={link.href} asChild variant="ghost" className={cn(pathname === link.href && 'text-primary')}>
-                    <Link href={link.href}>{link.label}</Link>
-                </Button>
-                ))}
-            </nav>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Center Section (Logo) */}
@@ -94,15 +77,7 @@ const Header = () => {
 
         {/* Right Section */}
         <div className="flex items-center justify-end flex-1">
-            <div className="hidden md:flex">
-              <SearchBar />
-              <Button asChild variant="ghost" size="icon" className={cn(pathname === '/bookmarks' && 'text-primary')}>
-                  <Link href="/bookmarks">
-                      <Bookmark className="h-5 w-5"/>
-                      <span className="sr-only">Bookmarks</span>
-                  </Link>
-              </Button>
-            </div>
+            <SearchBar />
             <div className="flex items-center gap-1">
               <NotificationBell />
               <UserNav />
