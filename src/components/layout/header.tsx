@@ -50,7 +50,8 @@ const Header = () => {
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
         {/* Left Section */}
-        <div className="flex items-center gap-0 md:flex-1">
+        <div className="flex items-center gap-1 md:flex-1">
+           <NotificationBell />
           {/* Universal Nav Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -86,7 +87,6 @@ const Header = () => {
         <div className="flex items-center justify-end flex-1">
             <SearchBar />
             <div className="flex items-center gap-1">
-              <NotificationBell />
               <UserNav />
             </div>
         </div>
