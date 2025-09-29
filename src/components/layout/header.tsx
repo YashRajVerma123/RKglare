@@ -12,6 +12,8 @@ import {
   Send,
   PanelRightOpen,
   Mail,
+  Bell,
+  Settings,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -50,7 +52,7 @@ const Header = () => {
     >
       <div className="container mx-auto px-4 mt-4">
         <div className="flex items-center justify-center">
-            <div className="flex items-center justify-between gap-2 p-2 rounded-full bg-background/30 backdrop-blur-xl border border-white/10 shadow-lg">
+            <div className="flex items-center justify-center gap-2 p-2 rounded-full bg-background/30 backdrop-blur-xl border border-white/10 shadow-lg">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
