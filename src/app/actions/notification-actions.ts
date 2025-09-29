@@ -2,10 +2,10 @@
 'use server'
 
 import { z } from 'zod';
-import { addNotification, deleteNotification, updateNotification, Notification } from '@/lib/data';
-import { revalidatePath, revalidateTag } from 'next/cache';
-import { doc, getDoc } from 'firebase/firestore';
+import { revalidateTag } from 'next/cache';
+import { doc, getDoc, addDoc, collection, deleteDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase-server';
+import { Notification } from '@/lib/data';
 
 const notificationSchema = z.object({
   title: z.string().min(5),
@@ -15,15 +15,17 @@ const notificationSchema = z.object({
 
 
 export async function addNotificationAction(values: z.infer<typeof notificationSchema>): Promise<Notification> {
-    const newNotifId = await addNotification({
-        title: values.title,
-        description: values.description,
-        image: values.image || undefined,
+    const collectionRef = collection(db, 'notifications');
+    const docRef = await addDoc(collectionRef, {
+        ...values,
+        createdAt: Timestamp.now(),
     });
-    // Re-fetch to get the full object with server-generated timestamp
-    const newNotifDoc = await getDoc(doc(db, 'notifications', newNotifId));
-    const newNotification = newNotifDoc.data() as Notification;
     
+    // To return the full object, we need to fetch it after creation
+    const newNotifDoc = await getDoc(doc(db, 'notifications', docRef.id));
+    const newNotification = newNotifDoc.data() as Notification;
+
+
     revalidateTag('notifications');
     return newNotification;
 }
@@ -33,7 +35,7 @@ export async function deleteNotificationAction(notificationId: string): Promise<
         return { success: false, error: 'Notification ID is required.' };
     }
     try {
-        await deleteNotification(notificationId);
+        await deleteDoc(doc(db, 'notifications', notificationId));
         revalidateTag('notifications');
         return { success: true };
     } catch (e) {
@@ -43,13 +45,9 @@ export async function deleteNotificationAction(notificationId: string): Promise<
 }
 
 export async function updateNotificationAction(notificationId: string, values: z.infer<typeof notificationSchema>) {
-    await updateNotification(notificationId, {
-        title: values.title,
-        description: values.description,
-        image: values.image || undefined,
-    });
+    await updateDoc(doc(db, 'notifications', notificationId), values);
     revalidateTag('notifications');
-    revalidatePath(`/admin/edit-notification/${notificationId}`);
+    revalidateTag(`notification:${notificationId}`);
 }
 
     

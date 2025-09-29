@@ -2,10 +2,10 @@
 'use server'
 
 import { z } from 'zod';
-import { addBulletin, deleteBulletin, updateBulletin, Bulletin } from '@/lib/data';
-import { revalidatePath, revalidateTag } from 'next/cache';
-import { doc, getDoc } from 'firebase/firestore';
+import { revalidateTag, revalidatePath } from 'next/cache';
+import { doc, getDoc, addDoc, collection, deleteDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase-server';
+import { Bulletin } from '@/lib/data';
 
 const bulletinSchema = z.object({
   title: z.string().min(5),
@@ -15,14 +15,16 @@ const bulletinSchema = z.object({
 
 
 export async function addBulletinAction(values: z.infer<typeof bulletinSchema>): Promise<Bulletin> {
-    const newBulletinId = await addBulletin({
+    const collectionRef = collection(db, 'bulletins');
+    const docRef = await addDoc(collectionRef, {
         title: values.title,
         content: values.content,
         coverImage: values.coverImage || undefined,
+        publishedAt: Timestamp.now(),
     });
     
     // To return the full object, we need to fetch it after creation
-    const newBulletinDoc = await getDoc(doc(db, 'bulletins', newBulletinId));
+    const newBulletinDoc = await getDoc(doc(db, 'bulletins', docRef.id));
     const newBulletin = newBulletinDoc.data() as Bulletin;
 
 
@@ -36,7 +38,7 @@ export async function deleteBulletinAction(bulletinId: string): Promise<{ succes
         return { success: false, error: 'Bulletin ID is required.' };
     }
     try {
-        await deleteBulletin(bulletinId);
+        await deleteDoc(doc(db, 'bulletins', bulletinId));
         revalidateTag('bulletins');
         return { success: true };
     } catch (e) {
@@ -46,7 +48,7 @@ export async function deleteBulletinAction(bulletinId: string): Promise<{ succes
 }
 
 export async function updateBulletinAction(bulletinId: string, values: z.infer<typeof bulletinSchema>) {
-    await updateBulletin(bulletinId, {
+    await updateDoc(doc(db, 'bulletins', bulletinId), {
         title: values.title,
         content: values.content,
         coverImage: values.coverImage || undefined,

@@ -1,11 +1,7 @@
 
-import type {NextConfig} from 'next';
-
-require('dotenv').config();
-
-const nextConfig: NextConfig = {
-  /* config options here */
-  devIndicators: false,
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
   typescript: {
     ignoreBuildErrors: true,
   },

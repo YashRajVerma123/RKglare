@@ -9,16 +9,9 @@ import {
     query, 
     orderBy,
     limit,
-    writeBatch,
     Timestamp,
-    collectionGroup,
     where,
-    addDoc,
-    deleteDoc,
-    updateDoc,
     startAfter,
-    runTransaction,
-    increment,
 } from 'firebase/firestore';
 import { unstable_cache } from 'next/cache';
 
@@ -240,12 +233,13 @@ const sortComments = (comments: Comment[]): Comment[] => {
     });
 };
 
-export const getPosts = unstable_cache(async (includeContent: boolean = true): Promise<Post[]> => {
+export const getPosts = async (includeContent: boolean = true): Promise<Post[]> => {
+    // This function can be called from client components (e.g., Admin page),
+    // so it should not use unstable_cache.
     const postsCollection = collection(db, 'posts');
     const q = query(postsCollection, orderBy('publishedAt', 'desc'));
     const snapshot = await getDocs(q);
 
-    // Using a new converter to explicitly exclude content for list views
     const lightPostConverter = {
         fromFirestore: (snapshot: any, options: any): Post => {
             const data = snapshot.data(options);
@@ -254,7 +248,7 @@ export const getPosts = unstable_cache(async (includeContent: boolean = true): P
                 slug: data.slug,
                 title: data.title,
                 description: data.description,
-                content: includeContent ? data.content : '', // Conditionally include content
+                content: includeContent ? data.content : '',
                 coverImage: data.coverImage,
                 author: data.author,
                 publishedAt: safeToISOString(data.publishedAt)!,
@@ -270,13 +264,8 @@ export const getPosts = unstable_cache(async (includeContent: boolean = true): P
         }
     };
     
-    const allPosts = snapshot.docs.map(doc => lightPostConverter.fromFirestore(doc, {}));
-    
-    const uniquePosts = Array.from(new Map(allPosts.map(post => [post.id, post])).values());
-    
-    return uniquePosts;
-}, ['posts'], { revalidate: 3600, tags: ['posts'] });
-
+    return snapshot.docs.map(doc => lightPostConverter.fromFirestore(doc, {}));
+};
 
 export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
     const allPosts = await getPosts(false);
@@ -286,11 +275,12 @@ export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
 }, ['featured_posts'], { revalidate: 3600, tags: ['posts', 'featured'] });
 
 
-
 export const getRecentPosts = unstable_cache(async (count: number): Promise<Post[]> => {
-    const allPosts = await getPosts(false); // This will now fetch lightweight posts
-    const nonFeatured = allPosts.filter(p => !p.featured);
-    return nonFeatured.slice(0, count);
+    const allPosts = await getPosts(false);
+    return allPosts
+        .filter(p => !p.featured)
+        .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+        .slice(0, count);
 }, ['recent_posts'], { revalidate: 3600, tags: ['posts'] });
 
 
@@ -300,20 +290,14 @@ export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
     
     const q = query(
         postsCollection, 
-        where('trending', '==', true)
+        where('trending', '==', true),
+        where('trendingUntil', '>=', now),
+        orderBy('trendingUntil', 'desc'),
+        orderBy('trendingPosition', 'asc')
     );
     const snapshot = await getDocs(q);
     
-    let posts = snapshot.docs.map(doc => doc.data());
-
-    // Filter expired posts in code instead of in the query
-    posts = posts.filter(post => {
-        if (!post.trendingUntil) return false;
-        return new Date(post.trendingUntil) >= now;
-    });
-    
-    // Manual sort after fetching
-    posts = posts.sort((a,b) => (a.trendingPosition || 11) - (b.trendingPosition || 11));
+    const posts = snapshot.docs.map(doc => doc.data());
 
     return posts.slice(0, 10);
 }, ['trending_posts'], { revalidate: 3600, tags: ['posts', 'trending'] });
@@ -336,7 +320,7 @@ export const getPost = async (slug: string): Promise<Post | undefined> => {
 
 
 export const getRelatedPosts = unstable_cache(async (currentPost: Post): Promise<Post[]> => {
-    const allPosts = await getPosts(); // This will fetch lightweight posts
+    const allPosts = await getPosts(false); 
     let potentialPosts: Post[] = [];
 
     // Find posts with at least one common tag
@@ -379,25 +363,6 @@ export const getNotifications = async (): Promise<Notification[]> => {
     return snapshot.docs.map(doc => doc.data());
 };
 
-export async function addNotification(notification: { title: string; description: string, image?: string }): Promise<string> {
-  const notificationsCollection = collection(db, 'notifications');
-  const newDocRef = await addDoc(notificationsCollection, {
-    ...notification,
-    createdAt: Timestamp.now(),
-  });
-  return newDocRef.id;
-}
-
-export async function deleteNotification(notificationId: string): Promise<void> {
-    const notifRef = doc(db, 'notifications', notificationId);
-    await deleteDoc(notifRef);
-}
-
-export async function updateNotification(notificationId: string, updates: { title: string; description: string, image?: string }) {
-    const notifRef = doc(db, 'notifications', notificationId);
-    await updateDoc(notifRef, updates);
-}
-
 export const getNotification = async (id: string): Promise<Notification | null> => {
      return unstable_cache(async (id: string) => {
         const notifRef = doc(db, 'notifications', id).withConverter(notificationConverter);
@@ -412,10 +377,11 @@ export const getNotification = async (id: string): Promise<Notification | null> 
 
 // New Bulletin Functions
 
-export const getBulletins = unstable_cache(async (
+export const getBulletins = async (
     pageSize: number = 3,
     startAfterDocId?: string
 ): Promise<{ bulletins: Bulletin[]; lastDocId?: string }> => {
+    // This function is called from a client component with pagination, so it should not be cached.
     let lastDoc;
     if (startAfterDocId) {
         lastDoc = await getDoc(doc(db, "bulletins", startAfterDocId));
@@ -441,26 +407,7 @@ export const getBulletins = unstable_cache(async (
         bulletins,
         lastDocId: lastVisibleDoc?.id
     };
-}, ['bulletins'], { revalidate: 3600, tags: ['bulletins'] });
-
-export async function addBulletin(bulletin: { title: string; content: string; coverImage?: string }): Promise<string> {
-  const bulletinsCollection = collection(db, 'bulletins');
-  const newDocRef = await addDoc(bulletinsCollection, {
-    ...bulletin,
-    publishedAt: Timestamp.now(),
-  });
-  return newDocRef.id;
-}
-
-export async function deleteBulletin(bulletinId: string) {
-    const bulletinRef = doc(db, 'bulletins', bulletinId);
-    await deleteDoc(bulletinRef);
-}
-
-export async function updateBulletin(bulletinId: string, updates: { title: string; content: string, coverImage?: string }) {
-    const bulletinRef = doc(db, 'bulletins', bulletinId);
-    await updateDoc(bulletinRef, updates);
-}
+};
 
 export const getBulletin = async (id: string): Promise<Bulletin | null> => {
      return unstable_cache(async (id: string) => {
@@ -474,16 +421,15 @@ export const getBulletin = async (id: string): Promise<Bulletin | null> => {
 };
 
 export const getAuthorByEmail = async (email: string): Promise<Author | null> => {
-    return unstable_cache(async (email: string) => {
-        const usersCollection = collection(db, 'users');
-        const q = query(usersCollection, where('email', '==', email), limit(1)).withConverter(authorConverter);
-        const snapshot = await getDocs(q);
+    // This is called from a client context, so it should not use unstable_cache.
+    const usersCollection = collection(db, 'users');
+    const q = query(usersCollection, where('email', '==', email), limit(1)).withConverter(authorConverter);
+    const snapshot = await getDocs(q);
 
-        if (snapshot.empty) {
-            return null;
-        }
-        return snapshot.docs[0].data();
-    }, ['author', email], { revalidate: 3600, tags: ['users', `author-email:${email}`] })();
+    if (snapshot.empty) {
+        return null;
+    }
+    return snapshot.docs[0].data();
 };
 
 
