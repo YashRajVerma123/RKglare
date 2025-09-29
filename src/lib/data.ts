@@ -304,6 +304,11 @@ export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
 
 
 export const getPost = async (slug: string): Promise<Post | undefined> => {
+    // Add a guard clause to prevent querying with an undefined slug.
+    if (!slug) {
+        return undefined;
+    }
+    
      return unstable_cache(async (slug: string) => {
         const postsCollection = collection(db, 'posts');
         const q = query(postsCollection, where('slug', '==', slug), limit(1)).withConverter(postConverter);
