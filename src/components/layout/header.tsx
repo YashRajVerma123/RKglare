@@ -52,38 +52,42 @@ const Header = () => {
     >
       <div className="container mx-auto px-4 mt-4">
         <div className="flex items-center justify-center">
-            <div className="flex items-center justify-center gap-0 p-2 rounded-full bg-background/30 backdrop-blur-xl border border-white/10 shadow-lg">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                        <Menu className="h-6 w-6" />
-                    </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="font-content w-48">
-                    {navLinks.map((link) => (
-                        <DropdownMenuItem key={link.href} asChild>
-                        <Link
-                            href={link.href}
-                            className={cn(
-                                'flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary',
-                                pathname === link.href ? 'text-primary' : 'text-foreground/80'
-                            )}
-                            >
-                            {link.icon}
-                            <span>{link.label}</span>
-                            </Link>
-                        </DropdownMenuItem>
-                    ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                <NotificationBell />
+            <div className="flex items-center justify-between p-2 rounded-full bg-background/30 backdrop-blur-xl border border-white/10 shadow-lg w-full max-w-sm">
+                <div className="flex items-center">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <Menu className="h-6 w-6" />
+                        </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="font-content w-48">
+                        {navLinks.map((link) => (
+                            <DropdownMenuItem key={link.href} asChild>
+                            <Link
+                                href={link.href}
+                                className={cn(
+                                    'flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary',
+                                    pathname === link.href ? 'text-primary' : 'text-foreground/80'
+                                )}
+                                >
+                                {link.icon}
+                                <span>{link.label}</span>
+                                </Link>
+                            </DropdownMenuItem>
+                        ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <NotificationBell />
+                </div>
                 
-                <div className="px-8">
+                <div className="flex-1 text-center">
                     <Logo />
                 </div>
 
-                <SearchBar />
-                <UserNav />
+                <div className="flex items-center">
+                    <SearchBar />
+                    <UserNav />
+                </div>
             </div>
         </div>
       </div>
