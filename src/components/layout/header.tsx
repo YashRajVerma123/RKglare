@@ -49,7 +49,7 @@ const Header = () => {
       )}
     >
       <div className="container mx-auto px-4 mt-4">
-        <div className="aurora-border flex items-center justify-between p-2 rounded-xl">
+        <div className="aurora-border flex items-center justify-between p-2 rounded-full">
             {/* Left Section */}
             <div className="flex items-center gap-1">
             <DropdownMenu>
