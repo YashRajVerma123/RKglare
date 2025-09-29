@@ -69,7 +69,7 @@ const AboutTheAuthor = ({ previewData }: AboutTheAuthorProps) => {
       <div className="p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
             <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
             <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
-            <div className="relative group shrink-0">
+            <div className="relative group flex items-center justify-center">
                 <div className="relative profile-image-hover purple-animated-border rounded-full p-1">
                     <Avatar className="h-32 w-32 border-2 border-transparent">
                         <AvatarImage src={authorAvatar} alt={authorName} />
