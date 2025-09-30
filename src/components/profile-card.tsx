@@ -41,7 +41,7 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
         return { level, progress, currentPoints, requiredPoints };
     }, [author]);
 
-    const isPremium = author?.premium?.active === true && author?.premium?.expires && new Date(author.premium.expires) > new Date();
+    const isPremium = author?.premium?.active;
 
     useEffect(() => {
         const checkFollowing = async () => {

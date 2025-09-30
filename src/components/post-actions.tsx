@@ -121,7 +121,7 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
-  const isPremium = user?.premium?.active === true && user.premium.expires && new Date(user.premium.expires) > new Date();
+  const isPremium = user?.premium?.active;
 
 
   const isBookmarked = user ? bookmarks[post.id] !== undefined : false;
@@ -290,7 +290,7 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
                     <Dialog>
                       <DialogTrigger asChild>
                          <Button variant="ghost" size="icon" className="rounded-full h-11 w-11">
-                            {action.premium ? <Star className="h-5 w-5 text-yellow-500" /> : action.icon}
+                            {action.premium ? <FileDown className="h-5 w-5 text-yellow-500" /> : action.icon}
                             <span className="sr-only">{action.label}</span>
                         </Button>
                       </DialogTrigger>
@@ -307,7 +307,7 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
                     </Dialog>
                   ) : (
                     <Button variant="ghost" size="icon" onClick={action.onClick} className="rounded-full h-11 w-11 relative">
-                       {action.premium ? <Star className="h-5 w-5 text-yellow-500" /> : action.icon}
+                       {action.premium ? <FileDown className="h-5 w-5 text-yellow-500" /> : action.icon}
                     </Button>
                   )}
                 </TooltipTrigger>

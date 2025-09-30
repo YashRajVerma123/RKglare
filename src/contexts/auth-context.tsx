@@ -37,7 +37,26 @@ interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const safeToISOString = (date: any): string | null => {
+    if (!date) return null;
+    if (typeof date.toDate === 'function') { // Firestore Timestamp
+        return date.toDate().toISOString();
+    }
+    if (typeof date === 'string') { // Already an ISO string
+        return date;
+    }
+    // Try to parse other formats, like a Date object
+    try {
+        return new Date(date).toISOString();
+    } catch (e) {
+        return null;
+    }
+}
+
 const formatUser = (user: FirebaseUser, firestoreData?: any): Author => {
+    const premiumData = firestoreData?.premium;
+    const expires = premiumData?.expires ? safeToISOString(premiumData.expires) : null;
+    
     return {
         id: user.uid,
         name: firestoreData?.name || user.displayName || "No Name",
@@ -52,6 +71,10 @@ const formatUser = (user: FirebaseUser, firestoreData?: any): Author => {
         points: firestoreData?.points || 0,
         streak: firestoreData?.streak,
         challenge: firestoreData?.challenge,
+        premium: {
+            active: !!(premiumData?.active && expires && new Date(expires) > new Date()),
+            expires: expires,
+        },
     };
 };
 
@@ -81,6 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         following: 0,
         points: 0,
         streak: { currentStreak: 0, lastLoginDate: '' },
+        premium: { active: false, expires: null },
     };
     await setDoc(userRef, newUser, { merge: true });
     return newUser;
