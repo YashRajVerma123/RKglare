@@ -84,6 +84,11 @@
     min-height: 100vh;
     font-feature-settings: "ss01";
   }
+  
+  body[data-radix-scroll-area-hidden] {
+    overflow: hidden !important;
+    padding-right: 0 !important;
+  }
 }
 
 @layer utilities {
