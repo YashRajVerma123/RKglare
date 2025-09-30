@@ -3,7 +3,6 @@
 
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from './ui/button';
 import { Dialog, DialogContent } from './ui/dialog';
 
 interface ReaderModeProps {
@@ -17,9 +16,10 @@ const ReaderMode = ({ isOpen, onClose, title, content }: ReaderModeProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent 
-            className="w-full h-full max-w-full max-h-full sm:max-w-full sm:max-h-full rounded-none p-0 border-0 bg-[#FFF4BC] font-reader text-gray-800 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
+            className="w-full h-full max-w-full max-h-full sm:max-w-full sm:max-h-full rounded-none p-0 border-0 bg-[#fbf5e1] font-reader text-[#3a3a3a] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
             style={{
                 backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'6\' height=\'6\' viewBox=\'0 0 6 6\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23d2c694\' fill-opacity=\'0.2\' fill-rule=\'evenodd\'%3E%3Cpath d=\'M5 0h1L0 6V5zM6 5v1H5z\'/%3E%3C/g%3E%3C/svg%3E")',
+                color: '#3a3a3a',
             }}
         >
 
@@ -32,7 +32,7 @@ const ReaderMode = ({ isOpen, onClose, title, content }: ReaderModeProps) => {
                 </h1>
                 </header>
                 <div
-                className="prose prose-lg lg:prose-xl max-w-none !font-reader text-gray-800 prose-headings:!font-reader prose-headings:font-bold prose-headings:text-gray-900 prose-a:text-gray-900 prose-a:underline prose-p:leading-relaxed"
+                className="prose prose-lg lg:prose-xl max-w-none !font-reader text-inherit prose-headings:!font-reader prose-headings:font-bold prose-headings:text-gray-900 prose-a:text-inherit prose-a:underline prose-p:leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: content }}
                 />
             </article>
