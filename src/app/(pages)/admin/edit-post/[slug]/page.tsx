@@ -459,5 +459,3 @@ export default function EditPostPage({ params }: { params: { slug: string } }) {
     </div>
   );
 }
-
-    

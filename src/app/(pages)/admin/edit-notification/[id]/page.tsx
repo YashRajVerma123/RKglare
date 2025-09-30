@@ -158,5 +158,3 @@ export default function EditNotificationPage({ params }: { params: { id: string 
     </div>
   );
 }
-
-    

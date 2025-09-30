@@ -175,5 +175,3 @@ export default function EditBulletinPage({ params }: { params: { id: string } })
     </div>
   );
 }
-
-    

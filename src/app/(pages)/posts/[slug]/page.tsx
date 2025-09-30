@@ -17,7 +17,8 @@ import PostClientPage from './post-client-page';
 
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const post = await getPost(params.slug);
+  const { slug } = params;
+  const post = await getPost(slug);
 
   if (!post) {
     return {
@@ -53,7 +54,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 
 export default async function PostPage({ params }: { params: { slug: string } }) {
-  const post = await getPost(params.slug);
+  const { slug } = params;
+  const post = await getPost(slug);
 
   if (!post) {
     notFound();
