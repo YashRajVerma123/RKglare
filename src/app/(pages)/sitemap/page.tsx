@@ -9,7 +9,7 @@ const staticPages = [
     { href: '/bulletin', title: 'Daily Bulletin' },
     { href: '/leaderboard', title: 'Top Readers Leaderboard' },
     { href: '/bookmarks', title: 'My Bookmarks' },
-    { href: '/glare-plus', title: 'Glare+ Premium' },
+    { href: '/glare-plus', title: 'Glare+' },
     { href: '/points-system', title: 'Points & Levels System' },
     { href: '/about', title: 'About Us' },
     { href: '/contact', title: 'Contact Us' },
@@ -29,7 +29,7 @@ const SitemapPage = async () => {
         .map(post => ({ href: `/posts/${post.slug}`, title: post.title }))
         .sort((a, b) => a.title.localeCompare(b.title));
 
-    const allPages = [...sortedStaticPages, ...sortedPostPages];
+    const allPages = [...sortedPostPages, ...sortedStaticPages];
 
     return (
         <div className="container mx-auto px-4 py-16">
