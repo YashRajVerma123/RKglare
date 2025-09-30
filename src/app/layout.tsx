@@ -109,10 +109,12 @@ export default function RootLayout({
           </Suspense>
           <div className="relative z-10 flex flex-col min-h-screen page-transition">
             <Header />
-            <ScrollArea className="flex-grow pt-20 w-full">
-              <main>{children}</main>
-              <Footer />
-            </ScrollArea>
+            <div className="flex-grow pt-20">
+              <ScrollArea className="h-full w-full">
+                <main className="w-full">{children}</main>
+                <Footer />
+              </ScrollArea>
+            </div>
           </div>
           <Toaster />
           <div id="post-actions-container"></div>
