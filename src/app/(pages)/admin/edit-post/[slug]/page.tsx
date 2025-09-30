@@ -55,7 +55,8 @@ const formSchema = z.object({
     path: ['trendingPosition'],
 });
 
-export default function EditPostPage({ params: { slug } }: { params: { slug: string } }) {
+export default function EditPostPage({ params }: { params: { slug: string } }) {
+  const { slug } = params;
   const { toast } = useToast();
   const router = useRouter();
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -458,3 +459,5 @@ export default function EditPostPage({ params: { slug } }: { params: { slug: str
     </div>
   );
 }
+
+    
