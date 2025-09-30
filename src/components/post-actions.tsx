@@ -28,6 +28,7 @@ import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { togglePostLike, toggleBookmark } from "@/app/actions/user-data-actions";
 import ReaderMode from "./reader-mode";
+import ReaderModeTransition from "./reader-mode-transition";
 
 
 const LikeButton = ({ post }: { post: Post }) => {
@@ -119,13 +120,14 @@ export default function PostActions({ post }: { post: Post }) {
   const [currentUrl, setCurrentUrl] = useState('');
   const [isMounted, setIsMounted] = useState(false);
   const [isSummaryDialogOpen, setSummaryDialogOpen] = useState(false);
-  const [isReaderModeOpen, setReaderModeOpen] = useState(false);
+  const [readerState, setReaderState] = useState<'closed' | 'opening' | 'open' | 'closing'>('closed');
   const [summary, setSummary] = useState('');
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
 
   const isBookmarked = user ? bookmarks[post.id] !== undefined : false;
+  const isReaderOpen = readerState === 'open' || readerState === 'opening';
 
   useEffect(() => {
     setIsMounted(true);
@@ -207,7 +209,7 @@ export default function PostActions({ post }: { post: Post }) {
      {
       label: "Reader Mode",
       icon: <BookOpen className="h-5 w-5" />,
-      onClick: () => setReaderModeOpen(true),
+      onClick: () => setReaderState('opening'),
     },
     {
       label: "Summarize",
@@ -355,12 +357,21 @@ export default function PostActions({ post }: { post: Post }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <ReaderMode
-        isOpen={isReaderModeOpen}
-        onClose={() => setReaderModeOpen(false)}
-        title={post.title}
-        content={post.content}
+      
+      <ReaderModeTransition
+        state={readerState}
+        onOpen={() => setReaderState('open')}
+        onClose={() => setReaderState('closed')}
       />
+      
+      {isReaderOpen && (
+        <ReaderMode
+            isOpen={isReaderOpen}
+            onClose={() => setReaderState('closing')}
+            title={post.title}
+            content={post.content}
+        />
+      )}
     </TooltipProvider>
   );
 
