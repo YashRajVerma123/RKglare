@@ -48,6 +48,7 @@ const formatUser = (user: FirebaseUser, firestoreData?: any): Author => {
         showEmail: firestoreData?.showEmail || false,
         followers: firestoreData?.followers || 0,
         following: firestoreData?.following || 0,
+        points: firestoreData?.points || 0, // Added for gamification
     };
 };
 
@@ -75,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         showEmail: false,
         followers: 0,
         following: 0,
+        points: 0, // Initial points
     };
     await setDoc(userRef, newUser, { merge: true });
     return newUser;

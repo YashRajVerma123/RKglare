@@ -4,6 +4,7 @@
 import { db } from '@/lib/firebase-server';
 import { collection, doc, getDoc, setDoc, runTransaction, increment, updateDoc } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
+import { awardPoints } from './gamification-actions';
 
 // Unified function to get user-specific data
 export async function getUserData(userId: string) {
@@ -44,7 +45,14 @@ export async function togglePostLike(userId: string, postId: string, postSlug: s
                 throw "Post does not exist!";
             }
             // Update the post's like count
-            transaction.update(postRef, { likes: increment(isLiked ? -1 : 1) });
+            const newLikeCount = increment(isLiked ? -1 : 1);
+            transaction.update(postRef, { likes: newLikeCount });
+
+            // Award points for liking, but not for unliking
+            if (!isLiked) {
+                const userRef = doc(db, 'users', userId);
+                transaction.update(userRef, { points: increment(3) });
+            }
         });
         
         const newLikedPosts = { [postId]: !isLiked };

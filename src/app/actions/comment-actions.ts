@@ -5,6 +5,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { Author, Comment } from '@/lib/data';
 import { db } from '@/lib/firebase-server'; // Use server db
 import { collection, doc, addDoc, updateDoc, deleteDoc, runTransaction, Timestamp, getDoc, writeBatch, where, query, getDocs, setDoc } from 'firebase/firestore';
+import { awardPoints } from './gamification-actions';
 
 export async function addComment(
     postId: string, 
@@ -35,6 +36,9 @@ export async function addComment(
     
     // Use setDoc to save the comment with the generated ID
     await setDoc(newCommentRef, newCommentData);
+    
+    // Award points for commenting
+    await awardPoints(author.id, 'COMMENT');
     
     const postDoc = await getDoc(doc(db, 'posts', postId));
     const postSlug = postDoc.data()?.slug;

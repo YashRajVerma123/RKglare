@@ -14,6 +14,7 @@ import {
   Mail,
   Bell,
   Settings,
+  Trophy,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -33,6 +34,7 @@ const navLinks = [
   { href: '/', label: 'Home', icon: <Home className="h-4 w-4" /> },
   { href: '/posts', label: 'Posts', icon: <Newspaper className="h-4 w-4" /> },
   { href: '/bulletin', label: 'Bulletin', icon: <PanelRightOpen className="h-4 w-4" /> },
+  { href: '/leaderboard', label: 'Leaderboard', icon: <Trophy className="h-4 w-4" /> },
   { href: '/bookmarks', label: 'Bookmarks', icon: <Bookmark className="h-4 w-4" /> },
 ];
 
@@ -54,7 +56,7 @@ const Header = () => {
         <div className="flex items-center justify-center">
             <div className="flex items-center justify-between p-2 rounded-full bg-background/30 backdrop-blur-xl border border-white/10 shadow-lg w-full max-w-lg">
                 <div className="flex items-center">
-                    <DropdownMenu modal={false}>
+                    <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
                             <Menu className="h-6 w-6" />

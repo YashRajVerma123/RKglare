@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Author, isFollowing } from "@/lib/data";
@@ -10,6 +9,9 @@ import { useAuth } from "@/hooks/use-auth";
 import FollowButton from "./follow-button";
 import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
+import { getLevel, getProgressToNextLevel } from "@/lib/gamification";
+import { Progress } from "./ui/progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 
 interface ProfileCardProps {
@@ -31,6 +33,13 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
     
     // Use mainAuthor from context if it's the main author, otherwise use the prop
     const author = isMainSiteAuthor ? mainAuthor : initialUser;
+
+    const {level, progress, currentPoints, requiredPoints} = useMemo(() => {
+        const points = author?.points || 0;
+        const level = getLevel(points);
+        const { progress, currentPoints, requiredPoints } = getProgressToNextLevel(points);
+        return { level, progress, currentPoints, requiredPoints };
+    }, [author]);
 
     useEffect(() => {
         const checkFollowing = async () => {
@@ -94,6 +103,26 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
                       </div>
                   )}
               </div>
+              
+                <div className="w-full max-w-[200px] my-4">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className="text-center">
+                                    <div className="flex items-center gap-2 justify-center mb-1">
+                                        <level.icon className="h-5 w-5" style={{ color: level.color }} />
+                                        <span className="font-bold" style={{ color: level.color }}>{level.name}</span>
+                                    </div>
+                                    <Progress value={progress} className="h-2" />
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{currentPoints.toLocaleString()} / {requiredPoints.toLocaleString()} points</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
+
 
               <div className="mt-4 text-center text-muted-foreground px-4">
                   <p className="text-sm italic">

@@ -1,5 +1,4 @@
 
-
 import { db } from '@/lib/firebase-server'; // <-- IMPORTANT: Use server DB
 import { 
     collection, 
@@ -27,6 +26,7 @@ export type Author = {
   showEmail?: boolean;
   followers?: number;
   following?: number;
+  points?: number; // Added for gamification
 };
 
 export type Comment = {
@@ -217,6 +217,7 @@ export const authorConverter = {
             showEmail: data.showEmail || false,
             followers: data.followers || 0,
             following: data.following || 0,
+            points: data.points || 0, // Added for gamification
         };
     },
     toFirestore: (author: Omit<Author, 'id'>) => {
@@ -482,5 +483,3 @@ export type UserData = {
     likedComments: { [commentId: string]: boolean };
     bookmarks: { [postId: string]: { bookmarkedAt: string, scrollPosition?: number } };
 }
-
-

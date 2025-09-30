@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, Mail, Send, TrendingUp } from 'lucide-react';
 import { subscribeToNewsletter } from '@/app/actions/newsletter-actions';
+import { useAuth } from '@/hooks/use-auth';
 
 const formSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
@@ -22,6 +23,7 @@ const features = [
 
 export default function NewsletterPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -31,7 +33,7 @@ export default function NewsletterPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const result = await subscribeToNewsletter(values.email);
+      const result = await subscribeToNewsletter(values.email, user?.id);
       if (result.error) {
           throw new Error(result.error);
       }

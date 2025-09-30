@@ -3,7 +3,7 @@
 
 import { Post, Comment as CommentType } from '@/lib/data';
 import PostActions from '@/components/post-actions';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,6 +17,8 @@ import { useAuth } from '@/hooks/use-auth';
 import { updateReadingProgress } from '@/app/actions/user-data-actions';
 import ReadingProgressBar from '@/components/reading-progress-bar';
 import { useDynamicTheme } from '@/contexts/dynamic-theme-context';
+import { useInView } from 'react-intersection-observer';
+import { awardPoints } from '@/app/actions/gamification-actions';
 
 interface PostClientPageProps {
   post: Post;
@@ -29,6 +31,12 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
   const { user, bookmarks } = useAuth();
   const contentRef = useRef<HTMLDivElement>(null);
   const { setTheme, resetTheme } = useDynamicTheme();
+  const [hasAwardedReadPoints, setHasAwardedReadPoints] = useState(false);
+  
+  const { ref: endOfContentRef, inView: endOfContentInView } = useInView({
+    triggerOnce: true,
+    threshold: 1.0,
+  });
   
   const isBookmarked = post ? bookmarks[post.id] : false;
   
@@ -71,6 +79,17 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
         clearTimeout(timeout);
     };
   }, [post, user, isBookmarked, isPreview]);
+  
+  // Award points for reading the post
+  useEffect(() => {
+    if (endOfContentInView && user && !hasAwardedReadPoints && !isPreview) {
+        const award = async () => {
+            await awardPoints(user.id, 'READ_POST', post.id);
+            setHasAwardedReadPoints(true);
+        }
+        award();
+    }
+  }, [endOfContentInView, user, post.id, hasAwardedReadPoints, isPreview]);
 
   const getInitials = (name: string) => {
     const names = name.split(' ');
@@ -141,6 +160,7 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
             style={{ animationDelay: '0.4s' }}
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
+          <div ref={endOfContentRef} className="h-10" />
           
          {!isPreview && (
            <>

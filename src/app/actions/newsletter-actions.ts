@@ -1,8 +1,11 @@
+
 'use server';
 
 import { db } from '@/lib/firebase-server';
 import { addDoc, collection, getDocs } from 'firebase/firestore';
 import { z } from 'zod';
+import { awardPoints } from './gamification-actions';
+import { useAuth } from '@/hooks/use-auth';
 
 const emailSchema = z.string().email('Please enter a valid email address.');
 const newsletterSchema = z.object({
@@ -10,7 +13,7 @@ const newsletterSchema = z.object({
     content: z.string().min(100),
 });
 
-export async function subscribeToNewsletter(email: string) {
+export async function subscribeToNewsletter(email: string, userId?: string) {
     const validation = emailSchema.safeParse(email);
 
     if (!validation.success) {
@@ -28,7 +31,12 @@ export async function subscribeToNewsletter(email: string) {
     await addDoc(subscribersCollection, {
         email: email,
         subscribedAt: new Date(),
+        userId: userId || null,
     });
+
+    if (userId) {
+        await awardPoints(userId, 'SUBSCRIBE');
+    }
 
     return { success: true };
 }

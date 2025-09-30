@@ -1,5 +1,4 @@
 
-
 'use client';
 import { CreditCard, LogOut, User as UserIcon, Upload, Moon, Sun, Loader2, PanelRightOpen, Settings, UserPlus,LogIn } from 'lucide-react';
 import {
@@ -39,6 +38,9 @@ import ProfileCard from './profile-card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { updateAuthorProfile } from '@/app/actions/user-actions';
 import { ScrollArea } from './ui/scroll-area';
+import { getLevel, getProgressToNextLevel } from '@/lib/gamification';
+import { Progress } from './ui/progress';
+import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 // Helper to convert file to Base64
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
@@ -96,6 +98,14 @@ const UserNav = () => {
     resolver: zodResolver(profileFormSchema),
     defaultValues: profileFormDefaultValues,
   });
+  
+  const gamificationInfo = useMemo(() => {
+    if (!user) return null;
+    const points = user.points || 0;
+    const level = getLevel(points);
+    const { progress, currentPoints, requiredPoints } = getProgressToNextLevel(points);
+    return { level, progress, currentPoints, requiredPoints };
+  }, [user]);
 
   const watchedProfile = profileForm.watch();
 
@@ -206,7 +216,7 @@ const UserNav = () => {
   
   return (
     <>
-      <DropdownMenu modal={false}>
+      <DropdownMenu>
         <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">
               <Avatar className="h-9 w-9">
@@ -244,6 +254,31 @@ const UserNav = () => {
                   </div>
                 </div>
               </DropdownMenuLabel>
+
+               {gamificationInfo && (
+                  <>
+                    <DropdownMenuSeparator />
+                     <DropdownMenuLabel className="font-normal">
+                        <TooltipProvider>
+                           <Tooltip>
+                             <TooltipTrigger asChild>
+                                <div className="space-y-1 cursor-pointer">
+                                    <div className="flex items-center gap-2">
+                                        <gamificationInfo.level.icon className="h-4 w-4" style={{color: gamificationInfo.level.color}}/>
+                                        <span className="text-xs font-medium" style={{color: gamificationInfo.level.color}}>{gamificationInfo.level.name}</span>
+                                    </div>
+                                    <Progress value={gamificationInfo.progress} className="h-1.5" />
+                                </div>
+                             </TooltipTrigger>
+                             <TooltipContent>
+                                <p>{gamificationInfo.currentPoints.toLocaleString()} / {gamificationInfo.requiredPoints.toLocaleString()} points</p>
+                             </TooltipContent>
+                           </Tooltip>
+                        </TooltipProvider>
+                     </DropdownMenuLabel>
+                  </>
+               )}
+
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem onSelect={handleOpenProfile}>
