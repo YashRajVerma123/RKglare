@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Edit, PlusCircle, Trash, Users, BellRing, Image as ImageIcon, Megaphone, User as UserIcon, Upload, LineChart, Mail, Loader2, Bot } from "lucide-react";
+import { BarChart, Edit, PlusCircle, Trash, Users, BellRing, Image as ImageIcon, Megaphone, User as UserIcon, Upload, LineChart, Mail, Loader2, Bot, Star } from "lucide-react";
 import { Post, Notification, Bulletin, Author } from "@/lib/data";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -39,8 +39,17 @@ import AboutTheAuthor from "@/components/about-the-author";
 import { generateNewsletterMailto } from "@/app/actions/newsletter-actions";
 import { Label } from "@/components/ui/label";
 import { BulletinCard } from "@/app/(pages)/bulletin/page";
-import { getPosts, getNotifications, getBulletins } from '@/lib/data';
+import { getPosts, getNotifications, getBulletins, getAuthors } from '@/lib/data';
 import { generateBulletinContent } from "@/ai/flows/bulletin-flow";
+import { updateUserPoints } from "@/app/actions/gamification-actions";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -74,19 +83,26 @@ const newsletterSchema = z.object({
     content: z.string().min(100, 'Content must be at least 100 characters.'),
 });
 
+const pointsSchema = z.object({
+    points: z.coerce.number().int("Points must be a whole number."),
+    reason: z.string().min(5, "Please provide a reason."),
+});
+
 interface AdminClientPageProps {
     initialPosts: Post[];
     initialNotifications: Notification[];
     initialBulletins: Bulletin[];
+    initialUsers: Author[];
 }
 
-const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins }: AdminClientPageProps) => {
+const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins, initialUsers }: AdminClientPageProps) => {
     const { user, isAdmin, loading: authLoading, updateUserProfile } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
     const [allPosts, setAllPosts] = useState<Post[]>(initialPosts);
     const [allNotifications, setAllNotifications] = useState<Notification[]>(initialNotifications);
     const [allBulletins, setAllBulletins] = useState<Bulletin[]>(initialBulletins);
+    const [allUsers, setAllUsers] = useState<Author[]>(initialUsers);
     const [dataLoading, setDataLoading] = useState(true);
     
     const [isPostDeleteDialogOpen, setPostDeleteDialogOpen] = useState(false);
@@ -100,15 +116,23 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isGenerating, setIsGenerating] = useState(false);
 
+    const [isPointsDialogOpen, setPointsDialogOpen] = useState(false);
+    const [userToEditPoints, setUserToEditPoints] = useState<Author | null>(null);
+
+    const pointsForm = useForm<z.infer<typeof pointsSchema>>({
+        resolver: zodResolver(pointsSchema),
+        defaultValues: { points: 0, reason: "" },
+    });
 
      useEffect(() => {
         const fetchAllData = async () => {
             try {
                 setDataLoading(true);
-                const [posts, notifications, bulletinsResponse] = await Promise.all([
-                    getPosts(false), // Fetch lightweight posts
+                const [posts, notifications, bulletinsResponse, users] = await Promise.all([
+                    getPosts(false),
                     getNotifications(),
-                    getBulletins(100) // Fetch all bulletins
+                    getBulletins(100),
+                    getAuthors(),
                 ]);
                 
                 const sortedPosts = posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
@@ -116,6 +140,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins 
                 setAllPosts(sortedPosts);
                 setAllNotifications(notifications);
                 setAllBulletins(bulletinsResponse.bulletins);
+                setAllUsers(users);
 
             } catch (error) {
                 console.error("Couldn't load dashboard data", error);
@@ -383,6 +408,32 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins 
         }
     }
 
+    const handleEditPointsClick = (userToEdit: Author) => {
+        setUserToEditPoints(userToEdit);
+        pointsForm.reset();
+        setPointsDialogOpen(true);
+    };
+
+    const onPointsSubmit = async (values: z.infer<typeof pointsSchema>) => {
+        if (!user || !userToEditPoints) return;
+        
+        const result = await updateUserPoints(user.id, userToEditPoints.id, values.points, values.reason);
+
+        if (result.success) {
+            toast({
+                title: "Points Updated!",
+                description: `${userToEditPoints.name}'s points have been updated to ${result.newTotal?.toLocaleString() || 'N/A'}.`
+            });
+            // Update the user in the local state
+            setAllUsers(prevUsers => prevUsers.map(u => 
+                u.id === userToEditPoints.id ? { ...u, points: result.newTotal } : u
+            ));
+            setPointsDialogOpen(false);
+        } else {
+            toast({ title: "Error", description: result.error, variant: "destructive" });
+        }
+    };
+
     return (
         <div className="container mx-auto px-4 py-16 animate-fade-in-up">
             <section className="text-center mb-16">
@@ -424,12 +475,12 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins 
                                 </Card>
                                 <Card className="glass-card">
                                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                        <CardTitle className="text-sm font-medium">Users</CardTitle>
+                                        <CardTitle className="text-sm font-medium">Total Users</CardTitle>
                                         <Users className="h-4 w-4 text-muted-foreground" />
                                     </CardHeader>
                                     <CardContent>
-                                        <div className="text-2xl font-bold">1</div>
-                                        <p className="text-xs text-muted-foreground">Currently logged in</p>
+                                        <div className="text-2xl font-bold">{allUsers.length}</div>
+                                        <p className="text-xs text-muted-foreground">Manage all users below</p>
                                     </CardContent>
                                 </Card>
                                 <Card className="glass-card">
@@ -492,6 +543,59 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins 
                                                             </TableCell>
                                                         </TableRow>
                                                     ))}
+                                                </TableBody>
+                                            </Table>
+                                        </CardContent>
+                                    </Card>
+
+                                    <Card className="glass-card">
+                                        <CardHeader>
+                                            <CardTitle>User Management</CardTitle>
+                                            <CardDescription>View all registered users and manage their points.</CardDescription>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>User</TableHead>
+                                                        <TableHead>Email</TableHead>
+                                                        <TableHead>Points</TableHead>
+                                                        <TableHead>Status</TableHead>
+                                                        <TableHead className="text-right">Actions</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {allUsers.map(u => {
+                                                        const isPremium = u.premium?.active && u.premium.expires && new Date(u.premium.expires) > new Date();
+                                                        return (
+                                                            <TableRow key={u.id}>
+                                                                <TableCell className="font-medium flex items-center gap-2">
+                                                                    <Avatar className="h-8 w-8">
+                                                                        <AvatarImage src={u.avatar} alt={u.name} />
+                                                                        <AvatarFallback>{getInitials(u.name)}</AvatarFallback>
+                                                                    </Avatar>
+                                                                    {u.name}
+                                                                </TableCell>
+                                                                <TableCell className="text-muted-foreground">{u.email}</TableCell>
+                                                                <TableCell>{(u.points || 0).toLocaleString()}</TableCell>
+                                                                <TableCell>
+                                                                    {isPremium ? (
+                                                                        <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 hover:bg-yellow-500/20">
+                                                                            <Star className="h-3 w-3 mr-1" />
+                                                                            Glare+
+                                                                        </Badge>
+                                                                    ) : (
+                                                                        <Badge variant="secondary">Standard</Badge>
+                                                                    )}
+                                                                </TableCell>
+                                                                <TableCell className="text-right">
+                                                                    <Button variant="outline" size="sm" onClick={() => handleEditPointsClick(u)}>
+                                                                        <Edit className="h-3 w-3 mr-1" /> Edit Points
+                                                                    </Button>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        )
+                                                    })}
                                                 </TableBody>
                                             </Table>
                                         </CardContent>
@@ -930,10 +1034,54 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins 
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+             <Dialog open={isPointsDialogOpen} onOpenChange={setPointsDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit Points for {userToEditPoints?.name}</DialogTitle>
+                        <DialogDescription>
+                            Add or remove points from this user. Use a negative number to subtract points.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <Form {...pointsForm}>
+                        <form onSubmit={pointsForm.handleSubmit(onPointsSubmit)} className="space-y-4">
+                            <FormField
+                                control={pointsForm.control}
+                                name="points"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Points to Add/Subtract</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="e.g., 50 or -20" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={pointsForm.control}
+                                name="reason"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Reason</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g., Manual correction, reward for offline event" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <DialogFooter>
+                                <Button type="button" variant="ghost" onClick={() => setPointsDialogOpen(false)}>Cancel</Button>
+                                <Button type="submit" disabled={pointsForm.formState.isSubmitting}>
+                                    {pointsForm.formState.isSubmitting ? "Updating..." : "Update Points"}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </Form>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
 
 export default AdminClientPage;
-
-    
