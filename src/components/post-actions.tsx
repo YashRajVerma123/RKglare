@@ -27,6 +27,7 @@ import {
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { togglePostLike, toggleBookmark } from "@/app/actions/user-data-actions";
+import { generatePdf } from "@/app/actions/pdf-actions";
 
 const LikeButton = ({ post }: { post: Post }) => {
   const { user, likedPosts, setLikedPosts, signIn } = useAuth();
@@ -119,6 +120,7 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
   const [isSummaryDialogOpen, setSummaryDialogOpen] = useState(false);
   const [summary, setSummary] = useState('');
   const [isSummarizing, setIsSummarizing] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
   const isPremium = user?.premium?.active;
@@ -198,12 +200,22 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
     }
   }
 
-  const handleDownloadPdf = () => {
-      toast({
-          title: "Coming Soon!",
-          description: "The ability to download articles as PDFs is a planned feature."
-      })
-  }
+  const handleDownloadPdf = async () => {
+    if (!isPremium) {
+      toast({ title: "Glare+ Required", description: "You must be a Glare+ member to download articles.", variant: "destructive" });
+      return;
+    }
+    setIsDownloading(true);
+    toast({ title: "Preparing Download...", description: "Your PDF will begin downloading shortly." });
+    try {
+      await generatePdf(post.title, post.content);
+    } catch (e) {
+      toast({ title: "Download Failed", description: "Could not generate the PDF. Please try again.", variant: "destructive" });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
 
   if (!isMounted || !portalContainer) {
     return null;
@@ -222,7 +234,7 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
     },
      {
       label: "Download PDF",
-      icon: <FileDown className="h-5 w-5" />,
+      icon: isDownloading ? <Loader2 className="h-5 w-5 animate-spin" /> : <FileDown className="h-5 w-5" />,
       onClick: handleDownloadPdf,
       premium: true,
     },
@@ -271,7 +283,7 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
                       </DialogContent>
                     </Dialog>
                   ) : (
-                    <Button key={action.label} variant="ghost" size="icon" onClick={action.onClick} className="rounded-full text-foreground/80 hover:text-foreground hover:bg-white/10">
+                    <Button key={action.label} variant="ghost" size="icon" onClick={action.onClick} className="rounded-full text-foreground/80 hover:text-foreground hover:bg-white/10" disabled={action.premium && isDownloading}>
                       {action.icon}
                     </Button>
                   )
@@ -306,8 +318,8 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
                       </DialogContent>
                     </Dialog>
                   ) : (
-                    <Button variant="ghost" size="icon" onClick={action.onClick} className="rounded-full h-11 w-11 relative">
-                       {action.premium ? <FileDown className="h-5 w-5 text-yellow-500" /> : action.icon}
+                    <Button variant="ghost" size="icon" onClick={action.onClick} className="rounded-full h-11 w-11 relative" disabled={action.premium && isDownloading}>
+                       {action.premium ? <div className="text-yellow-500">{action.icon}</div> : action.icon}
                     </Button>
                   )}
                 </TooltipTrigger>

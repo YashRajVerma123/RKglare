@@ -20,6 +20,7 @@ import { useDynamicTheme } from '@/contexts/dynamic-theme-context';
 import ReaderMode from '@/components/reader-mode';
 import ReadingTimer from '@/components/reading-timer';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 // Placeholder Ad Component
 const AdPlaceholder = () => (
@@ -52,6 +53,13 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
   
   // Determine if the user can view the content
   const canViewContent = isPreview || !post.premiumOnly && !isEarlyAccessActive || (isPremium ?? false);
+
+  const fontPreference = user?.preferences?.font || 'default';
+  const fontClass = {
+      default: 'font-content',
+      serif: 'font-reader',
+      mono: 'font-mono'
+  }[fontPreference];
 
 
   useEffect(() => {
@@ -169,7 +177,11 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
 
           { canViewContent ? (
              <div 
-                className="prose dark:prose-invert prose-xl max-w-none prose-headings:font-headline prose-a:text-primary hover:prose-a:underline prose-img:rounded-lg font-content font-light animate-fade-in-up"
+                id="article-content"
+                className={cn(
+                    "prose dark:prose-invert prose-xl max-w-none prose-headings:font-headline prose-a:text-primary hover:prose-a:underline prose-img:rounded-lg font-light animate-fade-in-up",
+                     fontClass
+                )}
                 style={{ animationDelay: '0.4s' }}
                 dangerouslySetInnerHTML={{ __html: post.content }}
              />

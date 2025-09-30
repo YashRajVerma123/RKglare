@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/firebase-server'; // Use server db
 import { doc, updateDoc } from 'firebase/firestore';
 import { z } from 'zod';
+import { Author } from '@/lib/data';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -13,9 +14,12 @@ const profileSchema = z.object({
   signature: z.string().min(2, 'Signature must be at least 2 characters.'),
   avatar: z.string().optional(),
   showEmail: z.boolean().optional(),
+  preferences: z.object({
+      font: z.enum(['default', 'serif', 'mono']).optional(),
+  }).optional(),
 });
 
-export async function updateAuthorProfile(authorId: string, values: Partial<z.infer<typeof profileSchema>>): Promise<{ success: boolean }> {
+export async function updateAuthorProfile(authorId: string, values: Partial<z.infer<typeof profileSchema>> & { avatar?: string }): Promise<{ success: boolean }> {
   if (!authorId) {
     throw new Error('Author ID is required.');
   }
@@ -30,6 +34,7 @@ export async function updateAuthorProfile(authorId: string, values: Partial<z.in
   if (values.signature !== undefined) updateData.signature = values.signature;
   if (values.avatar) updateData.avatar = values.avatar;
   if (values.showEmail !== undefined) updateData.showEmail = values.showEmail;
+  if (values.preferences?.font !== undefined) updateData['preferences.font'] = values.preferences.font;
 
   if (Object.keys(updateData).length > 0) {
     await updateDoc(authorRef, updateData);
@@ -41,4 +46,3 @@ export async function updateAuthorProfile(authorId: string, values: Partial<z.in
   
   return { success: true };
 }
-
