@@ -1,4 +1,3 @@
-
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -26,13 +25,10 @@ import UserNav from '@/components/user-nav';
 import NotificationBell from '@/components/notification-bell';
 import SearchBar from '@/components/search-bar';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu"
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { useAuth } from '@/hooks/use-auth';
 
 const navLinks = [
@@ -49,14 +45,14 @@ const premiumLinks = [
 ];
 
 const Header = () => {
-  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isNavOpen, setNavOpen] = useState(false);
   const pathname = usePathname();
   const { user } = useAuth();
   const isPremium = user?.premium?.active;
 
 
   useEffect(() => {
-    setMobileMenuOpen(false);
+    setNavOpen(false);
   }, [pathname]);
 
   return (
@@ -69,49 +65,51 @@ const Header = () => {
         <div className="flex items-center justify-center">
             <div className="flex items-center justify-between p-2 rounded-full bg-background/30 backdrop-blur-xl border border-white/10 shadow-lg w-full max-w-lg">
                 <div className="flex items-center">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                    <Popover open={isNavOpen} onOpenChange={setNavOpen}>
+                        <PopoverTrigger asChild>
                         <Button variant="ghost" size="icon">
                             <Menu className="h-6 w-6" />
                         </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="font-content w-48">
-                        {navLinks.map((link) => (
-                            <DropdownMenuItem key={link.href} asChild>
-                            <Link
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className="w-48 p-1 font-content">
+                        <div className="p-1">
+                          {navLinks.map((link) => (
+                              <Link
+                                key={link.href}
                                 href={link.href}
                                 className={cn(
-                                    'flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary',
+                                    'flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm font-medium transition-colors hover:bg-accent',
                                     pathname === link.href ? 'text-primary' : 'text-foreground/80'
                                 )}
                                 >
                                 {link.icon}
                                 <span>{link.label}</span>
                                 </Link>
-                            </DropdownMenuItem>
-                        ))}
+                          ))}
+                        </div>
                          {isPremium && (
                             <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuLabel>Glare+</DropdownMenuLabel>
-                                {premiumLinks.map((link) => (
-                                     <DropdownMenuItem key={link.href} asChild>
-                                        <Link
+                                <div className="my-1 h-px bg-muted" />
+                                <div className="p-1">
+                                    <div className="px-2 py-1.5 text-sm font-semibold">Glare+</div>
+                                    {premiumLinks.map((link) => (
+                                         <Link
+                                            key={link.href}
                                             href={link.href}
                                             className={cn(
-                                                'flex items-center gap-2 text-sm font-medium transition-colors hover:text-yellow-500',
+                                                'flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm font-medium transition-colors hover:bg-accent',
                                                 pathname === link.href ? 'text-yellow-500' : 'text-foreground/80'
                                             )}
                                             >
                                             {link.icon}
                                             <span>{link.label}</span>
                                         </Link>
-                                    </DropdownMenuItem>
-                                ))}
+                                    ))}
+                                </div>
                             </>
                          )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                        </PopoverContent>
+                    </Popover>
                     <NotificationBell />
                 </div>
                 

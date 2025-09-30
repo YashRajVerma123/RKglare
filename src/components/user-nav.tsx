@@ -2,14 +2,10 @@
 'use client';
 import { CreditCard, LogOut, User as UserIcon, Upload, Moon, Sun, Loader2, PanelRightOpen, Settings, UserPlus,LogIn, RefreshCw, Type, X } from 'lucide-react';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { useAuth } from '@/hooks/use-auth';
 import {
   Dialog,
@@ -78,6 +74,7 @@ const getInitials = (name: string) => {
 // This is the main component for the header.
 const UserNav = () => {
   const { user, signIn, signOut, loading, updateUserProfile, isAdmin, refreshUser } = useAuth();
+  const [isMenuOpen, setMenuOpen] = useState(false);
   const [isSignInOpen, setSignInOpen] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isProfileOpen, setProfileOpen] = useState(false);
@@ -159,6 +156,12 @@ const UserNav = () => {
         setPreviewUrl(user.avatar);
     }
   }, [user, profileForm, isProfileOpen, profileFormDefaultValues]);
+  
+  useEffect(() => {
+    if (isProfileOpen === false) {
+        setMenuOpen(false);
+    }
+  }, [isProfileOpen]);
 
   const handleSignIn = async () => {
     setIsSigningIn(true);
@@ -254,10 +257,19 @@ const UserNav = () => {
       return <div className="h-9 w-9" />;
   }
   
+  const MenuItem = ({ children, onSelect }: { children: React.ReactNode, onSelect?: () => void }) => (
+    <div
+      onClick={onSelect}
+      className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+    >
+      {children}
+    </div>
+  );
+  
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+      <Popover open={isMenuOpen} onOpenChange={setMenuOpen}>
+        <PopoverTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">
               <Avatar className="h-9 w-9">
                 {loading ? (
@@ -276,11 +288,11 @@ const UserNav = () => {
                 )}
               </Avatar>
             </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56 font-content" align="end" forceMount>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 font-content p-1" align="end">
           {user ? (
             <>
-              <DropdownMenuLabel className="font-normal">
+              <div className="p-2">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">{user.name}</p>
                   <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
@@ -293,12 +305,12 @@ const UserNav = () => {
                     </div>
                   </div>
                 </div>
-              </DropdownMenuLabel>
+              </div>
 
                {gamificationInfo && (
                   <>
-                    <DropdownMenuSeparator />
-                     <DropdownMenuLabel className="font-normal">
+                    <div className="my-1 h-px bg-muted" />
+                     <div className="p-2">
                         <TooltipProvider>
                            <Tooltip>
                              <TooltipTrigger asChild>
@@ -332,24 +344,23 @@ const UserNav = () => {
                              </TooltipContent>
                            </Tooltip>
                         </TooltipProvider>
-                     </DropdownMenuLabel>
+                     </div>
                   </>
                )}
 
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem onSelect={handleOpenProfile}>
+              <div className="my-1 h-px bg-muted" />
+              <MenuItem onSelect={handleOpenProfile}>
                   <UserIcon className="mr-2 h-4 w-4" />
                   <span>Profile</span>
-                </DropdownMenuItem>
-                {isAdmin && (
-                   <DropdownMenuItem asChild>
-                    <Link href="/admin">
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      <span>Admin Panel</span>
-                    </Link>
-                  </DropdownMenuItem>
-                )}
+              </MenuItem>
+              {isAdmin && (
+                 <Link href="/admin" className="block">
+                    <MenuItem>
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        <span>Admin Panel</span>
+                    </MenuItem>
+                  </Link>
+              )}
                  <div className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
                     <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                     <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -359,17 +370,16 @@ const UserNav = () => {
                         onCheckedChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                     />
                 </div>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut}>
+              <div className="my-1 h-px bg-muted" />
+              <MenuItem onSelect={signOut}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
-              </DropdownMenuItem>
+              </MenuItem>
             </>
           ) : (
              <>
-                <DropdownMenuLabel>Settings</DropdownMenuLabel>
-                <DropdownMenuSeparator />
+                <div className="p-2 text-sm font-semibold">Settings</div>
+                <div className="my-1 h-px bg-muted" />
                 <div className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
                     <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                     <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -379,14 +389,14 @@ const UserNav = () => {
                         onCheckedChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                     />
                 </div>
-                <DropdownMenuItem onSelect={() => setSignInOpen(true)}>
+                <MenuItem onSelect={() => setSignInOpen(true)}>
                   <LogIn className="mr-2 h-4 w-4" />
                   <span>Sign In</span>
-                </DropdownMenuItem>
+                </MenuItem>
             </>
           )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+        </PopoverContent>
+      </Popover>
 
       <Dialog open={isSignInOpen} onOpenChange={setSignInOpen}>
           <DialogContent className="sm:max-w-md">
