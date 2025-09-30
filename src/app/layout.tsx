@@ -96,9 +96,9 @@ export default function RootLayout({
         />
         <ClientProviders>
           <div className="fixed inset-0 overflow-hidden -z-10">
-            <div className="bg-ball w-[20vw] h-[20vw] bg-primary/30 dark:bg-primary/10 top-[-5%] left-[-5%]"></div>
+            <div className="bg-ball w-[20vw] h-[20vw] bg-primary/30 dark:bg-primary/20 top-[-5%] left-[-5%]"></div>
             <div className="bg-ball w-[15vw] h-[15vw] bg-secondary/30 dark:bg-secondary/10 bottom-[10%] left-[10%]"></div>
-            <div className="bg-ball w-[18vw] h-[18vw] bg-pink-400/40 dark:bg-pink-400/20 top-[15%] right-[5%]"></div>
+            <div className="bg-ball w-[18vw] h-[18vw] bg-fuchsia-400/40 dark:bg-fuchsia-400/20 top-[15%] right-[5%]"></div>
             <div className="bg-ball w-[22vw] h-[22vw] bg-fuchsia-500/30 dark:bg-fuchsia-500/10 bottom-[-10%] left-1/2 -translate-x-1/2"></div>
           </div>
 
