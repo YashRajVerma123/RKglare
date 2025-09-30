@@ -1,90 +1,112 @@
-import { Suspense } from 'react';
-import PostsClient from '../posts/posts-client';
-import { getPosts, Post, getAuthorById } from '@/lib/data';
-import { cookies } from 'next/headers';
-import { getAuth } from "firebase-admin/auth";
-import { app } from '@/lib/firebase-server';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { getPosts, Post } from '@/lib/data';
 import BlogPostCard from '@/components/blog-post-card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { Star } from 'lucide-react';
 
-// This is a server component, so we can check auth state here.
-const PremiumFeedPage = async () => {
-    
-    // Auth check on the server
-    const cookieStore = cookies();
-    const sessionCookie = cookieStore.get('session')?.value;
-    let currentUser = null;
-    
-    if (sessionCookie) {
-        try {
-            const decodedToken = await getAuth(app).verifySessionCookie(sessionCookie, true);
-            currentUser = await getAuthorById(decodedToken.uid);
-        } catch (error) {
-            console.warn("Session cookie invalid:", error);
-            // Fall through to the access denied page
+const PremiumFeedPage = () => {
+    const { user, loading: authLoading } = useAuth();
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [loadingPosts, setLoadingPosts] = useState(true);
+
+    const isPremium = user?.premium?.active === true && user.premium.expires && new Date(user.premium.expires) > new Date();
+
+    useEffect(() => {
+        if (!authLoading && isPremium) {
+            const fetchPremiumPosts = async () => {
+                setLoadingPosts(true);
+                const allPosts = await getPosts(false, user); // Pass user to get correct permissions
+                const now = new Date();
+
+                const premiumPosts = allPosts.filter(post => {
+                    if (post.premiumOnly) return true;
+                    if (post.earlyAccess) {
+                        const publishedAt = new Date(post.publishedAt);
+                        const hoursSincePublished = (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60);
+                        return hoursSincePublished < 24;
+                    }
+                    return false;
+                }).sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+
+                setPosts(premiumPosts);
+                setLoadingPosts(false);
+            };
+
+            fetchPremiumPosts();
+        } else if (!authLoading && !isPremium) {
+            setLoadingPosts(false);
         }
+    }, [user, isPremium, authLoading]);
+    
+    if (authLoading) {
+         return (
+             <div className="flex h-[calc(100vh-80px)] items-center justify-center">
+                <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
+            </div>
+        );
     }
     
-    // Redirect if not premium
-    if (!currentUser || !currentUser.premium?.active || (currentUser.premium.expires && new Date(currentUser.premium.expires) < new Date())) {
+    if (!isPremium) {
         return (
              <div className="container mx-auto px-4 py-16 text-center">
                 <div className="glass-card p-12 max-w-2xl mx-auto">
-                    <h1 className="text-4xl font-headline font-bold mb-4">Access Denied</h1>
-                    <p className="text-muted-foreground mb-6">You must be a Glare+ subscriber to view this page.</p>
+                     <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Star className="w-8 h-8 text-yellow-500" />
+                    </div>
+                    <h1 className="text-3xl font-headline font-bold mb-4">Access Denied</h1>
+                    <p className="text-muted-foreground mb-6">You must be a Glare+ subscriber to view this private feed.</p>
                     <Button asChild>
                         <Link href="/glare-plus">Explore Glare+</Link>
                     </Button>
                 </div>
             </div>
-        )
+        );
     }
-    
-  // Fetch all posts, then filter for premium/early access
-  const allPosts = await getPosts(false, currentUser); // Pass false to get lightweight posts
-  const now = new Date();
 
-  const premiumPosts = allPosts.filter(post => {
-      // PremiumOnly posts are always included for premium users.
-      if (post.premiumOnly) return true;
-      // EarlyAccess posts are included if they were published in the last 24 hours.
-      if (post.earlyAccess) {
-          const publishedAt = new Date(post.publishedAt);
-          const hoursSincePublished = (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60);
-          return hoursSincePublished < 24;
-      }
-      return false;
-  }).sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-
-  return (
-     <div className="container mx-auto px-4 py-16">
-        <section className="text-center mb-16 animate-fade-in-up">
-            <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight mb-4">
-            Your Premium Feed<span className="text-primary">.</span>
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-            Exclusive content and early access articles, just for Glare+ supporters.
-            </p>
-        </section>
-
-        {premiumPosts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {premiumPosts.map((post, index) => (
-                <BlogPostCard key={post.slug} post={post} priority={index < 3} />
-            ))}
-            </div>
-        ) : (
-            <div className="text-center glass-card py-16">
-                <h2 className="text-2xl font-headline font-bold mb-4">Nothing Here Yet</h2>
-                <p className="text-muted-foreground">
-                    There are currently no exclusive or early-access articles. Check back soon!
+    return (
+        <div className="container mx-auto px-4 py-16">
+            <section className="text-center mb-16 animate-fade-in-up">
+                <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight mb-4">
+                    Your Premium Feed<span className="text-primary">.</span>
+                </h1>
+                <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
+                    Exclusive content and early access articles, just for Glare+ supporters.
                 </p>
-            </div>
-        )}
-    </div>
-  );
+            </section>
+
+            {loadingPosts ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {[...Array(3)].map((_, i) => (
+                    <div key={i} className="glass-card h-full flex flex-col overflow-hidden">
+                        <div className="relative aspect-[16/9] bg-muted animate-pulse"></div>
+                        <div className="p-6 flex flex-col flex-grow">
+                            <div className="h-6 w-full bg-muted animate-pulse rounded-md mb-2"></div>
+                            <div className="h-6 w-3/4 bg-muted animate-pulse rounded-md mb-4"></div>
+                            <div className="h-10 w-full bg-muted animate-pulse rounded-md mt-auto"></div>
+                        </div>
+                    </div>
+                ))}
+                </div>
+            ) : posts.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {posts.map((post, index) => (
+                    <BlogPostCard key={post.slug} post={post} priority={index < 3} />
+                ))}
+                </div>
+            ) : (
+                <div className="text-center glass-card py-16">
+                    <h2 className="text-2xl font-headline font-bold mb-4">The Feed is Quiet... For Now</h2>
+                    <p className="text-muted-foreground">
+                        There are currently no new exclusive or early-access articles. Check back soon!
+                    </p>
+                </div>
+            )}
+        </div>
+    );
 };
 
 export default PremiumFeedPage;
