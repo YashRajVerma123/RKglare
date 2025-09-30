@@ -82,6 +82,7 @@ const PremiumChatPage = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     
     const [isSending, setIsSending] = useState(false);
+    const [newMessage, setNewMessage] = useState('');
     
     useEffect(() => {
         if (!isPremium) {
