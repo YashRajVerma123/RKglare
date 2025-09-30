@@ -95,11 +95,11 @@ export default function RootLayout({
           }}
         />
         <ClientProviders>
-          <div className="fixed inset-0 overflow-hidden -z-10">
+           <div className="fixed inset-0 -z-10 h-full w-full">
             <div className="bg-ball w-[20vw] h-[20vw] bg-primary/30 dark:bg-primary/20 top-[-5%] left-[-5%]"></div>
             <div className="bg-ball w-[15vw] h-[15vw] bg-secondary/30 dark:bg-secondary/10 bottom-[10%] left-[10%]"></div>
             <div className="bg-ball w-[18vw] h-[18vw] bg-fuchsia-400/40 dark:bg-fuchsia-400/20 top-[15%] right-[5%]"></div>
-            <div className="bg-ball w-[22vw] h-[22vw] bg-fuchsia-500/30 dark:bg-fuchsia-500/10 bottom-[-10%] left-1/2 -translate-x-1/2"></div>
+            <div className="bg-ball w-[22vw] h-[22vw] bg-fuchsia-500/30 dark:bg-fuchsia-500/10 bottom-[-10%] right-[-10%]"></div>
           </div>
 
           <SplashScreen />
@@ -108,7 +108,7 @@ export default function RootLayout({
           </Suspense>
           <div className="relative z-10 flex flex-col min-h-screen page-transition">
             <Header />
-            <main className="flex-grow pt-20">{children}</main>
+            <main className="flex-grow pt-20 w-full">{children}</main>
             <Footer />
           </div>
           <Toaster />
