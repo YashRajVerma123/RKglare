@@ -32,7 +32,7 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
     const isMainSiteAuthor = initialUser.email === 'yashrajverma916@gmail.com';
     
     // Use mainAuthor from context if it's the main author, otherwise use the prop
-    const author = isMainSiteAuthor ? mainAuthor : initialUser;
+    const author = isMainSiteAuthor && mainAuthor ? mainAuthor : initialUser;
 
     const {level, progress, currentPoints, requiredPoints} = useMemo(() => {
         const points = author?.points || 0;
@@ -167,10 +167,12 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
     );
     
     return (
-        <div className="aurora-border rounded-lg">
+        <div className="glass-card rounded-lg">
             {cardContent}
         </div>
     );
 };
 
 export default ProfileCard;
+
+    
