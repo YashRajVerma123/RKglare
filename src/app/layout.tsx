@@ -11,6 +11,7 @@ import PageLoader from "@/components/page-loader";
 import { Suspense } from "react";
 import SplashScreen from "@/components/splash-screen";
 import Script from "next/script";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -108,8 +109,10 @@ export default function RootLayout({
           </Suspense>
           <div className="relative z-10 flex flex-col min-h-screen page-transition">
             <Header />
-            <main className="flex-grow pt-20 w-full">{children}</main>
-            <Footer />
+            <ScrollArea className="flex-grow pt-20 w-full">
+              <main>{children}</main>
+              <Footer />
+            </ScrollArea>
           </div>
           <Toaster />
           <div id="post-actions-container"></div>
