@@ -173,19 +173,16 @@ const PremiumChatPage = () => {
     }
 
     return (
-        <>
-        <div className="container mx-auto px-4 h-[calc(100vh-8rem)] flex flex-col pt-8 pb-4">
-            <section className="text-center mb-8 animate-fade-in-up">
-                <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight mb-4">
-                Premium Chat<span className="text-primary">.</span>
-                </h1>
-                <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-                An exclusive space for Glare+ supporters to connect and discuss.
-                </p>
-            </section>
-            
-            <div className="glass-card flex-1 flex flex-col overflow-hidden">
-                <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-2">
+        <div className="flex flex-col h-full">
+            <header className="p-4 border-b border-border/10 bg-background/50 backdrop-blur-sm sticky top-20 z-10">
+                <div className="container mx-auto px-4">
+                    <h1 className="text-2xl font-headline font-bold tracking-tight text-center">
+                    Premium Chat
+                    </h1>
+                </div>
+            </header>
+            <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-2 container mx-auto">
                     {messages.map((msg) => (
                         <div key={msg.id} className={cn("flex items-start gap-3 group relative py-1", msg.author.id === user.id ? 'flex-row-reverse' : 'flex-row')}>
                            
@@ -286,54 +283,58 @@ const PremiumChatPage = () => {
                     <div ref={messagesEndRef} />
                 </div>
                 
-                <div className="p-4 border-t border-border/10 bg-background/50">
-                    {replyingTo && (
-                        <div className="flex items-center justify-between p-2 mb-2 rounded-md bg-secondary">
-                            <div className="text-xs">
-                                <p className="font-semibold">Replying to {replyingTo.author.name}</p>
-                                <p className="text-muted-foreground line-clamp-1">{replyingTo.text}</p>
+                <div className="p-4 border-t border-border/10 bg-background/50 sticky bottom-0">
+                    <div className="container mx-auto">
+                        {replyingTo && (
+                            <div className="flex items-center justify-between p-2 mb-2 rounded-md bg-secondary">
+                                <div className="text-xs">
+                                    <p className="font-semibold">Replying to {replyingTo.author.name}</p>
+                                    <p className="text-muted-foreground line-clamp-1">{replyingTo.text}</p>
+                                </div>
+                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setReplyingTo(null)}>
+                                    <X className="h-4 w-4"/>
+                                </Button>
                             </div>
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setReplyingTo(null)}>
-                                <X className="h-4 w-4"/>
+                        )}
+                        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                            <Button type="button" variant="ghost" size="icon" onClick={() => toast({title: "File attachments coming soon!", description: "This feature is currently under development."})}>
+                                <Paperclip className="h-5 w-5 text-muted-foreground" />
                             </Button>
-                        </div>
-                    )}
-                    <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                         <Button type="button" variant="ghost" size="icon" onClick={() => toast({title: "File attachments coming soon!", description: "This feature is currently under development."})}>
-                            <Paperclip className="h-5 w-5 text-muted-foreground" />
-                        </Button>
-                        <Input
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            placeholder="Type your message..."
-                            autoComplete="off"
-                            className="h-10"
-                        />
-                        <Button type="submit" size="icon" disabled={!newMessage.trim()}>
-                            <Send className="h-4 w-4" />
-                        </Button>
-                    </form>
+                            <Input
+                                value={newMessage}
+                                onChange={(e) => setNewMessage(e.target.value)}
+                                placeholder="Type your message..."
+                                autoComplete="off"
+                                className="h-10"
+                            />
+                            <Button type="submit" size="icon" disabled={!newMessage.trim()}>
+                                <Send className="h-4 w-4" />
+                            </Button>
+                        </form>
+                    </div>
                 </div>
             </div>
+
+            <AlertDialog open={!!messageToDelete} onOpenChange={(isOpen) => !isOpen && setMessageToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Message?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete your message.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteMessage} className="bg-destructive hover:bg-destructive/90">
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
-        <AlertDialog open={!!messageToDelete} onOpenChange={(isOpen) => !isOpen && setMessageToDelete(null)}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Message?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete your message.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteMessage} className="bg-destructive hover:bg-destructive/90">
-                        Delete
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
-        </>
     );
 };
 
 export default PremiumChatPage;
+
+    
