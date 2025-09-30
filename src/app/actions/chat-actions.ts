@@ -2,7 +2,7 @@
 'use server'
 
 import { db } from '@/lib/firebase-server';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, Timestamp, deleteDoc, doc } from 'firebase/firestore';
 import { z } from 'zod';
 import { Author, messageConverter } from '@/lib/data';
 
@@ -31,4 +31,19 @@ export async function sendMessage(text: string, author: Pick<Author, 'id' | 'nam
     });
 
     return { success: true };
+}
+
+export async function deleteMessage(messageId: string): Promise<{success: boolean, error?: string}> {
+    if (!messageId) {
+        return { success: false, error: "Message ID is required." };
+    }
+    
+    try {
+        const messageRef = doc(db, 'premium-chat', messageId);
+        await deleteDoc(messageRef);
+        return { success: true };
+    } catch (error) {
+        console.error("Error deleting message:", error);
+        return { success: false, error: "Could not delete message." };
+    }
 }

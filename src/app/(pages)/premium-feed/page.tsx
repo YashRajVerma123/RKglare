@@ -4,11 +4,11 @@ import PostsClient from '../posts/posts-client';
 import { getPosts, Post, getAuthorById } from '@/lib/data';
 import { headers } from 'next/headers';
 import { getAuth } from "firebase-admin/auth";
-import { getApp } from "firebase-admin/app";
 import { app } from '@/lib/firebase-server';
 import BlogPostCard from '@/components/blog-post-card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
 // This is a server component, so we can check auth state here.
 const PremiumFeedPage = async () => {
@@ -24,11 +24,12 @@ const PremiumFeedPage = async () => {
             currentUser = await getAuthorById(decodedToken.uid);
         } catch (error) {
             console.warn("Session cookie invalid:", error);
+            // Fall through to the access denied page
         }
     }
     
     // Redirect if not premium
-    if (!currentUser || !currentUser.premium?.active || new Date(currentUser.premium.expires!) < new Date()) {
+    if (!currentUser || !currentUser.premium?.active || (currentUser.premium.expires && new Date(currentUser.premium.expires) < new Date())) {
         return (
              <div className="container mx-auto px-4 py-16 text-center">
                 <div className="glass-card p-12 max-w-2xl mx-auto">
@@ -43,11 +44,13 @@ const PremiumFeedPage = async () => {
     }
     
   // Fetch all posts, then filter for premium/early access
-  const allPosts = await getPosts(true, currentUser); // Pass true to get content
+  const allPosts = await getPosts(false, currentUser); // Pass false to get lightweight posts
   const now = new Date();
 
   const premiumPosts = allPosts.filter(post => {
+      // PremiumOnly posts are always included for premium users.
       if (post.premiumOnly) return true;
+      // EarlyAccess posts are included if they were published in the last 24 hours.
       if (post.earlyAccess) {
           const publishedAt = new Date(post.publishedAt);
           const hoursSincePublished = (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60);
