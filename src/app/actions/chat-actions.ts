@@ -1,4 +1,3 @@
-
 'use server'
 
 import { db } from '@/lib/firebase-server';
@@ -8,25 +7,29 @@ import { Author, ChatMessage, messageConverter } from '@/lib/data';
 import { revalidateTag } from 'next/cache';
 
 const sendMessageSchema = z.object({
-  text: z.string().min(1).max(500),
+  text: z.string().min(1).max(1000),
   author: z.object({
     id: z.string(),
     name: z.string(),
-    avatar: z.string().url(),
+    avatar: z.string(),
   }),
   replyTo: z.object({
       messageId: z.string(),
       authorName: z.string(),
       text: z.string(),
   }).nullable(),
+  image: z.string().optional(),
 });
 
 export async function sendMessage(
     text: string, 
     author: Pick<Author, 'id' | 'name' | 'avatar'>,
-    replyTo: ChatMessage['replyTo'] | null
+    replyTo: ChatMessage['replyTo'] | null,
+    image?: string,
 ) {
-    const validation = sendMessageSchema.safeParse({ text, author, replyTo });
+    if (!text && !image) return { error: "Message must contain text or an image." };
+    
+    const validation = sendMessageSchema.safeParse({ text, author, replyTo, image });
 
     if (!validation.success) {
         console.error("Invalid message format:", validation.error);
@@ -37,9 +40,10 @@ export async function sendMessage(
     const newDocRef = doc(messagesCollection);
     
     const newMessage: Omit<ChatMessage, 'id'> = {
-        text,
+        text: text || '',
         author,
         replyTo,
+        image,
         createdAt: new Date().toISOString(),
         isEdited: false,
         reactions: {},

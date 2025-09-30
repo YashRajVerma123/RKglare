@@ -1,4 +1,3 @@
-
 import { db } from '@/lib/firebase-server'; // <-- IMPORTANT: Use server DB
 import { 
     collection, 
@@ -259,6 +258,7 @@ export const authorConverter = {
 export type ChatMessage = {
   id: string;
   text: string;
+  image?: string;
   author: Pick<Author, 'id' | 'name' | 'avatar'>;
   createdAt: string; // ISO string
   isEdited?: boolean;
@@ -277,6 +277,7 @@ export const messageConverter = {
         return {
             id: snapshot.id,
             text: data.text,
+            image: data.image,
             author: data.author,
             createdAt: safeToISOString(data.createdAt)!,
             isEdited: data.isEdited,
