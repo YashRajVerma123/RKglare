@@ -59,7 +59,9 @@ export default function EditBulletinPage({ params }: { params: { id: string } })
       }
       setLoading(false);
     }
-    fetchBulletin();
+    if (id) {
+        fetchBulletin();
+    }
   }, [id, form]);
 
   useEffect(() => {
@@ -175,3 +177,5 @@ export default function EditBulletinPage({ params }: { params: { id: string } })
     </div>
   );
 }
+
+    

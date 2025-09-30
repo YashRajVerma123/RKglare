@@ -55,7 +55,9 @@ export default function EditNotificationPage({ params }: { params: { id: string 
       }
       setLoading(false);
     }
-    fetchNotification();
+    if (id) {
+        fetchNotification();
+    }
   }, [id, form]);
 
   useEffect(() => {
@@ -158,3 +160,5 @@ export default function EditNotificationPage({ params }: { params: { id: string 
     </div>
   );
 }
+
+    

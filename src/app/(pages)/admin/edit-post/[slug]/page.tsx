@@ -91,7 +91,7 @@ export default function EditPostPage({ params }: { params: { slug: string } }) {
   useEffect(() => {
     const fetchPost = async () => {
       setLoading(true);
-      const fetchedPost = await getPostClient(slug);
+      const fetchedPost = await getPostClient(slug, user);
       if (fetchedPost) {
         setPost(fetchedPost);
         form.reset({
@@ -104,8 +104,10 @@ export default function EditPostPage({ params }: { params: { slug: string } }) {
       }
       setLoading(false);
     }
-    fetchPost();
-  }, [slug, form]);
+    if (slug) {
+        fetchPost();
+    }
+  }, [slug, form, user]);
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
