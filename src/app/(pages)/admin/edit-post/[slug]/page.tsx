@@ -20,7 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ArrowLeft, Upload, Eye, Pencil, Bot, Star } from 'lucide-react';
 import Link from 'next/link';
 import PostClientPage from '../../../posts/[slug]/post-client-page';
-import { Tabs, TabsList, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsContent, TabsTrigger } from '@/components/ui/tabs';
 import { generatePostContent } from '@/ai/flows/post-flow';
 import { Separator } from '@/components/ui/separator';
 
