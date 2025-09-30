@@ -5,7 +5,7 @@ import { Post } from "@/lib/data";
 import { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { Button } from "./ui/button";
-import { Heart, Share2, Copy, Bookmark, Newspaper, Loader2, MessageSquare, Bot, RefreshCw } from "lucide-react";
+import { Heart, Share2, Copy, Bookmark, Newspaper, Loader2, MessageSquare, Bot, RefreshCw, BookOpen } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +27,7 @@ import {
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { togglePostLike, toggleBookmark } from "@/app/actions/user-data-actions";
+import ReaderMode from "./reader-mode";
 
 
 const LikeButton = ({ post }: { post: Post }) => {
@@ -118,6 +119,7 @@ export default function PostActions({ post }: { post: Post }) {
   const [currentUrl, setCurrentUrl] = useState('');
   const [isMounted, setIsMounted] = useState(false);
   const [isSummaryDialogOpen, setSummaryDialogOpen] = useState(false);
+  const [isReaderModeOpen, setReaderModeOpen] = useState(false);
   const [summary, setSummary] = useState('');
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
@@ -202,6 +204,11 @@ export default function PostActions({ post }: { post: Post }) {
   }
   
   const actions = [
+     {
+      label: "Reader Mode",
+      icon: <BookOpen className="h-5 w-5" />,
+      onClick: () => setReaderModeOpen(true),
+    },
     {
       label: "Summarize",
       icon: <Newspaper className="h-5 w-5" />,
@@ -348,6 +355,12 @@ export default function PostActions({ post }: { post: Post }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ReaderMode
+        isOpen={isReaderModeOpen}
+        onClose={() => setReaderModeOpen(false)}
+        title={post.title}
+        content={post.content}
+      />
     </TooltipProvider>
   );
 

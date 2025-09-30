@@ -1,6 +1,6 @@
 
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk, Dancing_Script, Work_Sans, Nunito } from "next/font/google";
+import { Inter, Space_Grotesk, Dancing_Script, Work_Sans, Nunito, Libre_Baskerville } from "next/font/google";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 import { ClientProviders } from "@/components/client-providers";
@@ -35,6 +35,12 @@ const nunito = Nunito({
   weight: '300'
 });
 
+const libreBaskerville = Libre_Baskerville({
+  subsets: ['latin'],
+  variable: '--font-libre-baskerville',
+  weight: ['400', '700'],
+});
+
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://theglare.netlify.app'),
@@ -66,7 +72,8 @@ export default function RootLayout({
           workSans.variable,
           spaceGrotesk.variable,
           dancingScript.variable,
-          nunito.variable
+          nunito.variable,
+          libreBaskerville.variable
         )}
       >
         <svg width="0" height="0" style={{ position: 'absolute' }}>

@@ -45,6 +45,7 @@ export default {
         signature: ['var(--font-dancing-script)', 'cursive'],
         content: ['var(--font-work-sans)', 'sans-serif'],
         title: ['var(--font-nunito)', 'sans-serif'],
+        reader: ['var(--font-libre-baskerville)', 'serif'],
       },
       colors: {
         background: 'hsl(var(--background))',
