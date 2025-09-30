@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import PostsClient from '../posts/posts-client';
 import { getPosts, Post, getAuthorById } from '@/lib/data';
-import { headers } from 'next/headers';
+import { cookies } from 'next/headers';
 import { getAuth } from "firebase-admin/auth";
 import { app } from '@/lib/firebase-server';
 import BlogPostCard from '@/components/blog-post-card';
@@ -13,8 +13,8 @@ import { notFound } from 'next/navigation';
 const PremiumFeedPage = async () => {
     
     // Auth check on the server
-    const headersList = headers();
-    const sessionCookie = headersList.get('session');
+    const cookieStore = cookies();
+    const sessionCookie = cookieStore.get('session')?.value;
     let currentUser = null;
     
     if (sessionCookie) {
