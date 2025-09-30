@@ -42,7 +42,7 @@ const getAuthorDetails = async (authorId: string): Promise<Author | null> => {
     
     // Fallback for the initial admin user that might not be in the users collection yet.
     if(authorId === 'yash-raj') {
-        const adminAuthor = { id: 'yash-raj', name: 'Yash Raj', avatar: 'https://i.pravatar.cc/150?u=yash-raj', email: 'yashrajverma916@gmail.com'};
+        const adminAuthor = { id: 'yash-raj', name: 'Yash Raj', avatar: 'https://i.ibb.co/TChNTL8/pfp.png', email: 'yashrajverma916@gmail.com'};
         await setDoc(doc(db, "users", "yash-raj"), adminAuthor, { merge: true });
         return adminAuthor;
     }
