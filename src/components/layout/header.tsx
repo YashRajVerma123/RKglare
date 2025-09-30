@@ -15,6 +15,8 @@ import {
   Bell,
   Settings,
   Trophy,
+  Star,
+  MessageSquare,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -28,7 +30,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+import { useAuth } from '@/hooks/use-auth';
 
 const navLinks = [
   { href: '/', label: 'Home', icon: <Home className="h-4 w-4" /> },
@@ -38,9 +42,17 @@ const navLinks = [
   { href: '/bookmarks', label: 'Bookmarks', icon: <Bookmark className="h-4 w-4" /> },
 ];
 
+const premiumLinks = [
+    { href: '/premium-feed', label: 'Premium Feed', icon: <Star className="h-4 w-4" /> },
+    { href: '/premium-chat', label: 'Premium Chat', icon: <MessageSquare className="h-4 w-4" /> },
+];
+
 const Header = () => {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { user } = useAuth();
+  const isPremium = user?.premium?.active;
+
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -77,6 +89,25 @@ const Header = () => {
                                 </Link>
                             </DropdownMenuItem>
                         ))}
+                         {isPremium && (
+                            <>
+                                <DropdownMenuSeparator />
+                                {premiumLinks.map((link) => (
+                                     <DropdownMenuItem key={link.href} asChild>
+                                        <Link
+                                            href={link.href}
+                                            className={cn(
+                                                'flex items-center gap-2 text-sm font-medium transition-colors hover:text-yellow-500',
+                                                pathname === link.href ? 'text-yellow-500' : 'text-foreground/80'
+                                            )}
+                                            >
+                                            {link.icon}
+                                            <span>{link.label}</span>
+                                        </Link>
+                                    </DropdownMenuItem>
+                                ))}
+                            </>
+                         )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                     <NotificationBell />

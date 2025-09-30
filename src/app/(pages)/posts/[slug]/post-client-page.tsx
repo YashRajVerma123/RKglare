@@ -8,7 +8,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Flame } from 'lucide-react';
+import { Calendar, Clock, Flame, ShieldAlert, Star } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import BlogPostCard from '@/components/blog-post-card';
 import CommentSection from '@/components/comment-section';
@@ -21,6 +21,17 @@ import { useInView } from 'react-intersection-observer';
 import { awardPoints } from '@/app/actions/gamification-actions';
 import ReaderMode from '@/components/reader-mode';
 import ReadingTimer from '@/components/reading-timer';
+import { Button } from '@/components/ui/button';
+
+// Placeholder Ad Component
+const AdPlaceholder = () => (
+    <div className="my-8 flex justify-center">
+        <div className="w-full max-w-lg h-24 bg-muted rounded-lg flex items-center justify-center">
+            <p className="text-muted-foreground text-sm">Advertisement</p>
+        </div>
+    </div>
+);
+
 
 interface PostClientPageProps {
   post: Post;
@@ -37,6 +48,13 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
   
   const isBookmarked = post ? bookmarks[post.id] : false;
   
+  // Determine content visibility based on user subscription status
+  const isPremium = user?.premium?.active === true && user.premium.expires && new Date(user.premium.expires) > new Date();
+  const now = new Date();
+  const isEarlyAccessActive = post.earlyAccess && new Date(post.publishedAt).getTime() + (24 * 60 * 60 * 1000) > now.getTime();
+  const canViewContent = isPreview || !post.premiumOnly && !isEarlyAccessActive || isPremium;
+
+
   useEffect(() => {
     if (isPreview) return;
     if (post?.tags && post.tags.length > 0) {
@@ -107,6 +125,14 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
                 </Badge>
               </div>
             )}
+             { (post.premiumOnly || isEarlyAccessActive) && (
+                <div className="mb-6">
+                    <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 hover:bg-yellow-500/20 text-sm badge-shine">
+                        <Star className="h-4 w-4 mr-2" />
+                        {post.premiumOnly ? "Glare+ Exclusive" : "Early Access"}
+                    </Badge>
+                </div>
+            )}
             <p className="text-lg text-muted-foreground mb-6">{post.description}</p>
             <div className="flex items-center space-x-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
@@ -142,15 +168,32 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
             />
           </div>
 
-          <div 
-            className="prose dark:prose-invert prose-xl max-w-none prose-headings:font-headline prose-a:text-primary hover:prose-a:underline prose-img:rounded-lg font-content font-light animate-fade-in-up"
-            style={{ animationDelay: '0.4s' }}
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+          { canViewContent ? (
+             <div 
+                className="prose dark:prose-invert prose-xl max-w-none prose-headings:font-headline prose-a:text-primary hover:prose-a:underline prose-img:rounded-lg font-content font-light animate-fade-in-up"
+                style={{ animationDelay: '0.4s' }}
+                dangerouslySetInnerHTML={{ __html: post.content }}
+             />
+          ) : (
+             <div className="text-center glass-card p-12 my-12">
+                <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Star className="w-8 h-8 text-yellow-500" />
+                </div>
+                <h2 className="text-2xl font-headline font-bold">This is a Glare+ Exclusive</h2>
+                <p className="text-muted-foreground mt-2 mb-6">
+                    {post.earlyAccess ? "Get instant access to this article and more by becoming a Glare+ supporter." : "To continue reading, please subscribe to Glare+."}
+                </p>
+                <Button asChild>
+                    <Link href="/glare-plus">Explore Glare+</Link>
+                </Button>
+            </div>
+          )}
           
          {!isPreview && (
            <>
               <Separator className="my-12" />
+              
+              {!isPremium && <AdPlaceholder />}
               
               <div className="animate-fade-in-up" style={{animationDelay: '0.6s'}}>
                 <AboutTheAuthor />

@@ -5,7 +5,7 @@ import { Post } from "@/lib/data";
 import { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { Button } from "./ui/button";
-import { Heart, Share2, Copy, Bookmark, Newspaper, Loader2, MessageSquare, Bot, RefreshCw, BookOpen } from "lucide-react";
+import { Heart, Share2, Copy, Bookmark, Newspaper, Loader2, MessageSquare, Bot, RefreshCw, BookOpen, FileDown, Star } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -121,6 +121,8 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+  const isPremium = user?.premium?.active;
+
 
   const isBookmarked = user ? bookmarks[post.id] !== undefined : false;
 
@@ -196,6 +198,13 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
     }
   }
 
+  const handleDownloadPdf = () => {
+      toast({
+          title: "Coming Soon!",
+          description: "The ability to download articles as PDFs is a planned feature."
+      })
+  }
+
   if (!isMounted || !portalContainer) {
     return null;
   }
@@ -210,6 +219,12 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
       label: "Summarize",
       icon: <Newspaper className="h-5 w-5" />,
       onClick: handleSummarize,
+    },
+     {
+      label: "Download PDF",
+      icon: <FileDown className="h-5 w-5" />,
+      onClick: handleDownloadPdf,
+      premium: true,
     },
     {
       label: isBookmarked ? "Bookmarked" : "Bookmark",
@@ -235,7 +250,7 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
       <div className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
           <div className="flex items-center justify-center p-1.5 gap-1 rounded-full bg-background/30 backdrop-blur-xl border border-white/20 shadow-2xl">
               <LikeButton post={post} />
-              {actions.map((action, index) => (
+              {actions.filter(a => !a.premium || isPremium).map((action, index) => (
                  action.isShare ? (
                     <Dialog key={action.label}>
                       <DialogTrigger asChild>
@@ -268,14 +283,14 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
       <div className="hidden md:block fixed left-4 top-1/2 -translate-y-1/2 z-50">
          <div className="p-2 bg-card/30 backdrop-blur-xl border border-white/10 rounded-full flex flex-col gap-2 items-center shadow-2xl">
             <LikeButton post={post} />
-            {actions.map((action) => (
+            {actions.filter(a => !a.premium || isPremium).map((action) => (
               <Tooltip key={action.label} delayDuration={100}>
                 <TooltipTrigger asChild>
                   {action.isShare ? (
                     <Dialog>
                       <DialogTrigger asChild>
                          <Button variant="ghost" size="icon" className="rounded-full h-11 w-11">
-                            {action.icon}
+                            {action.premium ? <Star className="h-5 w-5 text-yellow-500" /> : action.icon}
                             <span className="sr-only">{action.label}</span>
                         </Button>
                       </DialogTrigger>
@@ -292,7 +307,7 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
                     </Dialog>
                   ) : (
                     <Button variant="ghost" size="icon" onClick={action.onClick} className="rounded-full h-11 w-11 relative">
-                      {action.icon}
+                       {action.premium ? <Star className="h-5 w-5 text-yellow-500" /> : action.icon}
                     </Button>
                   )}
                 </TooltipTrigger>
