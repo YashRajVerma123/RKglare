@@ -3,7 +3,7 @@
 
 import { Author, isFollowing } from "@/lib/data";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Mail, Users, BadgeCheck } from "lucide-react";
+import { Mail, Users, BadgeCheck, Star } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import FollowButton from "./follow-button";
@@ -41,6 +41,8 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
         return { level, progress, currentPoints, requiredPoints };
     }, [author]);
 
+    const isPremium = author?.premium?.active === true && author?.premium?.expires && new Date(author.premium.expires) > new Date();
+
     useEffect(() => {
         const checkFollowing = async () => {
             if (loggedInUser && author && loggedInUser.id !== author.id) {
@@ -74,21 +76,38 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
             <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
             <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
             <div className="relative z-10 flex flex-col items-center w-full">
-              <Avatar className={cn(
-                "h-24 w-24 mb-4",
-                isMainSiteAuthor && "border-2 border-blue-500"
-              )}>
-                  <AvatarImage src={author.avatar} alt={author.name} />
-                  <AvatarFallback>{getInitials(author.name)}</AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className={cn(
+                  "h-24 w-24 mb-4",
+                  isMainSiteAuthor && "border-2 border-blue-500",
+                  isPremium && "border-2 border-yellow-400"
+                )}>
+                    <AvatarImage src={author.avatar} alt={author.name} />
+                    <AvatarFallback>{getInitials(author.name)}</AvatarFallback>
+                </Avatar>
+                 {isPremium && (
+                    <div className="absolute -top-1 -right-1 bg-yellow-400 p-1.5 rounded-full border-2 border-background">
+                       <Star className="h-4 w-4 text-background fill-background" />
+                    </div>
+                )}
+              </div>
+
               <div className="flex flex-col items-center text-center gap-2">
                   <h2 className="text-2xl font-bold font-headline">{author.name}</h2>
-                  {isMainSiteAuthor && (
-                      <Badge variant="default" className={cn("flex items-center gap-1.5 border-blue-500/50 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20", "badge-shine")}>
-                          <BadgeCheck className="h-4 w-4" />
-                          Verified Author
-                      </Badge>
-                  )}
+                  <div className="flex gap-2">
+                    {isMainSiteAuthor && (
+                        <Badge variant="default" className={cn("flex items-center gap-1.5 border-blue-500/50 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20", "badge-shine")}>
+                            <BadgeCheck className="h-4 w-4" />
+                            Verified Author
+                        </Badge>
+                    )}
+                     {isPremium && (
+                        <Badge variant="default" className={cn("flex items-center gap-1.5 border-yellow-500/50 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20", "badge-shine")}>
+                            <Star className="h-3 w-3" />
+                            Glare+
+                        </Badge>
+                     )}
+                  </div>
               </div>
 
               <div className="flex flex-col items-center gap-1 my-2 text-sm text-muted-foreground">

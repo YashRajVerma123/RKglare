@@ -16,7 +16,7 @@ import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/use-auth';
 import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Upload, Eye, Pencil, Bot } from 'lucide-react';
+import { ArrowLeft, Upload, Eye, Pencil, Bot, Star } from 'lucide-react';
 import Link from 'next/link';
 import { Post } from '@/lib/data';
 import PostClientPage from '../../posts/[slug]/post-client-page';
@@ -43,6 +43,8 @@ const formSchema = z.object({
   readTime: z.coerce.number().min(1, 'Read time must be at least 1 minute.'),
   summary: z.string().optional(),
   topic: z.string().optional(), // For AI generation
+  premiumOnly: z.boolean().default(false),
+  earlyAccess: z.boolean().default(false),
 }).refine(data => {
     if (data.trending && !data.trendingPosition) {
         return false;
@@ -75,6 +77,8 @@ export default function CreatePostPage() {
       readTime: 5,
       summary: '',
       topic: '',
+      premiumOnly: false,
+      earlyAccess: false,
     },
   });
   
@@ -318,7 +322,7 @@ export default function CreatePostPage() {
                               )}
                           />
                       </div>
-                      <FormField
+                       <FormField
                           control={form.control}
                           name="featured"
                           render={({ field }) => (
@@ -374,6 +378,50 @@ export default function CreatePostPage() {
                               )}
                           />
                       )}
+                      <Separator />
+                       <div className="space-y-4">
+                           <h3 className="text-lg font-medium flex items-center gap-2"><Star className="h-5 w-5 text-yellow-500" /> Premium Settings</h3>
+                            <FormField
+                                control={form.control}
+                                name="premiumOnly"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                    <div className="space-y-0.5">
+                                        <FormLabel>Premium Only</FormLabel>
+                                        <p className="text-xs text-muted-foreground">
+                                        Subscribers to Glare+ will be the only ones who can view this post.
+                                        </p>
+                                    </div>
+                                    <FormControl>
+                                        <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="earlyAccess"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                    <div className="space-y-0.5">
+                                        <FormLabel>24-Hour Early Access</FormLabel>
+                                        <p className="text-xs text-muted-foreground">
+                                        Make this post available to Glare+ subscribers 24 hours before public release.
+                                        </p>
+                                    </div>
+                                    <FormControl>
+                                        <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                       </div>
                       <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
                           {form.formState.isSubmitting ? 'Publishing...' : 'Publish Post'}
                       </Button>
@@ -389,5 +437,3 @@ export default function CreatePostPage() {
     </div>
   );
 }
-
-    

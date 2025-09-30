@@ -19,6 +19,8 @@ const formSchema = z.object({
   trendingPosition: z.coerce.number().min(1).max(10).optional().nullable(),
   readTime: z.coerce.number().min(1, 'Read time must be at least 1 minute.'),
   summary: z.string().optional(),
+  premiumOnly: z.boolean().default(false),
+  earlyAccess: z.boolean().default(false),
 });
 
 // A mock function to get author details. In a real app this might involve a database lookup.
@@ -82,6 +84,8 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
             readTime: values.readTime,
             summary: values.summary || '',
             likes: 0,
+            premiumOnly: values.premiumOnly,
+            earlyAccess: values.earlyAccess,
         };
 
         if (newPostData.trending && newPostData.trendingPosition) {
@@ -145,6 +149,8 @@ export async function updatePost(postId: string, values: z.infer<typeof formSche
       trending: values.trending,
       trendingPosition: values.trending ? (values.trendingPosition ?? null) : null,
       trendingUntil: oldPostData.trendingUntil,
+      premiumOnly: values.premiumOnly,
+      earlyAccess: values.earlyAccess,
     };
     
     if (values.trending && !oldPostData.trending) {
@@ -230,4 +236,3 @@ export async function deletePost(postId: string): Promise<{ success: boolean, er
     return { success: false, error: "A server error occurred while deleting the post." };
   }
 }
-

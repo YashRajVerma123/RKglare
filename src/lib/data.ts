@@ -29,6 +29,10 @@ export type Author = {
   points?: number;
   streak?: UserStreak;
   challenge?: DailyChallenge;
+  premium?: {
+    active: boolean;
+    expires: string | null; // ISO Date string
+  };
 };
 
 export type Comment = {
@@ -60,6 +64,8 @@ export type Post = {
   trendingUntil?: string | null; // ISO String
   likes?: number;
   summary?: string;
+  premiumOnly?: boolean;
+  earlyAccess?: boolean;
 };
 
 const safeToISOString = (date: any): string | null => {
@@ -107,6 +113,8 @@ const postConverter = {
             trendingUntil: safeToISOString(data.trendingUntil),
             likes: data.likes || 0,
             summary: data.summary,
+            premiumOnly: data.premiumOnly || false,
+            earlyAccess: data.earlyAccess || false,
         };
     },
     toFirestore: (post: Omit<Post, 'id'>) => {
@@ -136,6 +144,8 @@ export type Bulletin = {
   content: string;
   coverImage: string;
   publishedAt: string; // ISO String
+  premiumOnly?: boolean;
+  earlyAccess?: boolean;
 };
 
 
@@ -170,6 +180,8 @@ const bulletinConverter = {
             content: data.content,
             coverImage: data.coverImage,
             publishedAt: safeToISOString(data.publishedAt)!,
+            premiumOnly: data.premiumOnly || false,
+            earlyAccess: data.earlyAccess || false,
         };
     },
     toFirestore: (bulletin: Omit<Bulletin, 'id' | 'publishedAt'> & { publishedAt?: any}) => {
@@ -222,6 +234,7 @@ export const authorConverter = {
             points: data.points || 0,
             streak: data.streak,
             challenge: data.challenge,
+            premium: data.premium ? { ...data.premium, expires: safeToISOString(data.premium.expires) } : { active: false, expires: null },
         };
     },
     toFirestore: (author: Omit<Author, 'id'>) => {
@@ -231,6 +244,9 @@ export const authorConverter = {
         }
         if (author.challenge?.assignedAt) {
             data.challenge.assignedAt = Timestamp.fromDate(new Date(author.challenge.assignedAt));
+        }
+        if (author.premium?.expires) {
+            data.premium.expires = Timestamp.fromDate(new Date(author.premium.expires));
         }
         return data;
     }
@@ -245,7 +261,38 @@ const sortComments = (comments: Comment[]): Comment[] => {
     });
 };
 
-export const getPosts = async (includeContent: boolean = true): Promise<Post[]> => {
+const filterPremiumContent = (posts: Post[], user?: Author | null): Post[] => {
+    const isPremium = user?.premium?.active === true;
+    const now = new Date();
+
+    return posts.filter(post => {
+        // Public posts are always visible
+        if (!post.premiumOnly && !post.earlyAccess) {
+            return true;
+        }
+
+        // If user is premium, they see everything
+        if (isPremium) {
+            return true;
+        }
+        
+        // If it's premium only, non-premium users can't see it.
+        if (post.premiumOnly) {
+            return false;
+        }
+        
+        // If it's early access, non-premium users can only see it after 24 hours
+        if (post.earlyAccess) {
+            const publishedAt = new Date(post.publishedAt);
+            const hoursSincePublished = (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60);
+            return hoursSincePublished >= 24;
+        }
+
+        return false;
+    });
+};
+
+export const getPosts = async (includeContent: boolean = true, currentUser?: Author | null): Promise<Post[]> => {
     // This function can be called from client components (e.g., Admin page),
     // so it should not use unstable_cache.
     const postsCollection = collection(db, 'posts');
@@ -272,15 +319,26 @@ export const getPosts = async (includeContent: boolean = true): Promise<Post[]> 
                 trendingUntil: safeToISOString(data.trendingUntil),
                 likes: data.likes || 0,
                 summary: data.summary,
+                premiumOnly: data.premiumOnly || false,
+                earlyAccess: data.earlyAccess || false,
             };
         }
     };
     
-    return snapshot.docs.map(doc => lightPostConverter.fromFirestore(doc, {}));
+    const allPosts = snapshot.docs.map(doc => lightPostConverter.fromFirestore(doc, {}));
+    
+    // Admins see all posts, others see filtered content
+    if (currentUser?.email === 'yashrajverma916@gmail.com') {
+        return allPosts;
+    }
+
+    return filterPremiumContent(allPosts, currentUser);
 };
 
 export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
     const allPosts = await getPosts(false);
+    // Note: This needs to be called without a user to cache correctly,
+    // so filtering will happen on the client-side for featured posts.
     return allPosts
         .filter(p => p.featured)
         .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
@@ -321,7 +379,7 @@ export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
 }, ['trending_posts'], { revalidate: 3600, tags: ['posts', 'trending'] });
 
 
-export const getPost = unstable_cache(async (slug: string): Promise<Post | undefined> => {
+export const getPost = unstable_cache(async (slug: string, currentUser?: Author | null): Promise<Post | undefined> => {
     if (!slug) {
         return undefined;
     }
@@ -334,14 +392,31 @@ export const getPost = unstable_cache(async (slug: string): Promise<Post | undef
     }
     
     const post = snapshot.docs[0].data();
+
+    // Admin can see everything
+    if (currentUser?.email === 'yashrajverma916@gmail.com') {
+        return post;
+    }
+
+    const isPremium = currentUser?.premium?.active === true;
+    if (post.premiumOnly && !isPremium) return undefined;
+    if (post.earlyAccess && !isPremium) {
+        const now = new Date();
+        const publishedAt = new Date(post.publishedAt);
+        const hoursSincePublished = (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60);
+        if (hoursSincePublished < 24) {
+            return undefined;
+        }
+    }
+
     return post;
 }, ['post'], { revalidate: 3600, tags: ['posts'] });
 
 
-export const getRelatedPosts = unstable_cache(async (currentPost: Post): Promise<Post[]> => {
+export const getRelatedPosts = unstable_cache(async (currentPost: Post, currentUser?: Author | null): Promise<Post[]> => {
     if (!currentPost) return [];
     
-    const allPosts = await getPosts(false); // Fetch lightweight posts
+    const allPosts = await getPosts(false, currentUser); // Fetch lightweight posts respecting permissions
     const otherPosts = allPosts.filter(p => p.id !== currentPost.id);
 
     if (!currentPost.tags || currentPost.tags.length === 0) {
@@ -413,6 +488,7 @@ export const getNotification = async (id: string): Promise<Notification | null> 
 // New Bulletin Functions
 
 export const getBulletins = async (
+    currentUser?: Author | null,
     pageSize: number = 3,
     startAfterDocId?: string
 ): Promise<{ bulletins: Bulletin[]; lastDocId?: string }> => {
@@ -435,11 +511,26 @@ export const getBulletins = async (
     const q = query(bulletinsCollection, ...constraints);
     const snapshot = await getDocs(q);
     
-    const bulletins = snapshot.docs.map(doc => doc.data());
+    const allBulletins = snapshot.docs.map(doc => doc.data());
     const lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
+
+    const isPremium = currentUser?.premium?.active === true;
+    const now = new Date();
+
+    const filteredBulletins = allBulletins.filter(bulletin => {
+        if (!bulletin.premiumOnly && !bulletin.earlyAccess) return true;
+        if (isPremium) return true;
+        if (bulletin.premiumOnly) return false;
+        if (bulletin.earlyAccess) {
+             const publishedAt = new Date(bulletin.publishedAt);
+             const hoursSincePublished = (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60);
+             return hoursSincePublished >= 24;
+        }
+        return false;
+    });
     
     return {
-        bulletins,
+        bulletins: filteredBulletins,
         lastDocId: lastVisibleDoc?.id
     };
 };
@@ -493,6 +584,27 @@ export const getAuthors = async (): Promise<Author[]> => {
     const snapshot = await getDocs(usersCollection);
     return snapshot.docs.map(doc => doc.data());
 };
+
+export const getPremiumUsers = async (): Promise<Author[]> => {
+     return unstable_cache(async () => {
+        const usersCollection = collection(db, 'users').withConverter(authorConverter);
+        const q = query(usersCollection, where('premium.active', '==', true));
+        const snapshot = await getDocs(q);
+
+        const now = new Date();
+        const premiumUsers: Author[] = [];
+
+        snapshot.docs.forEach(doc => {
+            const user = doc.data();
+            if (user.premium?.expires && new Date(user.premium.expires) > now) {
+                premiumUsers.push(user);
+            }
+        });
+        
+        return premiumUsers.sort((a,b) => (b.points || 0) - (a.points || 0));
+    }, ['premium_users'], { revalidate: 3600, tags: ['users', 'premium_users'] })();
+}
+
 
 // User-specific data (likes, bookmarks)
 export type UserData = {
