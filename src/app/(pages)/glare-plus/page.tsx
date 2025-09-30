@@ -49,7 +49,7 @@ const getInitials = (name: string) => {
 
 
 const SupporterCard = ({ user, rank }: { user: Author; rank: number }) => {
-    const { level } = getLevel(user.points || 0);
+    const level = getLevel(user.points || 0);
 
     const rankStyles = {
         1: 'from-yellow-400 to-amber-600 border-yellow-500/50',
