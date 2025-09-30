@@ -1,9 +1,11 @@
-
+// src/app/layout.tsx
 import type { Metadata } from "next";
+<<<<<<< HEAD
 import { Inter, Space_Grotesk, Dancing_Script, Work_Sans, Nunito, Libre_Baskerville } from "next/font/google";
+=======
+>>>>>>> e7844f2535fbec6a2f8b8bf5ad53f40eb1b103f7
 import { cn } from "@/lib/utils";
-import "./globals.css";
-import { ClientProviders } from "@/components/client-providers";
+import "./globals.css"; // Corrected import path
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,6 +13,7 @@ import PageLoader from "@/components/page-loader";
 import { Suspense } from "react";
 import SplashScreen from "@/components/splash-screen";
 import Script from "next/script";
+<<<<<<< HEAD
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -44,6 +47,13 @@ const libreBaskerville = Libre_Baskerville({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://theglare.netlify.app'),
+=======
+import { spaceGrotesk, workSans, dancingScript, nunito } from "./fonts";
+import ProvidersWrapper from "@/components/providers-wrapper"; // Path to the client-side wrapper
+
+export const metadata: Metadata = {
+  metadataBase: new URL('https://theglare.vercel.app'),
+>>>>>>> e7844f2535fbec6a2f8b8bf5ad53f40eb1b103f7
   title: {
     default: "Glare",
     template: "%s | Glare",
@@ -65,6 +75,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#7c3aed" />
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2103302400076966"
      crossOrigin="anonymous"></script>
+        <meta name="google-site-verification" content="vVS4lyOVugEqlbEBJPkMRGw768T2DkiXThG-X51xKGE" />
       </head>
       <body
         className={cn(
@@ -76,6 +87,7 @@ export default function RootLayout({
           libreBaskerville.variable
         )}
       >
+<<<<<<< HEAD
         <svg width="0" height="0" style={{ position: 'absolute' }}>
           <defs>
             <linearGradient id="instagram-gradient-svg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -109,6 +121,35 @@ export default function RootLayout({
             <div className="bg-ball w-[22vw] h-[22vw] bg-fuchsia-500/30 dark:bg-fuchsia-500/10 bottom-[-10%] right-[-10%]"></div>
           </div>
 
+=======
+        <ProvidersWrapper>
+          <svg width="0" height="0" style={{ position: 'absolute' }}>
+            <defs>
+              <linearGradient id="instagram-gradient-svg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style={{ stopColor: '#feda75' }} />
+                <stop offset="50%" style={{ stopColor: '#d62976' }} />
+                <stop offset="100%" style={{ stopColor: '#4f5bd5' }} />
+              </linearGradient>
+            </defs>
+          </svg>
+          <Script
+            strategy="afterInteractive"
+            src="https://www.googletagmanager.com/gtag/js?id=G-XV6E6GR0RD"
+          />
+          <Script
+            id="google-analytics"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-XV6E6GR0RD');
+              `,
+            }}
+          />
+          <Toaster />
+>>>>>>> e7844f2535fbec6a2f8b8bf5ad53f40eb1b103f7
           <SplashScreen />
           <Suspense fallback={null}>
             <PageLoader />
@@ -120,10 +161,10 @@ export default function RootLayout({
               <Footer />
             </div>
           </div>
-          <Toaster />
           <div id="post-actions-container"></div>
-        </ClientProviders>
+        </ProvidersWrapper>
       </body>
     </html>
   );
 }
+
