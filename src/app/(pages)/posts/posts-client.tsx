@@ -13,23 +13,28 @@ const PostsClient = ({ initialPosts }: { initialPosts: Post[] }) => {
 
   useEffect(() => {
     let sortedPosts = [...initialPosts].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-    if (!searchQuery) {
-      setFilteredPosts(sortedPosts);
-    } else {
-      const lowercasedQuery = searchQuery.toLowerCase();
-      const isTagSearch = initialPosts.some(post => post.tags.some(tag => tag.toLowerCase() === lowercasedQuery));
-
-      setFilteredPosts(sortedPosts.filter(post => {
-        const titleMatch = post.title.toLowerCase().includes(lowercasedQuery);
-        const descriptionMatch = post.description.toLowerCase().includes(lowercasedQuery);
-        const tagMatch = post.tags.some(tag => tag.toLowerCase() === lowercasedQuery);
-
-        if (isTagSearch) {
-            return tagMatch;
-        }
+    
+    if (searchQuery) {
+        const lowercasedQuery = searchQuery.toLowerCase();
         
-        return titleMatch || descriptionMatch || tagMatch;
-      }));
+        // Determine if it's primarily a tag search
+        const isTagSearch = initialPosts.some(post => post.tags.some(tag => tag.toLowerCase() === lowercasedQuery));
+
+        const newFilteredPosts = sortedPosts.filter(post => {
+            const titleMatch = post.title.toLowerCase().includes(lowercasedQuery);
+            const descriptionMatch = post.description.toLowerCase().includes(lowercasedQuery);
+            const tagMatch = post.tags.some(tag => tag.toLowerCase().includes(lowercasedQuery));
+            
+            // If the query exactly matches a known tag, prioritize tag matching.
+            if (isTagSearch) {
+                return post.tags.some(tag => tag.toLowerCase() === lowercasedQuery);
+            }
+
+            return titleMatch || descriptionMatch || tagMatch;
+        });
+        setFilteredPosts(newFilteredPosts);
+    } else {
+      setFilteredPosts(sortedPosts);
     }
     setLoading(false);
   }, [searchQuery, initialPosts]);
