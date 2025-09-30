@@ -12,24 +12,15 @@ const PostsClient = ({ initialPosts }: { initialPosts: Post[] }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let sortedPosts = [...initialPosts].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-    
+    setLoading(true);
+    const sortedPosts = [...initialPosts].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+
     if (searchQuery) {
         const lowercasedQuery = searchQuery.toLowerCase();
-        
-        // Determine if it's primarily a tag search
-        const isTagSearch = initialPosts.some(post => post.tags.some(tag => tag.toLowerCase() === lowercasedQuery));
-
         const newFilteredPosts = sortedPosts.filter(post => {
             const titleMatch = post.title.toLowerCase().includes(lowercasedQuery);
             const descriptionMatch = post.description.toLowerCase().includes(lowercasedQuery);
             const tagMatch = post.tags.some(tag => tag.toLowerCase().includes(lowercasedQuery));
-            
-            // If the query exactly matches a known tag, prioritize tag matching.
-            if (isTagSearch) {
-                return post.tags.some(tag => tag.toLowerCase() === lowercasedQuery);
-            }
-
             return titleMatch || descriptionMatch || tagMatch;
         });
         setFilteredPosts(newFilteredPosts);
@@ -80,8 +71,11 @@ const PostsClient = ({ initialPosts }: { initialPosts: Post[] }) => {
           ))}
         </div>
       ) : (
-        <div className="text-center">
-            <p className="text-muted-foreground text-lg">No articles found matching your search.</p>
+        <div className="text-center glass-card py-16">
+            <h2 className="text-2xl font-headline font-bold mb-4">No Results Found</h2>
+            <p className="text-muted-foreground">
+                We couldn't find any articles matching your search for "{searchQuery}".
+            </p>
         </div>
       )}
     </div>

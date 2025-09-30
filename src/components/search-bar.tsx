@@ -1,8 +1,8 @@
 
 'use client';
 import { useCallback, useEffect, useState, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { File, Search, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Search, Loader2 } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
 import { Post, getPosts } from '@/lib/data';
@@ -22,24 +22,31 @@ const SearchBar = () => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [allPosts, setAllPosts] = useState<Post[]>([]);
 
-  const performSearch = useCallback(async (searchQuery: string) => {
+  // Pre-fetch all post data when the component mounts
+  useEffect(() => {
+    getPosts(false).then(posts => setAllPosts(posts));
+  }, []);
+
+  const performSearch = useCallback((searchQuery: string) => {
     if (searchQuery.trim() === '') {
       setResults([]);
       setIsLoading(false);
       return;
     }
+    
     setIsLoading(true);
-    const posts = await getPosts();
-    const filteredPosts = posts.filter(
+    const lowercasedQuery = searchQuery.toLowerCase();
+    const filteredPosts = allPosts.filter(
       (post) =>
-        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+        post.title.toLowerCase().includes(lowercasedQuery) ||
+        post.description.toLowerCase().includes(lowercasedQuery) ||
+        post.tags.some((tag) => tag.toLowerCase().includes(lowercasedQuery))
     );
-    setResults(filteredPosts.slice(0, 5));
+    setResults(filteredPosts);
     setIsLoading(false);
-  }, []);
+  }, [allPosts]);
   
   useEffect(() => {
     if (!isPopoverOpen) {
@@ -113,7 +120,7 @@ const SearchBar = () => {
                   )}
                   {!isLoading && query && results.length > 0 && (
                       <ul className="space-y-2">
-                          {results.map((post) => (
+                          {results.slice(0, 5).map((post) => (
                               <li key={post.slug}>
                                   <Link
                                       href={`/posts/${post.slug}`}
@@ -135,7 +142,7 @@ const SearchBar = () => {
                                         }}
                                         className="w-full text-center text-sm text-primary"
                                     >
-                                        View all {results.length}+ results
+                                        View all {results.length} results
                                     </Button>
                                 </div>
                             )}
