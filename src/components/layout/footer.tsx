@@ -12,6 +12,7 @@ const quickLinks = [
   { href: '/privacy-policy', label: 'Privacy Policy' },
   { href: '/newsletter', label: 'Newsletter' },
   { href: '/points-system', label: 'Points System' },
+  { href: '/sitemap', label: 'Sitemap' },
 ];
 
 const Footer = () => {
