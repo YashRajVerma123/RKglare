@@ -1,18 +1,8 @@
-
 /** @type {import('next').NextConfig} */
-
 import withPWA from 'next-pwa';
 
-const pwaConfig = withPWA({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
-});
-
-
 const nextConfig = {
-   env: {
+  env: {
     NEXT_PUBLIC_FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
     NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
     NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -80,5 +70,29 @@ const nextConfig = {
     ],
   },
 };
+
+
+const pwaConfig = withPWA({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development',
+  fallbacks: {
+    document: '/offline', // Add an offline fallback page if you want
+  },
+  extend: {
+    // This disables the auto-generation of splash screens
+    pwa: {
+      meta: {
+        'apple-mobile-web-app-capable': 'yes',
+        'apple-mobile-web-app-status-bar-style': 'default',
+        'apple-mobile-web-app-title': 'Glare',
+        'mobile-web-app-capable': 'yes',
+        // By removing the 'apple-touch-startup-image' meta tag generation,
+        // we prevent next-pwa from creating its own splash screens.
+      },
+    },
+  },
+});
 
 export default pwaConfig(nextConfig);
