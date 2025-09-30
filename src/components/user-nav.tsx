@@ -1,6 +1,6 @@
 
 'use client';
-import { CreditCard, LogOut, User as UserIcon, Upload, Moon, Sun, Loader2, PanelRightOpen, Settings, UserPlus,LogIn } from 'lucide-react';
+import { CreditCard, LogOut, User as UserIcon, Upload, Moon, Sun, Loader2, PanelRightOpen, Settings, UserPlus,LogIn, RefreshCw } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +41,8 @@ import { ScrollArea } from './ui/scroll-area';
 import { getLevel, getProgressToNextLevel } from '@/lib/gamification';
 import { Progress } from './ui/progress';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { getAuthors } from '@/lib/data';
+import { Trophy } from 'lucide-react';
 
 // Helper to convert file to Base64
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
@@ -70,7 +72,7 @@ const getInitials = (name: string) => {
 
 // This is the main component for the header.
 const UserNav = () => {
-  const { user, signIn, signOut, loading, updateUserProfile, isAdmin } = useAuth();
+  const { user, signIn, signOut, loading, updateUserProfile, isAdmin, refreshUser } = useAuth();
   const [isSignInOpen, setSignInOpen] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isProfileOpen, setProfileOpen] = useState(false);
@@ -85,6 +87,8 @@ const UserNav = () => {
   const pathname = usePathname();
   const [isFollowListOpen, setFollowListOpen] = useState(false);
   const [followListType, setFollowListType] = useState<'followers' | 'following'>('followers');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [rank, setRank] = useState<number | null>(null);
 
   const profileFormDefaultValues = useMemo(() => ({
     name: user?.name || '',
@@ -112,6 +116,33 @@ const UserNav = () => {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (user) {
+        const fetchRank = async () => {
+            const allUsers = await getAuthors();
+            const sortedUsers = allUsers.sort((a, b) => (b.points || 0) - (a.points || 0));
+            const userRank = sortedUsers.findIndex(u => u.id === user.id);
+            setRank(userRank !== -1 ? userRank + 1 : null);
+        };
+        fetchRank();
+    }
+  }, [user]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refreshUser();
+    
+    // Also re-fetch rank
+    if (user) {
+        const allUsers = await getAuthors();
+        const sortedUsers = allUsers.sort((a, b) => (b.points || 0) - (a.points || 0));
+        const userRank = sortedUsers.findIndex(u => u.id === user.id);
+        setRank(userRank !== -1 ? userRank + 1 : null);
+    }
+
+    setIsRefreshing(false);
+  }
 
 
   useEffect(() => {
@@ -263,15 +294,32 @@ const UserNav = () => {
                            <Tooltip>
                              <TooltipTrigger asChild>
                                 <div className="space-y-1 cursor-pointer">
-                                    <div className="flex items-center gap-2">
-                                        <gamificationInfo.level.icon className="h-4 w-4" style={{color: gamificationInfo.level.color}}/>
-                                        <span className="text-xs font-medium" style={{color: gamificationInfo.level.color}}>{gamificationInfo.level.name}</span>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <gamificationInfo.level.icon className="h-4 w-4" style={{color: gamificationInfo.level.color}}/>
+                                            <span className="text-xs font-medium" style={{color: gamificationInfo.level.color}}>{gamificationInfo.level.name}</span>
+                                        </div>
+                                         {rank && (
+                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                                <Trophy className="h-3 w-3" />
+                                                <span>#{rank}</span>
+                                            </div>
+                                         )}
                                     </div>
                                     <Progress value={gamificationInfo.progress} className="h-1.5" />
+                                     <div className="flex justify-between items-center text-xs text-muted-foreground">
+                                       <div className="flex items-center gap-1">
+                                          <span>{gamificationInfo.currentPoints.toLocaleString()} PTS</span>
+                                          <Button variant="ghost" size="icon" className="h-5 w-5" onClick={handleRefresh} disabled={isRefreshing}>
+                                              <RefreshCw className={isRefreshing ? "h-3 w-3 animate-spin" : "h-3 w-3"} />
+                                          </Button>
+                                       </div>
+                                       <span>Next: {gamificationInfo.requiredPoints.toLocaleString()}</span>
+                                    </div>
                                 </div>
                              </TooltipTrigger>
                              <TooltipContent>
-                                <p>{gamificationInfo.currentPoints.toLocaleString()} / {gamificationInfo.requiredPoints.toLocaleString()} points</p>
+                                <p>{gamificationInfo.currentPoints.toLocaleString()} / {gamificationInfo.requiredPoints.toLocaleString()} points to next level</p>
                              </TooltipContent>
                            </Tooltip>
                         </TooltipProvider>

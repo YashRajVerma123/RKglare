@@ -6,7 +6,7 @@ export const levels = [
   { name: 'Bookworm', points: 100, icon: Award, color: '#f59e0b' },
   { name: 'Content Explorer', points: 300, icon: Star, color: '#10b981' },
   { name: 'Master Subscriber', points: 600, icon: BrainCircuit, color: '#8b5cf6' },
-  { name: 'Blog Titan', points: 1000, icon: Zap, color: '#ef4444' },
+  { name: 'Glare Titan', points: 1000, icon: Zap, color: '#ef4444' },
 ];
 
 export const getLevel = (points: number) => {

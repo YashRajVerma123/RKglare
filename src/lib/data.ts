@@ -488,6 +488,12 @@ export async function isFollowing(followerId: string, authorId: string): Promise
   return docSnap.exists();
 }
 
+export const getAuthors = async (): Promise<Author[]> => {
+    const usersCollection = collection(db, 'users').withConverter(authorConverter);
+    const snapshot = await getDocs(usersCollection);
+    return snapshot.docs.map(doc => doc.data());
+};
+
 // User-specific data (likes, bookmarks)
 export type UserData = {
     likedPosts: { [postId: string]: boolean };
