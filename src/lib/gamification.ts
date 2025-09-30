@@ -43,7 +43,6 @@ export const getProgressToNextLevel = (points: number) => {
 };
 
 export const pointValues = {
-    READ_POST: 10,
     COMMENT: 5,
     LIKE_POST: 3,
     SUBSCRIBE: 20,
