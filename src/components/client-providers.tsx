@@ -5,7 +5,7 @@ import { ReactNode } from 'react';
 import { AuthProvider } from '@/contexts/auth-context';
 import { ThemeProvider } from 'next-themes';
 import { DynamicThemeProvider } from '@/contexts/dynamic-theme-context';
-import ThoughtOfTheDay from './thought-of-the-day';
+import DailyLoginReward from './daily-login-reward';
 
 export function ClientProviders({ children }: { children: ReactNode }) {
 
@@ -14,7 +14,7 @@ export function ClientProviders({ children }: { children: ReactNode }) {
       <DynamicThemeProvider>
         <AuthProvider>
           {children}
-          <ThoughtOfTheDay />
+          <DailyLoginReward />
         </AuthProvider>
       </DynamicThemeProvider>
     </ThemeProvider>

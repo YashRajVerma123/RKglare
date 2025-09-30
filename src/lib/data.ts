@@ -26,7 +26,9 @@ export type Author = {
   showEmail?: boolean;
   followers?: number;
   following?: number;
-  points?: number; // Added for gamification
+  points?: number;
+  streak?: UserStreak;
+  challenge?: DailyChallenge;
 };
 
 export type Comment = {
@@ -217,11 +219,20 @@ export const authorConverter = {
             showEmail: data.showEmail || false,
             followers: data.followers || 0,
             following: data.following || 0,
-            points: data.points || 0, // Added for gamification
+            points: data.points || 0,
+            streak: data.streak,
+            challenge: data.challenge,
         };
     },
     toFirestore: (author: Omit<Author, 'id'>) => {
-        return author;
+        const data: {[key: string]: any} = {...author};
+        if (author.streak?.lastLoginDate) {
+            data.streak.lastLoginDate = Timestamp.fromDate(new Date(author.streak.lastLoginDate));
+        }
+        if (author.challenge?.assignedAt) {
+            data.challenge.assignedAt = Timestamp.fromDate(new Date(author.challenge.assignedAt));
+        }
+        return data;
     }
 };
 
@@ -483,3 +494,22 @@ export type UserData = {
     likedComments: { [commentId: string]: boolean };
     bookmarks: { [postId: string]: { bookmarkedAt: string, scrollPosition?: number } };
 }
+
+// Streaks and Challenges
+export type UserStreak = {
+  currentStreak: number;
+  lastLoginDate: string; // ISO String
+};
+
+export type ChallengeType = 'READ_X_MINUTES' | 'LIKE_X_POSTS' | 'COMMENT_X_POSTS';
+
+export type DailyChallenge = {
+  id: string; // e.g. '2024-07-31'
+  type: ChallengeType;
+  description: string;
+  target: number;
+  progress: number;
+  points: number;
+  completed: boolean;
+  assignedAt: string; // ISO string
+};

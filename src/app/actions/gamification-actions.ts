@@ -2,13 +2,60 @@
 'use server';
 
 import { db } from '@/lib/firebase-server';
-import { doc, increment, writeBatch } from 'firebase/firestore';
+import { doc, increment, writeBatch, runTransaction } from 'firebase/firestore';
 import { PointEvent, pointValues } from '@/lib/gamification';
+import { ChallengeType } from '@/lib/data';
+import { challengeTemplates } from '@/lib/challenges';
 
 // This is a set to prevent awarding points for the same reading session multiple times.
 // In a real production app, this should be stored in a more persistent cache like Redis
 // or in a subcollection in Firestore to handle server restarts.
 const userPostReadTracker = new Set<string>();
+
+const checkAndCompleteChallenge = async (transaction: any, userRef: any, user: any, event: PointEvent, contextId?: string) => {
+    if (!user.challenge || user.challenge.completed) {
+        return 0; // No active challenge or already completed
+    }
+    
+    const challenge = user.challenge;
+    let progressIncrement = 0;
+    
+    switch (challenge.type) {
+        case 'LIKE_X_POSTS':
+            if (event === 'LIKE_POST') progressIncrement = 1;
+            break;
+        case 'COMMENT_X_POSTS':
+            if (event === 'COMMENT') progressIncrement = 1;
+            break;
+        case 'READ_X_MINUTES':
+            // This would be handled differently, likely by a separate action that tracks time.
+            // For this implementation, we'll assume another mechanism updates this.
+            break;
+        default:
+            return 0;
+    }
+    
+    if (progressIncrement > 0) {
+        const newProgress = (challenge.progress || 0) + progressIncrement;
+        if (newProgress >= challenge.target) {
+            // Challenge complete!
+            transaction.update(userRef, {
+                'challenge.progress': newProgress,
+                'challenge.completed': true,
+                points: increment(challenge.points),
+            });
+            return challenge.points;
+        } else {
+            // Update progress
+            transaction.update(userRef, {
+                'challenge.progress': newProgress,
+            });
+        }
+    }
+    
+    return 0;
+}
+
 
 export async function awardPoints(userId: string, event: PointEvent, contextId?: string) {
   if (!userId) {
@@ -33,21 +80,25 @@ export async function awardPoints(userId: string, event: PointEvent, contextId?:
     console.error(`Invalid point event: ${event}`);
     return { success: false, error: 'Invalid point event.' };
   }
-
-  const userRef = doc(db, 'users', userId);
   
+  const userRef = doc(db, 'users', userId);
+
   try {
-    const batch = writeBatch(db);
-    batch.update(userRef, {
-      points: increment(points),
+    const challengePoints = await runTransaction(db, async (transaction) => {
+        const userDoc = await transaction.get(userRef);
+        if (!userDoc.exists()) {
+            throw "User not found";
+        }
+        const user = userDoc.data();
+        
+        // Award base points
+        transaction.update(userRef, { points: increment(points) });
+        
+        // Check and complete challenge
+        return await checkAndCompleteChallenge(transaction, userRef, user, event, contextId);
     });
-    
-    // In a more advanced system, we could check for level-ups here
-    // and create a notification for the user.
 
-    await batch.commit();
-
-    return { success: true, pointsAwarded: points };
+    return { success: true, pointsAwarded: points + challengePoints };
 
   } catch (error) {
     console.error(`Failed to award points to user ${userId} for event ${event}:`, error);
