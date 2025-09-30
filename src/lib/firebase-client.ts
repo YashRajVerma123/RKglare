@@ -32,4 +32,4 @@ function initializeClientApp(config: FirebaseOptions) {
 
 // We export a function that can be called with the runtime config
 // instead of exporting the initialized instances directly.
-export { initializeClientApp };
+export { initializeClientApp, db };

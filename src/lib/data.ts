@@ -1,5 +1,4 @@
 
-
 import { db } from '@/lib/firebase-server'; // <-- IMPORTANT: Use server DB
 import { 
     collection, 
@@ -262,6 +261,14 @@ export type ChatMessage = {
   text: string;
   author: Pick<Author, 'id' | 'name' | 'avatar'>;
   createdAt: string; // ISO string
+  isEdited?: boolean;
+  updatedAt?: string | null; // ISO string
+  reactions?: { [emoji: string]: string[] }; // emoji: ['userId1', 'userId2']
+  replyTo?: {
+    messageId: string;
+    authorName: string;
+    text: string;
+  } | null;
 }
 
 export const messageConverter = {
@@ -272,12 +279,16 @@ export const messageConverter = {
             text: data.text,
             author: data.author,
             createdAt: safeToISOString(data.createdAt)!,
+            isEdited: data.isEdited,
+            updatedAt: safeToISOString(data.updatedAt),
+            reactions: data.reactions,
+            replyTo: data.replyTo,
         };
     },
-    toFirestore: (message: Omit<ChatMessage, 'id'>) => {
+    toFirestore: (message: Omit<ChatMessage, 'id' | 'createdAt'> & { createdAt?: any }) => {
         return {
             ...message,
-            createdAt: Timestamp.now(),
+            createdAt: message.createdAt ? Timestamp.fromDate(new Date(message.createdAt)) : Timestamp.now(),
         };
     }
 };
@@ -410,10 +421,10 @@ export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
 
 export const getPost = (slug: string, currentUser?: Author | null): Promise<Post | undefined> => {
     return unstable_cache(
-        async (slug: string, currentUser?: Author | null) => getPostClient(slug, currentUser),
+        async (slug: string) => getPostClient(slug, currentUser),
         ['post', slug], // Key depends on slug
         { revalidate: 3600, tags: ['posts', `post:${slug}`] }
-    )(slug, currentUser);
+    )(slug);
 };
 
 export const getPostClient = async (slug: string, currentUser?: Author | null): Promise<Post | undefined> => {
