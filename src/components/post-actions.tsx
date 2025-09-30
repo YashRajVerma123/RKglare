@@ -215,46 +215,47 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
 
     setIsDownloading(true);
     toast({ title: "Preparing Download...", description: "Your PDF will begin downloading shortly. This may take a moment." });
+    
+    // Inject temporary styles for PDF generation
+    const style = document.createElement('style');
+    style.id = 'pdf-styles';
+    style.innerHTML = `
+      #article-content * {
+        color: #000 !important;
+        text-shadow: none !important;
+      }
+      #article-content mark {
+        vertical-align: baseline !important;
+      }
+    `;
+    document.head.appendChild(style);
 
-    // Temporarily force black text color for PDF
-    const originalColor = articleElement.style.color;
-    articleElement.style.color = 'black';
 
     try {
         const canvas = await html2canvas(articleElement, {
             scale: 2,
             useCORS: true,
-            backgroundColor: null,
-            logging: false, // Disables console logging from html2canvas
-            foreignObjectRendering: false, // Can sometimes improve rendering
+            backgroundColor: '#ffffff', // Force a white background
+            logging: false,
         });
-
-        // Restore original color
-        articleElement.style.color = originalColor;
 
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
-        const ratio = imgWidth / imgHeight;
-
-        let finalImgWidth = pdfWidth;
-        let finalImgHeight = finalImgWidth / ratio;
-
-        let heightLeft = finalImgHeight;
-        let yPos = 0;
+        const imgProps= pdf.getImageProperties(imgData);
+        const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
         
-        pdf.addImage(imgData, 'PNG', 0, yPos, finalImgWidth, finalImgHeight);
-        heightLeft -= pdfHeight;
+        let heightLeft = imgHeight;
+        let position = 0;
+        
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pdf.internal.pageSize.getHeight();
 
         while (heightLeft > 0) {
-            yPos = yPos - pdfHeight;
+            position -= pdf.internal.pageSize.getHeight();
             pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, yPos, finalImgWidth, finalImgHeight);
-            heightLeft -= pdfHeight;
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+            heightLeft -= pdf.internal.pageSize.getHeight();
         }
 
         pdf.save(`${post.slug}.pdf`);
@@ -262,9 +263,9 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
     } catch (e) {
       console.error("PDF generation failed:", e);
       toast({ title: "Download Failed", description: "Could not generate the PDF. Please try again.", variant: "destructive" });
-      // Restore original color on error
-      articleElement.style.color = originalColor;
     } finally {
+      // Always remove the temporary styles
+      document.head.removeChild(style);
       setIsDownloading(false);
     }
   };
@@ -438,3 +439,5 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
 
   return ReactDOM.createPortal(actionBar, portalContainer);
 }
+
+    
