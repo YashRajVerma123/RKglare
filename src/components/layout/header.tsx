@@ -31,6 +31,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from '@/hooks/use-auth';
 
@@ -92,6 +93,7 @@ const Header = () => {
                          {isPremium && (
                             <>
                                 <DropdownMenuSeparator />
+                                <DropdownMenuLabel>Glare+</DropdownMenuLabel>
                                 {premiumLinks.map((link) => (
                                      <DropdownMenuItem key={link.href} asChild>
                                         <Link

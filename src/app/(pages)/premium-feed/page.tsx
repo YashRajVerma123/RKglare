@@ -1,13 +1,14 @@
 
 import { Suspense } from 'react';
 import PostsClient from '../posts/posts-client';
-import { getPosts, Post } from '@/lib/data';
-import { auth } from 'firebase-admin';
+import { getPosts, Post, getAuthorById } from '@/lib/data';
 import { headers } from 'next/headers';
 import { getAuth } from "firebase-admin/auth";
 import { getApp } from "firebase-admin/app";
 import { app } from '@/lib/firebase-server';
-import { getAuthorById } from '@/lib/data';
+import BlogPostCard from '@/components/blog-post-card';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 // This is a server component, so we can check auth state here.
 const PremiumFeedPage = async () => {
@@ -30,8 +31,13 @@ const PremiumFeedPage = async () => {
     if (!currentUser || !currentUser.premium?.active) {
         return (
              <div className="container mx-auto px-4 py-16 text-center">
-                <h1 className="text-4xl font-bold mb-4">Access Denied</h1>
-                <p className="text-muted-foreground">You must be a Glare+ subscriber to view this page.</p>
+                <div className="glass-card p-12 max-w-2xl mx-auto">
+                    <h1 className="text-4xl font-headline font-bold mb-4">Access Denied</h1>
+                    <p className="text-muted-foreground mb-6">You must be a Glare+ subscriber to view this page.</p>
+                    <Button asChild>
+                        <Link href="/glare-plus">Explore Glare+</Link>
+                    </Button>
+                </div>
             </div>
         )
     }
