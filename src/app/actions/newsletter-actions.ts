@@ -2,16 +2,28 @@
 'use server';
 
 import { db } from '@/lib/firebase-server';
-import { addDoc, collection, getDocs } from 'firebase/firestore';
+import { addDoc, collection, getDocs, deleteDoc, query, where, limit } from 'firebase/firestore';
 import { z } from 'zod';
 import { awardPoints } from './gamification-actions';
-import { useAuth } from '@/hooks/use-auth';
+import { revalidatePath } from 'next/cache';
 
 const emailSchema = z.string().email('Please enter a valid email address.');
 const newsletterSchema = z.object({
     title: z.string().min(10),
     content: z.string().min(100),
 });
+
+export async function checkSubscriptionStatus(email: string): Promise<{ isSubscribed: boolean }> {
+    if (!email) return { isSubscribed: false };
+    const validation = emailSchema.safeParse(email);
+    if (!validation.success) return { isSubscribed: false };
+
+    const subscribersCollection = collection(db, 'subscribers');
+    const q = query(subscribersCollection, where('email', '==', email), limit(1));
+    const existingSub = await getDocs(q);
+
+    return { isSubscribed: !existingSub.empty };
+}
 
 export async function subscribeToNewsletter(email: string, userId?: string) {
     const validation = emailSchema.safeParse(email);
@@ -20,15 +32,13 @@ export async function subscribeToNewsletter(email: string, userId?: string) {
         return { error: validation.error.errors[0].message };
     }
 
-    const subscribersCollection = collection(db, 'subscribers');
-    const existingSub = await getDocs(collection(db, 'subscribers'));
-    const isSubscribed = existingSub.docs.some(doc => doc.data().email === email);
+    const { isSubscribed } = await checkSubscriptionStatus(email);
 
     if (isSubscribed) {
         return { error: 'This email is already subscribed.' };
     }
 
-    await addDoc(subscribersCollection, {
+    await addDoc(collection(db, 'subscribers'), {
         email: email,
         subscribedAt: new Date(),
         userId: userId || null,
@@ -37,9 +47,33 @@ export async function subscribeToNewsletter(email: string, userId?: string) {
     if (userId) {
         await awardPoints(userId, 'SUBSCRIBE');
     }
-
+    
+    revalidatePath('/newsletter');
     return { success: true };
 }
+
+
+export async function unsubscribeFromNewsletter(email: string) {
+    const validation = emailSchema.safeParse(email);
+    if (!validation.success) {
+        return { error: 'Please enter a valid email address.' };
+    }
+    
+    const subscribersCollection = collection(db, 'subscribers');
+    const q = query(subscribersCollection, where('email', '==', email), limit(1));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+        return { error: 'This email is not subscribed.' };
+    }
+
+    const docToDelete = snapshot.docs[0];
+    await deleteDoc(docToDelete.ref);
+
+    revalidatePath('/newsletter');
+    return { success: true };
+}
+
 
 export async function generateNewsletterMailto(values: z.infer<typeof newsletterSchema>) {
     const validation = newsletterSchema.safeParse(values);
