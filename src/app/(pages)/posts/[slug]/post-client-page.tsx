@@ -47,7 +47,7 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
   
   const isBookmarked = post ? bookmarks[post.id] : false;
   
-  const isPremium = user?.premium?.active === true && user.premium.expires && new Date(user.premium.expires) > new Date();
+  const isPremium = user?.premium?.active === true;
   const now = new Date();
   const isEarlyAccessActive = post.earlyAccess && post.publishedAt && new Date(post.publishedAt).getTime() + (24 * 60 * 60 * 1000) > now.getTime();
   

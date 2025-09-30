@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Send, MessageSquare, Loader2, Star } from 'lucide-react';
+import { Send, Loader2, Star } from 'lucide-react';
 import { collection, query, orderBy, onSnapshot, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase-server';
 import { ChatMessage, messageConverter } from '@/lib/data';

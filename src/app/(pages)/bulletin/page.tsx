@@ -5,6 +5,7 @@ import { Bulletin, getBulletins } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Calendar, Loader2 } from 'lucide-react';
 import Image from 'next/image';
+import { useAuth } from '@/hooks/use-auth';
 
 export const BulletinCard = ({ bulletin, index }: { bulletin: Bulletin; index: number }) => {
     const isReversed = index % 2 !== 0;
@@ -44,23 +45,24 @@ const BulletinPage = () => {
     const [loadingMore, setLoadingMore] = useState(false);
     const [lastDocId, setLastDocId] = useState<string | undefined>(undefined);
     const [hasMore, setHasMore] = useState(true);
+    const { user } = useAuth();
 
     useEffect(() => {
         const loadInitialBulletins = async () => {
             setLoading(true);
-            const { bulletins: initialBulletins, lastDocId: newLastDocId } = await getBulletins(3);
+            const { bulletins: initialBulletins, lastDocId: newLastDocId } = await getBulletins(3, undefined, user);
             setBulletins(initialBulletins);
             setLastDocId(newLastDocId);
             setHasMore(!!newLastDocId);
             setLoading(false);
         };
         loadInitialBulletins();
-    }, []);
+    }, [user]);
 
     const loadMoreBulletins = async () => {
         if (!lastDocId || !hasMore) return;
         setLoadingMore(true);
-        const { bulletins: newBulletins, lastDocId: newLastDocId } = await getBulletins(3, lastDocId);
+        const { bulletins: newBulletins, lastDocId: newLastDocId } = await getBulletins(3, lastDocId, user);
         setBulletins(prev => [...prev, ...newBulletins]);
         setLastDocId(newLastDocId);
         setHasMore(!!newLastDocId);

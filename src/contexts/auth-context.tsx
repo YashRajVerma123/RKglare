@@ -61,7 +61,7 @@ const formatUser = (user: FirebaseUser, firestoreData?: any): Author => {
         id: user.uid,
         name: firestoreData?.name || user.displayName || "No Name",
         email: user.email || "no-email@example.com",
-        avatar: firestoreData?.avatar || user.photoURL || `https://i.pravatar.cc/150?u=\${user.uid}`,
+        avatar: firestoreData?.avatar || user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
         bio: firestoreData?.bio,
         instagramUrl: firestoreData?.instagramUrl,
         signature: firestoreData?.signature,
@@ -75,6 +75,7 @@ const formatUser = (user: FirebaseUser, firestoreData?: any): Author => {
             active: !!(premiumData?.active && expires && new Date(expires) > new Date()),
             expires: expires,
         },
+        preferences: firestoreData?.preferences || { font: 'default' },
     };
 };
 
@@ -105,6 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         points: 0,
         streak: { currentStreak: 0, lastLoginDate: '' },
         premium: { active: false, expires: null },
+        preferences: { font: 'default' },
     };
     await setDoc(userRef, newUser, { merge: true });
     return newUser;
@@ -117,12 +119,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUser = useCallback(async () => {
       if (firebaseUser) {
+        setLoading(true);
         const firestoreData = await fetchUserFromFirestore(firebaseUser);
         const userData = await getUserData(firebaseUser.uid);
         setUser(formatUser(firebaseUser, firestoreData));
         setLikedPosts(userData.likedPosts);
         setLikedComments(userData.likedComments);
         setBookmarks(userData.bookmarks);
+        setLoading(false);
       }
   }, [firebaseUser]);
 
@@ -156,6 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setAuth(authInstance);
 
           unsubscribe = onAuthStateChanged(authInstance, async (fbUser) => {
+            setLoading(true);
             if (fbUser) {
               setFirebaseUser(fbUser);
               const [firestoreData, userData] = await Promise.all([

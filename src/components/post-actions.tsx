@@ -28,6 +28,8 @@ import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { togglePostLike, toggleBookmark } from "@/app/actions/user-data-actions";
 import { generatePdf } from "@/app/actions/pdf-actions";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const LikeButton = ({ post }: { post: Post }) => {
   const { user, likedPosts, setLikedPosts, signIn } = useAuth();
@@ -205,11 +207,53 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
       toast({ title: "Glare+ Required", description: "You must be a Glare+ member to download articles.", variant: "destructive" });
       return;
     }
+    
+    const articleContentElement = document.getElementById('article-content');
+    if (!articleContentElement) {
+        toast({ title: "Error", description: "Could not find article content to download.", variant: "destructive" });
+        return;
+    }
+
     setIsDownloading(true);
     toast({ title: "Preparing Download...", description: "Your PDF will begin downloading shortly." });
+
     try {
-      await generatePdf(post.title, post.content);
+        const canvas = await html2canvas(articleContentElement, {
+            scale: 2, // Higher scale for better quality
+            useCORS: true,
+            backgroundColor: null,
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        const ratio = imgWidth / imgHeight;
+        
+        let finalImgHeight = pdfWidth / ratio;
+        let heightLeft = finalImgHeight;
+        let position = 15; // Top margin
+
+        pdf.setFontSize(22);
+        pdf.text(post.title, pdfWidth / 2, position, { align: 'center'});
+        position += 15;
+
+        pdf.addImage(imgData, 'PNG', 15, position, pdfWidth - 30, finalImgHeight);
+        heightLeft -= (pdfHeight - position - 15);
+
+        while (heightLeft > 0) {
+            position = -finalImgHeight + (pdfHeight - 30);
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 15, position, pdfWidth - 30, finalImgHeight);
+            heightLeft -= pdfHeight;
+        }
+
+        pdf.save(`${post.slug}.pdf`);
+
     } catch (e) {
+      console.error("PDF generation failed:", e);
       toast({ title: "Download Failed", description: "Could not generate the PDF. Please try again.", variant: "destructive" });
     } finally {
       setIsDownloading(false);

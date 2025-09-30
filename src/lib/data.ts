@@ -514,9 +514,9 @@ export const getNotification = async (id: string): Promise<Notification | null> 
 // New Bulletin Functions
 
 export const getBulletins = async (
-    currentUser?: Author | null,
     pageSize: number = 3,
-    startAfterDocId?: string
+    startAfterDocId?: string,
+    currentUser?: Author | null
 ): Promise<{ bulletins: Bulletin[]; lastDocId?: string }> => {
     // This function is called from a client component with pagination, so it should not be cached.
     let lastDoc;
