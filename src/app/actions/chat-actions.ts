@@ -2,7 +2,7 @@
 'use server'
 
 import { db } from '@/lib/firebase-server';
-import { collection, addDoc, Timestamp, deleteDoc, doc, updateDoc, getDoc, runTransaction } from 'firebase/firestore';
+import { collection, addDoc, Timestamp, deleteDoc, doc, updateDoc, getDoc, runTransaction, setDoc } from 'firebase/firestore';
 import { z } from 'zod';
 import { Author, ChatMessage, messageConverter } from '@/lib/data';
 import { revalidateTag } from 'next/cache';
