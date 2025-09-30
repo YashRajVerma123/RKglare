@@ -10,7 +10,7 @@ import { challengeTemplates } from '@/lib/challenges';
 // This is a set to prevent awarding points for the same reading session multiple times.
 // In a real production app, this should be stored in a more persistent cache like Redis
 // or in a subcollection in Firestore to handle server restarts.
-const userPostReadTracker = new Set<string>();
+const userActionTracker = new Set<string>();
 
 const checkAndCompleteChallenge = async (transaction: any, userRef: any, user: any, event: PointEvent, contextId?: string) => {
     if (!user.challenge || user.challenge.completed) {
@@ -63,16 +63,17 @@ export async function awardPoints(userId: string, event: PointEvent, contextId?:
     return { success: false, error: 'User not authenticated.' };
   }
 
-  // Prevent duplicate points for reading the same post in the same session
-  if (event === 'READ_POST') {
+  // Prevent duplicate points for reading the same post or completing the same timer
+  if (event === 'READ_POST' || event === 'FIVE_MINUTE_READ') {
     if (!contextId) {
-      return { success: false, error: 'Post context ID is required for reading points.' };
+      return { success: false, error: 'Context ID is required for this event.' };
     }
-    const readKey = `${userId}:${contextId}`;
-    if (userPostReadTracker.has(readKey)) {
-      return { success: false, error: 'Points already awarded for reading this post.' };
+    // Use a unique key for each event type for the same post
+    const actionKey = `${userId}:${event}:${contextId}`;
+    if (userActionTracker.has(actionKey)) {
+      return { success: false, error: 'Points already awarded for this action.' };
     }
-    userPostReadTracker.add(readKey);
+    userActionTracker.add(actionKey);
   }
   
   const points = pointValues[event];

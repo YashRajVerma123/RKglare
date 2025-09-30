@@ -27,8 +27,6 @@ import {
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { togglePostLike, toggleBookmark } from "@/app/actions/user-data-actions";
-import ReaderMode from "./reader-mode";
-
 
 const LikeButton = ({ post }: { post: Post }) => {
   const { user, likedPosts, setLikedPosts, signIn } = useAuth();
@@ -113,13 +111,12 @@ const LikeButton = ({ post }: { post: Post }) => {
 };
 
 
-export default function PostActions({ post }: { post: Post }) {
+export default function PostActions({ post, onReaderModeToggle }: { post: Post; onReaderModeToggle: () => void; }) {
   const { toast } = useToast();
   const { user, bookmarks, setBookmarks, signIn, refreshUserData } = useAuth();
   const [currentUrl, setCurrentUrl] = useState('');
   const [isMounted, setIsMounted] = useState(false);
   const [isSummaryDialogOpen, setSummaryDialogOpen] = useState(false);
-  const [isReaderOpen, setReaderOpen] = useState(false);
   const [summary, setSummary] = useState('');
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
@@ -207,7 +204,7 @@ export default function PostActions({ post }: { post: Post }) {
      {
       label: "Reader Mode",
       icon: <BookOpen className="h-5 w-5" />,
-      onClick: () => setReaderOpen(true),
+      onClick: onReaderModeToggle,
     },
     {
       label: "Summarize",
@@ -356,14 +353,6 @@ export default function PostActions({ post }: { post: Post }) {
         </DialogContent>
       </Dialog>
       
-      {isMounted && (
-        <ReaderMode
-            isOpen={isReaderOpen}
-            onClose={() => setReaderOpen(false)}
-            title={post.title}
-            content={post.content}
-        />
-      )}
     </TooltipProvider>
   );
 

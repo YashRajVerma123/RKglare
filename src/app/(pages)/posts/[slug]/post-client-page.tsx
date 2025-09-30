@@ -19,6 +19,8 @@ import ReadingProgressBar from '@/components/reading-progress-bar';
 import { useDynamicTheme } from '@/contexts/dynamic-theme-context';
 import { useInView } from 'react-intersection-observer';
 import { awardPoints } from '@/app/actions/gamification-actions';
+import ReaderMode from '@/components/reader-mode';
+import ReadingTimer from '@/components/reading-timer';
 
 interface PostClientPageProps {
   post: Post;
@@ -32,6 +34,7 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
   const contentRef = useRef<HTMLDivElement>(null);
   const { setTheme, resetTheme } = useDynamicTheme();
   const [hasAwardedReadPoints, setHasAwardedReadPoints] = useState(false);
+  const [isReaderOpen, setReaderOpen] = useState(false);
   
   const { ref: endOfContentRef, inView: endOfContentInView } = useInView({
     triggerOnce: true,
@@ -193,7 +196,18 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
          )}
         </article>
       </div>
-     {!isPreview && <PostActions post={post} />}
+      {!isPreview && (
+        <>
+          <PostActions post={post} onReaderModeToggle={() => setReaderOpen(prev => !prev)} />
+          <ReaderMode
+              isOpen={isReaderOpen}
+              onClose={() => setReaderOpen(false)}
+              title={post.title}
+              content={post.content}
+          />
+           <ReadingTimer postId={post.id} />
+        </>
+      )}
     </>
   );
 };

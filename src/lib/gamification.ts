@@ -47,6 +47,7 @@ export const pointValues = {
     COMMENT: 5,
     LIKE_POST: 3,
     SUBSCRIBE: 20,
+    FIVE_MINUTE_READ: 20,
 };
 
 export type PointEvent = keyof typeof pointValues;
