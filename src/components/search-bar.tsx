@@ -9,18 +9,17 @@ import { Post, getPosts } from '@/lib/data';
 import Link from 'next/link';
 import { Button } from './ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
 
 const SearchBar = () => {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Post[]>([]);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -43,11 +42,11 @@ const SearchBar = () => {
   }, []);
   
   useEffect(() => {
-    if (!isDialogOpen) {
+    if (!isPopoverOpen) {
       setQuery('');
       setResults([]);
     }
-  }, [isDialogOpen]);
+  }, [isPopoverOpen]);
 
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
@@ -66,36 +65,33 @@ const SearchBar = () => {
     e.preventDefault();
     if (query.trim()) {
       router.push(`/posts?q=${encodeURIComponent(query.trim())}`);
-      setIsDialogOpen(false);
+      setIsPopoverOpen(false);
     }
   };
   
-  // Focus input when dialog opens
+  // Focus input when popover opens
    useEffect(() => {
-    if (isDialogOpen) {
+    if (isPopoverOpen) {
       setTimeout(() => {
         searchInputRef.current?.focus();
       }, 100);
     }
-  }, [isDialogOpen]);
+  }, [isPopoverOpen]);
 
   const handleResultClick = () => {
-    setIsDialogOpen(false);
+    setIsPopoverOpen(false);
   };
 
 
   return (
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
+      <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+          <PopoverTrigger asChild>
               <Button variant="ghost" size="icon">
                   <Search className="h-5 w-5" />
                   <span className="sr-only">Search</span>
               </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-2xl p-0 glass-card">
-              <DialogHeader className="p-6 pb-0">
-                  <DialogTitle className="sr-only">Search</DialogTitle>
-              </DialogHeader>
+          </PopoverTrigger>
+          <PopoverContent className="w-[90vw] max-w-2xl p-0 glass-card" align="center">
               <form onSubmit={handleSearchSubmit}>
                   <div className="relative border-b border-border/10 px-6">
                       <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -135,7 +131,7 @@ const SearchBar = () => {
                                         variant="link"
                                         onClick={() => {
                                             router.push(`/posts?q=${encodeURIComponent(query.trim())}`);
-                                            setIsDialogOpen(false);
+                                            setIsPopoverOpen(false);
                                         }}
                                         className="w-full text-center text-sm text-primary"
                                     >
@@ -156,8 +152,8 @@ const SearchBar = () => {
                       </div>
                   )}
               </div>
-          </DialogContent>
-      </Dialog>
+          </PopoverContent>
+      </Popover>
   );
 };
 
