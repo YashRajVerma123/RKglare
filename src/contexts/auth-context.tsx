@@ -167,16 +167,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   fetchUserFromFirestore(fbUser),
                   getUserData(fbUser.uid)
               ]);
-              setUser(formatUser(fbUser, firestoreData));
+              const formattedUser = formatUser(fbUser, firestoreData);
+              setUser(formattedUser);
               setLikedPosts(userData.likedPosts);
               setLikedComments(userData.likedComments);
               setBookmarks(userData.bookmarks);
+              if (formattedUser.premium?.active) {
+                document.body.classList.add('premium-user');
+              } else {
+                document.body.classList.remove('premium-user');
+              }
             } else {
               setFirebaseUser(null);
               setUser(null);
               setLikedPosts({});
               setLikedComments({});
               setBookmarks({});
+              document.body.classList.remove('premium-user');
             }
             setLoading(false);
           });
@@ -225,13 +232,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateUserProfile = useCallback(async (updates: Partial<Author>) => {
     if (!auth?.currentUser) throw new Error("Not authenticated");
 
-    setUser(prev => prev ? { ...prev, ...updates } : null);
+    const newUserData = (prev: Author | null) => (prev ? { ...prev, ...updates } : null);
+    setUser(newUserData);
+    if (user?.premium?.active) {
+        document.body.classList.add('premium-user');
+    } else {
+        document.body.classList.remove('premium-user');
+    }
     
     if (mainAuthor && auth.currentUser.uid === mainAuthor.id) {
         setMainAuthor(prev => prev ? {...prev, ...updates} : null);
     }
 
-  }, [auth, mainAuthor]);
+  }, [auth, mainAuthor, user]);
   
   const updateFollowingCount = (change: number) => {
       setUser(currentUser => {

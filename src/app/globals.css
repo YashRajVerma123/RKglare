@@ -89,6 +89,13 @@
     overflow: hidden !important;
     padding-right: 0 !important;
   }
+
+  .premium-user.dark {
+    background: radial-gradient(ellipse 80% 50% at 50% -20%,rgba(120,119,198,0.3), hsla(0,0%,100%,0));
+  }
+  .premium-user:not(.dark) {
+      background: radial-gradient(ellipse 80% 50% at 50% -20%,rgba(120,119,198,0.15), hsla(0,0%,100%,0));
+  }
 }
 
 @layer utilities {
@@ -279,6 +286,30 @@
 .dark .glass-card {
    @apply bg-card/60 backdrop-blur-xl border border-white/5 rounded-xl shadow-lg;
 }
+
+.premium-user .glass-card {
+    backdrop-filter: blur(24px);
+}
+
+.premium-user.dark .glass-card {
+    position: relative;
+    background: linear-gradient(to bottom right, hsl(var(--card) / 0.6), hsl(var(--card) / 0.4));
+}
+
+.premium-user.dark .glass-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, hsl(var(--border) / 0.4), hsl(var(--border) / 0.1));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
 
 .loader-dots {
   display: flex;
