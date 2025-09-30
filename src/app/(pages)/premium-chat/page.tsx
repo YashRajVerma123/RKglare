@@ -219,8 +219,8 @@ const PremiumChatPage = () => {
         <div className="h-full flex flex-col bg-secondary/40">
             <header className="p-4 border-b border-border/10 bg-background/50 backdrop-blur-sm sticky top-20 z-10">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-xl font-headline font-bold tracking-tight text-center">
-                        # <span className="bg-gradient-to-r from-yellow-400 to-primary bg-clip-text text-transparent">premium-lounge</span>
+                    <h1 className="text-xl font-headline font-bold tracking-tight">
+                        Premium Chat
                     </h1>
                      <div className="flex items-center">
                         <span className="flex h-2 w-2 rounded-full bg-green-500 mr-2"></span>
@@ -399,7 +399,7 @@ const PremiumChatPage = () => {
                         </form>
                     </div>
                 </div>
-                 <div className="hidden md:block w-72 border-l border-border/10 bg-background/50 p-4">
+                 <div className="hidden md:block w-64 border-l border-border/10 bg-background/50 p-4">
                     <h2 className="text-lg font-semibold mb-4">Members Online</h2>
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
