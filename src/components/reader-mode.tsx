@@ -22,15 +22,6 @@ const ReaderMode = ({ isOpen, onClose, title, content }: ReaderModeProps) => {
                 backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'6\' height=\'6\' viewBox=\'0 0 6 6\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23d2c694\' fill-opacity=\'0.2\' fill-rule=\'evenodd\'%3E%3Cpath d=\'M5 0h1L0 6V5zM6 5v1H5z\'/%3E%3C/g%3E%3C/svg%3E")',
             }}
         >
-        <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="fixed top-4 right-4 h-12 w-12 rounded-full text-gray-700 hover:bg-black/10 hover:text-black z-[110]"
-        >
-            <X className="h-8 w-8" />
-            <span className="sr-only">Close Reader Mode</span>
-        </Button>
 
         <div className="container mx-auto px-4 py-16 h-full overflow-y-auto">
             <div className="max-w-3xl mx-auto">
