@@ -95,7 +95,7 @@ export default function RootLayout({
           }}
         />
         <ClientProviders>
-          <div className="fixed inset-0 overflow-hidden -z-10">
+          <div className="absolute inset-0 overflow-hidden -z-10">
             <div className="bg-ball w-[30vw] h-[30vw] bg-primary/30 top-[-10%] left-[-10%]"></div>
             <div className="bg-ball w-[25vw] h-[25vw] bg-secondary/30 bottom-[-5%] right-[20%]"></div>
             <div className="bg-ball w-[20vw] h-[20vw] bg-primary/20 top-[20%] right-[5%]"></div>
