@@ -4,7 +4,7 @@
   "description": "Your essential destination for making sense of today. We provide current affairs news for the modern reader.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
+  "background_color": "#111113",
   "theme_color": "#7c3aed",
   "icons": [
     {
