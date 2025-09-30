@@ -250,7 +250,7 @@ const PremiumChatPage = () => {
                 </p>
             </section>
             
-            <div className="h-[calc(70vh+20px)] flex flex-col bg-secondary/40 glass-card">
+            <div className="h-[calc(70vh+40px)] flex flex-col bg-secondary/40 glass-card">
                 <header className="p-4 border-b border-border/10 bg-background/50 backdrop-blur-sm sticky top-0 z-10 rounded-t-xl">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-headline font-bold tracking-tight">
