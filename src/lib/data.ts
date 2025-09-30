@@ -408,9 +408,13 @@ export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
 }, ['trending_posts'], { revalidate: 3600, tags: ['posts', 'trending'] });
 
 
-export const getPost = unstable_cache(async (slug: string, currentUser?: Author | null): Promise<Post | undefined> => {
-    return getPostClient(slug, currentUser);
-}, ['post'], { revalidate: 3600, tags: ['posts'] });
+export const getPost = (slug: string, currentUser?: Author | null): Promise<Post | undefined> => {
+    return unstable_cache(
+        async (slug: string, currentUser?: Author | null) => getPostClient(slug, currentUser),
+        ['post', slug], // Key depends on slug
+        { revalidate: 3600, tags: ['posts', `post:${slug}`] }
+    )(slug, currentUser);
+};
 
 export const getPostClient = async (slug: string, currentUser?: Author | null): Promise<Post | undefined> => {
     if (!slug) {
@@ -504,9 +508,13 @@ export const getNotifications = async (): Promise<Notification[]> => {
     return snapshot.docs.map(doc => doc.data());
 };
 
-export const getNotification = unstable_cache(async (id: string): Promise<Notification | null> => {
-    return getNotificationClient(id);
-}, ['notification', id], { revalidate: 3600, tags: ['notifications', `notification:${id}`] });
+export const getNotification = (id: string): Promise<Notification | null> => {
+    return unstable_cache(
+        async (id: string) => getNotificationClient(id),
+        ['notification', id],
+        { revalidate: 3600, tags: ['notifications', `notification:${id}`] }
+    )(id);
+};
 
 export const getNotificationClient = async (id: string): Promise<Notification | null> => {
     const notifRef = doc(db, 'notifications', id).withConverter(notificationConverter);
@@ -532,14 +540,14 @@ export const getBulletins = async (
     }
 
     const bulletinsCollection = collection(db, 'bulletins').withConverter(bulletinConverter);
-    const constraints = [
+    const constraints: any[] = [
         orderBy('publishedAt', 'desc'),
-        limit(pageSize)
     ];
 
     if (lastDoc) {
         constraints.push(startAfter(lastDoc));
     }
+    constraints.push(limit(pageSize));
     
     const q = query(bulletinsCollection, ...constraints);
     const snapshot = await getDocs(q);
@@ -568,9 +576,13 @@ export const getBulletins = async (
     };
 };
 
-export const getBulletin = unstable_cache(async (id: string): Promise<Bulletin | null> => {
-    return getBulletinClient(id);
-}, ['bulletin', id], { revalidate: 3600, tags: ['bulletins', `bulletin:${id}`] });
+export const getBulletin = (id: string): Promise<Bulletin | null> => {
+    return unstable_cache(
+        async (id: string) => getBulletinClient(id),
+        ['bulletin', id],
+        { revalidate: 3600, tags: ['bulletins', `bulletin:${id}`] }
+    )(id);
+};
 
 export const getBulletinClient = async (id: string): Promise<Bulletin | null> => {
     const bulletinRef = doc(db, 'bulletins', id).withConverter(bulletinConverter);
@@ -594,16 +606,20 @@ export const getAuthorByEmail = async (email: string): Promise<Author | null> =>
 };
 
 
-export const getAuthorById = async (id: string): Promise<Author | null> => {
-  return unstable_cache(async (id: string) => {
-      const userRef = doc(db, 'users', id).withConverter(authorConverter);
-      const snapshot = await getDoc(userRef);
+export const getAuthorById = (id: string): Promise<Author | null> => {
+  return unstable_cache(
+      async (id: string) => {
+        const userRef = doc(db, 'users', id).withConverter(authorConverter);
+        const snapshot = await getDoc(userRef);
 
-      if (!snapshot.exists()) {
-        return null;
-      }
-      return snapshot.data();
-  }, ['author', id], { revalidate: 3600, tags: ['users', `author-id:${id}`] })();
+        if (!snapshot.exists()) {
+            return null;
+        }
+        return snapshot.data();
+      },
+      ['author', id], // Key depends on id
+      { revalidate: 3600, tags: ['users', `author-id:${id}`] }
+  )(id);
 };
 
 export async function isFollowing(followerId: string, authorId: string): Promise<boolean> {
@@ -666,3 +682,6 @@ export type DailyChallenge = {
   completed: boolean;
   assignedAt: string; // ISO string
 };
+
+
+      
