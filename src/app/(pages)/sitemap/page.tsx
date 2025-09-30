@@ -21,10 +21,15 @@ const SitemapPage = async () => {
     // Fetch all public posts (lightweight version)
     const posts = await getPosts(false);
 
-    const allPages = [
-        ...staticPages,
-        ...posts.map(post => ({ href: `/posts/${post.slug}`, title: post.title })),
-    ].sort((a, b) => a.title.localeCompare(b.title));
+    // Sort static pages alphabetically
+    const sortedStaticPages = [...staticPages].sort((a, b) => a.title.localeCompare(b.title));
+
+    // Sort blog posts alphabetically
+    const sortedPostPages = posts
+        .map(post => ({ href: `/posts/${post.slug}`, title: post.title }))
+        .sort((a, b) => a.title.localeCompare(b.title));
+
+    const allPages = [...sortedStaticPages, ...sortedPostPages];
 
     return (
         <div className="container mx-auto px-4 py-16">
