@@ -99,6 +99,10 @@
 }
 
 @layer utilities {
+    .bg-ball {
+      @apply absolute rounded-full -z-10;
+      filter: blur(80px);
+    }
     .badge-shine {
         @apply relative overflow-hidden bg-clip-text;
     }
