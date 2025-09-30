@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Send, Loader2, Star, Trash2, Smile, MessageSquareReply, Pencil, X } from 'lucide-react';
+import { Send, Loader2, Star, Trash2, Smile, MessageSquareReply, Pencil, X, MoreHorizontal } from 'lucide-react';
 import { collection, query, orderBy, onSnapshot, limit, getDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-client';
 import { ChatMessage, messageConverter } from '@/lib/data';
@@ -27,6 +27,12 @@ import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const getInitials = (name: string) => {
     const names = name.split(' ');
@@ -138,7 +144,7 @@ const PremiumChatPage = () => {
     
     if (authLoading || isLoading) {
          return (
-            <div className="flex h-[80vh] items-center justify-center">
+            <div className="flex h-screen items-center justify-center">
                 <Loader2 className="animate-spin h-16 w-16 text-primary" />
             </div>
         );
@@ -163,9 +169,9 @@ const PremiumChatPage = () => {
 
     return (
         <>
-        <div className="container mx-auto px-4 py-16 h-[90vh] flex flex-col">
+        <div className="container mx-auto px-4 h-screen flex flex-col py-8">
             <section className="text-center mb-8 animate-fade-in-up">
-                <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight mb-4">
+                <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight mb-4">
                 Premium Chat<span className="text-primary">.</span>
                 </h1>
                 <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
@@ -176,13 +182,13 @@ const PremiumChatPage = () => {
             <div className="glass-card flex-1 flex flex-col overflow-hidden">
                 <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-2">
                     {messages.map((msg) => (
-                        <div key={msg.id} className={cn("flex items-start gap-3 group relative py-1", msg.author.id === user.id ? 'justify-end' : '')}>
+                        <div key={msg.id} className={cn("flex items-start gap-3 group relative py-1", msg.author.id === user.id ? 'flex-row-reverse' : 'flex-row')}>
                            
                            {/* Hover Menu */}
-                           <div className={cn(
-                               "absolute top-0 z-10 flex items-center bg-background border rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity",
-                               msg.author.id === user.id ? 'right-12' : 'left-12'
-                           )}>
+                            <div className={cn(
+                               "absolute top-0 z-10 flex items-center bg-card border rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity",
+                               msg.author.id === user.id ? "right-12" : "left-12"
+                            )}>
                                <Popover>
                                    <PopoverTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-7 w-7"><Smile className="h-4 w-4" /></Button>
@@ -197,21 +203,37 @@ const PremiumChatPage = () => {
                                        </div>
                                    </PopoverContent>
                                </Popover>
-                               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setReplyingTo(msg)}><MessageSquareReply className="h-4 w-4" /></Button>
-                               {msg.author.id === user.id && (
-                                   <>
-                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEditing(msg)}><Pencil className="h-4 w-4" /></Button>
-                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setMessageToDelete(msg)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                                   </>
-                               )}
+                               
+                               <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7"><MoreHorizontal className="h-4 w-4" /></Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align={msg.author.id === user.id ? "end" : "start"}>
+                                        <DropdownMenuItem onSelect={() => setReplyingTo(msg)}>
+                                            <MessageSquareReply className="mr-2 h-4 w-4" />
+                                            <span>Reply</span>
+                                        </DropdownMenuItem>
+                                        {msg.author.id === user.id && (
+                                            <>
+                                                <DropdownMenuItem onSelect={() => startEditing(msg)}>
+                                                    <Pencil className="mr-2 h-4 w-4" />
+                                                    <span>Edit</span>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem onSelect={() => setMessageToDelete(msg)} className="text-destructive">
+                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                    <span>Delete</span>
+                                                </DropdownMenuItem>
+                                            </>
+                                        )}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                            </div>
                            
-                            {msg.author.id !== user.id && (
-                                <Avatar className="h-8 w-8">
-                                    <AvatarImage src={msg.author.avatar} />
-                                    <AvatarFallback>{getInitials(msg.author.name)}</AvatarFallback>
-                                </Avatar>
-                            )}
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src={msg.author.avatar} />
+                                <AvatarFallback>{getInitials(msg.author.name)}</AvatarFallback>
+                            </Avatar>
+                            
 
                             <div className={cn("flex flex-col w-full max-w-xs md:max-w-md", msg.author.id === user.id ? 'items-end' : 'items-start')}>
                                 <div className={cn(
@@ -254,13 +276,6 @@ const PremiumChatPage = () => {
                                     </div>
                                 )}
                             </div>
-
-                            {msg.author.id === user.id && (
-                                <Avatar className="h-8 w-8">
-                                    <AvatarImage src={msg.author.avatar} />
-                                    <AvatarFallback>{getInitials(msg.author.name)}</AvatarFallback>
-                                </Avatar>
-                            )}
                         </div>
                     ))}
                     <div ref={messagesEndRef} />
