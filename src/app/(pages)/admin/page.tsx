@@ -6,7 +6,7 @@ const AdminPage = async () => {
     // Fetch all data on the server, but get lightweight posts
     const postsData = getPosts(false);
     const notificationsData = getNotifications();
-    const bulletinsData = getBulletins(undefined, 100);
+    const bulletinsData = getBulletins(100);
     const usersData = getAuthors();
 
     const [posts, notifications, bulletinsResponse, users] = await Promise.all([
