@@ -225,7 +225,9 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
         text-shadow: none !important;
       }
       #article-content mark {
-        vertical-align: baseline !important;
+        background: none !important;
+        text-decoration: underline !important;
+        color: #000 !important;
       }
     `;
     document.head.appendChild(style);
@@ -242,20 +244,24 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const margin = 10;
+        const usableWidth = pdfWidth - (margin * 2);
+        
         const imgProps= pdf.getImageProperties(imgData);
-        const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        const imgHeight = (imgProps.height * usableWidth) / imgProps.width;
         
         let heightLeft = imgHeight;
         let position = 0;
         
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-        heightLeft -= pdf.internal.pageSize.getHeight();
+        pdf.addImage(imgData, 'PNG', margin, position, usableWidth, imgHeight);
+        heightLeft -= (pdfHeight - (margin * 2));
 
         while (heightLeft > 0) {
-            position -= pdf.internal.pageSize.getHeight();
+            position -= (pdfHeight - (margin * 2));
             pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-            heightLeft -= pdf.internal.pageSize.getHeight();
+            pdf.addImage(imgData, 'PNG', margin, position, usableWidth, imgHeight);
+            heightLeft -= (pdfHeight - (margin * 2));
         }
 
         pdf.save(`${post.slug}.pdf`);
