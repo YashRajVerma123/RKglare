@@ -453,17 +453,15 @@ export const getRelatedPosts = unstable_cache(async (currentPost: Post, currentU
 
 
 export const getComments = async (postId: string): Promise<Comment[]> => {
-     return unstable_cache(async (postId: string) => {
-        if (!postId) return [];
-        
-        const commentsCollection = collection(db, 'posts', postId, 'comments').withConverter(commentConverter);
-        const q = query(commentsCollection, orderBy('createdAt', 'desc'));
-        const snapshot = await getDocs(q);
-        
-        let comments = snapshot.docs.map(doc => doc.data());
-        
-        return sortComments(comments);
-    }, ['comments', postId], { revalidate: 3600, tags: ['comments', `comments:${postId}`] })();
+    if (!postId) return [];
+    
+    const commentsCollection = collection(db, 'posts', postId, 'comments').withConverter(commentConverter);
+    const q = query(commentsCollection, orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    
+    let comments = snapshot.docs.map(doc => doc.data());
+    
+    return sortComments(comments);
 };
 
 export const getNotifications = async (): Promise<Notification[]> => {
