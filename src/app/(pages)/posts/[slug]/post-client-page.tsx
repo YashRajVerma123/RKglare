@@ -49,7 +49,9 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
   const isPremium = user?.premium?.active === true && user.premium.expires && new Date(user.premium.expires) > new Date();
   const now = new Date();
   const isEarlyAccessActive = post.earlyAccess && post.publishedAt && new Date(post.publishedAt).getTime() + (24 * 60 * 60 * 1000) > now.getTime();
-  const canViewContent = isPreview || !post.premiumOnly && !isEarlyAccessActive || isPremium;
+  
+  // Determine if the user can view the content
+  const canViewContent = isPreview || !post.premiumOnly && !isEarlyAccessActive || (isPremium ?? false);
 
 
   useEffect(() => {
@@ -122,7 +124,7 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
                 </Badge>
               </div>
             )}
-             { (post.premiumOnly || isEarlyAccessActive) && (
+             { (post.premiumOnly || (post.earlyAccess && isEarlyAccessActive)) && (
                 <div className="mb-6">
                     <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 hover:bg-yellow-500/20 text-sm badge-shine">
                         <Star className="h-4 w-4 mr-2" />
@@ -190,7 +192,7 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
            <>
               <Separator className="my-12" />
               
-              {!isPremium && <AdPlaceholder />}
+              {!(isPremium ?? false) && <AdPlaceholder />}
               
               <div className="animate-fade-in-up" style={{animationDelay: '0.6s'}}>
                 <AboutTheAuthor />

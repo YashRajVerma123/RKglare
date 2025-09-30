@@ -28,7 +28,7 @@ const PremiumFeedPage = async () => {
     }
     
     // Redirect if not premium
-    if (!currentUser || !currentUser.premium?.active) {
+    if (!currentUser || !currentUser.premium?.active || new Date(currentUser.premium.expires!) < new Date()) {
         return (
              <div className="container mx-auto px-4 py-16 text-center">
                 <div className="glass-card p-12 max-w-2xl mx-auto">
@@ -43,13 +43,18 @@ const PremiumFeedPage = async () => {
     }
     
   // Fetch all posts, then filter for premium/early access
-  const allPosts = await getPosts(false, currentUser);
+  const allPosts = await getPosts(true, currentUser); // Pass true to get content
   const now = new Date();
 
   const premiumPosts = allPosts.filter(post => {
-      const isEarly = post.earlyAccess && new Date(post.publishedAt).getTime() + (24 * 60 * 60 * 1000) > now.getTime();
-      return post.premiumOnly || isEarly;
-  });
+      if (post.premiumOnly) return true;
+      if (post.earlyAccess) {
+          const publishedAt = new Date(post.publishedAt);
+          const hoursSincePublished = (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60);
+          return hoursSincePublished < 24;
+      }
+      return false;
+  }).sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 
   return (
      <div className="container mx-auto px-4 py-16">
