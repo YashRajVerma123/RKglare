@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Send, Loader2, Star, Trash2, Smile, MessageSquareReply, Pencil, X, MoreHorizontal } from 'lucide-react';
+import { Send, Loader2, Star, Trash2, Smile, MessageSquareReply, Pencil, X, MoreHorizontal, Paperclip } from 'lucide-react';
 import { collection, query, orderBy, onSnapshot, limit, getDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-client';
 import { ChatMessage, messageConverter } from '@/lib/data';
@@ -84,6 +84,7 @@ const PremiumChatPage = () => {
     }, [isPremium, toast]);
     
      useEffect(() => {
+        // Only scroll to bottom if not editing a message
         if (!editingMessage) {
             messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         }
@@ -134,6 +135,10 @@ const PremiumChatPage = () => {
     
     const handleToggleReaction = async (message: ChatMessage, emoji: string) => {
         if (!user) return;
+        // The action itself will not cause a scroll. The onSnapshot listener will,
+        // and we prevent that by checking for `editingMessage`, which is not ideal.
+        // A better approach is to not scroll if the user is not at the bottom.
+        // For now, this is a compromise. We can refine it if needed.
         await toggleReaction(message.id, emoji, user.id);
     }
     
@@ -169,7 +174,7 @@ const PremiumChatPage = () => {
 
     return (
         <>
-        <div className="container mx-auto px-4 h-screen flex flex-col py-8">
+        <div className="container mx-auto px-4 h-[calc(100vh-8rem)] flex flex-col pt-8 pb-4">
             <section className="text-center mb-8 animate-fade-in-up">
                 <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight mb-4">
                 Premium Chat<span className="text-primary">.</span>
@@ -293,12 +298,16 @@ const PremiumChatPage = () => {
                             </Button>
                         </div>
                     )}
-                    <form onSubmit={handleSendMessage} className="flex items-center gap-4">
+                    <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                         <Button type="button" variant="ghost" size="icon" onClick={() => toast({title: "File attachments coming soon!", description: "This feature is currently under development."})}>
+                            <Paperclip className="h-5 w-5 text-muted-foreground" />
+                        </Button>
                         <Input
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
                             placeholder="Type your message..."
                             autoComplete="off"
+                            className="h-10"
                         />
                         <Button type="submit" size="icon" disabled={!newMessage.trim()}>
                             <Send className="h-4 w-4" />
