@@ -33,10 +33,34 @@ const ReadingTimer = ({ postId }: { postId: string }) => {
       if (claimedPosts.includes(postId)) {
         setHasClaimed(true);
       } else {
-        setIsActive(true); // Start timer only if not claimed
+        // Start timer only if not claimed and tab is visible
+        if (document.visibilityState === 'visible') {
+           setIsActive(true);
+        }
       }
     }
   }, [user, postId]);
+
+  // Handle tab visibility changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        setIsActive(false);
+      } else {
+        // Only resume if not claimed
+        if (!hasClaimed) {
+          setIsActive(true);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [hasClaimed]);
+
 
   // Timer logic
   useEffect(() => {
