@@ -98,7 +98,8 @@ export default function RootLayout({
           <div className="fixed inset-0 overflow-hidden -z-10">
             <div className="bg-ball w-[20vw] h-[20vw] bg-primary/20 top-[-5%] left-[-5%]"></div>
             <div className="bg-ball w-[15vw] h-[15vw] bg-secondary/20 bottom-[10%] left-[10%]"></div>
-            <div className="bg-ball w-[18vw] h-[18vw] bg-pink-500/20 top-[15%] right-[5%]"></div>
+            <div className="bg-ball w-[18vw] h-[18vw] bg-pink-400/30 top-[15%] right-[5%]"></div>
+            <div className="bg-ball w-[22vw] h-[22vw] bg-fuchsia-500/20 bottom-[-10%] left-1/2 -translate-x-1/2"></div>
           </div>
 
           <SplashScreen />
