@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { updateBulletinAction } from '@/app/actions/bulletin-actions';
-import { Bulletin, getBulletin } from '@/lib/data';
+import { Bulletin, getBulletinClient } from '@/lib/data';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -47,7 +47,7 @@ export default function EditBulletinPage({ params: { id } }: { params: { id: str
   useEffect(() => {
     const fetchBulletin = async () => {
       setLoading(true);
-      const fetchedBulletin = await getBulletin(id);
+      const fetchedBulletin = await getBulletinClient(id);
       if (fetchedBulletin) {
         setBulletin(fetchedBulletin);
         form.reset({

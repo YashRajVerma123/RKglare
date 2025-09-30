@@ -6,7 +6,7 @@ import * as z from 'zod';
 import { useRouter, notFound } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useEffect, useState, useRef } from 'react';
-import { Post, getPost } from '@/lib/data';
+import { Post, getPostClient } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { updatePost } from '@/app/actions/post-actions';
 import Image from 'next/image';
@@ -20,7 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ArrowLeft, Upload, Eye, Pencil, Bot, Star } from 'lucide-react';
 import Link from 'next/link';
 import PostClientPage from '../../../posts/[slug]/post-client-page';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsContent } from '@/components/ui/tabs';
 import { generatePostContent } from '@/ai/flows/post-flow';
 import { Separator } from '@/components/ui/separator';
 
@@ -90,7 +90,7 @@ export default function EditPostPage({ params: { slug } }: { params: { slug: str
   useEffect(() => {
     const fetchPost = async () => {
       setLoading(true);
-      const fetchedPost = await getPost(slug);
+      const fetchedPost = await getPostClient(slug);
       if (fetchedPost) {
         setPost(fetchedPost);
         form.reset({

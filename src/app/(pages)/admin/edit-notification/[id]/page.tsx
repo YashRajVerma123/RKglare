@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { updateNotificationAction } from '@/app/actions/notification-actions';
-import { Notification, getNotification } from '@/lib/data';
+import { Notification, getNotificationClient } from '@/lib/data';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -43,7 +43,7 @@ export default function EditNotificationPage({ params: { id } }: { params: { id:
   useEffect(() => {
     const fetchNotification = async () => {
       setLoading(true);
-      const fetchedNotification = await getNotification(id);
+      const fetchedNotification = await getNotificationClient(id);
       if (fetchedNotification) {
         setNotification(fetchedNotification);
         form.reset({

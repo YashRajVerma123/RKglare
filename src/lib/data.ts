@@ -1,4 +1,5 @@
 
+
 import { db } from '@/lib/firebase-server'; // <-- IMPORTANT: Use server DB
 import { 
     collection, 
@@ -408,6 +409,10 @@ export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
 
 
 export const getPost = unstable_cache(async (slug: string, currentUser?: Author | null): Promise<Post | undefined> => {
+    return getPostClient(slug, currentUser);
+}, ['post'], { revalidate: 3600, tags: ['posts'] });
+
+export const getPostClient = async (slug: string, currentUser?: Author | null): Promise<Post | undefined> => {
     if (!slug) {
         return undefined;
     }
@@ -438,7 +443,7 @@ export const getPost = unstable_cache(async (slug: string, currentUser?: Author 
     }
 
     return post;
-}, ['post'], { revalidate: 3600, tags: ['posts'] });
+};
 
 
 export const getRelatedPosts = unstable_cache(async (currentPost: Post, currentUser?: Author | null): Promise<Post[]> => {
@@ -499,15 +504,17 @@ export const getNotifications = async (): Promise<Notification[]> => {
     return snapshot.docs.map(doc => doc.data());
 };
 
-export const getNotification = async (id: string): Promise<Notification | null> => {
-     return unstable_cache(async (id: string) => {
-        const notifRef = doc(db, 'notifications', id).withConverter(notificationConverter);
-        const snapshot = await getDoc(notifRef);
-        if (snapshot.exists()) {
-            return snapshot.data();
-        }
-        return null;
-    }, ['notification', id], { revalidate: 3600, tags: ['notifications', `notification:${id}`] })();
+export const getNotification = unstable_cache(async (id: string): Promise<Notification | null> => {
+    return getNotificationClient(id);
+}, ['notification', id], { revalidate: 3600, tags: ['notifications', `notification:${id}`] });
+
+export const getNotificationClient = async (id: string): Promise<Notification | null> => {
+    const notifRef = doc(db, 'notifications', id).withConverter(notificationConverter);
+    const snapshot = await getDoc(notifRef);
+    if (snapshot.exists()) {
+        return snapshot.data();
+    }
+    return null;
 }
 
 
@@ -561,15 +568,17 @@ export const getBulletins = async (
     };
 };
 
-export const getBulletin = async (id: string): Promise<Bulletin | null> => {
-     return unstable_cache(async (id: string) => {
-        const bulletinRef = doc(db, 'bulletins', id).withConverter(bulletinConverter);
-        const snapshot = await getDoc(bulletinRef);
-        if (snapshot.exists()) {
-            return snapshot.data();
-        }
-        return null;
-    }, ['bulletin', id], { revalidate: 3600, tags: ['bulletins', `bulletin:${id}`] })();
+export const getBulletin = unstable_cache(async (id: string): Promise<Bulletin | null> => {
+    return getBulletinClient(id);
+}, ['bulletin', id], { revalidate: 3600, tags: ['bulletins', `bulletin:${id}`] });
+
+export const getBulletinClient = async (id: string): Promise<Bulletin | null> => {
+    const bulletinRef = doc(db, 'bulletins', id).withConverter(bulletinConverter);
+    const snapshot = await getDoc(bulletinRef);
+    if (snapshot.exists()) {
+        return snapshot.data();
+    }
+    return null;
 };
 
 export const getAuthorByEmail = async (email: string): Promise<Author | null> => {
