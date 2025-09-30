@@ -291,7 +291,7 @@ export default function EditPostPage({ params }: { params: { slug: string } }) {
                               <div className="flex flex-col items-center gap-4">
                                   {imagePreview && (
                                   <div className="relative aspect-video w-full rounded-md overflow-hidden border">
-                                      <Image src={imagePreview} alt="Cover image preview" layout="fill" objectFit="cover" />
+                                      <Image src={imagePreview} alt="Cover image preview" fill objectFit="cover" />
                                   </div>
                                   )}
                                   <Input 
@@ -459,3 +459,5 @@ export default function EditPostPage({ params }: { params: { slug: string } }) {
     </div>
   );
 }
+
+    
