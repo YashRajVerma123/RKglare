@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Send, Loader2, Star, Trash2, Smile, MessageSquareReply, Pencil, X, MoreHorizontal, Paperclip, Users } from 'lucide-react';
+import { Send, Loader2, Star, Trash2, Smile, MessageSquareReply, Pencil, X, MoreHorizontal, Paperclip, Users, MessageSquare } from 'lucide-react';
 import { collection, query, orderBy, onSnapshot, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase-client';
 import { ChatMessage, messageConverter, Author } from '@/lib/data';
@@ -45,7 +45,6 @@ import {
 } from "@/components/ui/dialog"
 import ProfileCard from '@/components/profile-card';
 
-
 const getInitials = (name: string) => {
     if (!name) return '';
     const names = name.split(' ');
@@ -61,11 +60,35 @@ const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) 
     reader.onerror = error => reject(error);
 });
 
+const featureHighlights = [
+    {
+        icon: <MessageSquare className="h-8 w-8 text-primary" />,
+        title: "Live Conversations",
+        description: "Engage in real-time discussions with the author and other Glare+ supporters."
+    },
+    {
+        icon: <Pencil className="h-8 w-8 text-primary" />,
+        title: "Advanced Controls",
+        description: "Enjoy full control over your messages with the ability to edit, reply, and delete."
+    },
+    {
+        icon: <Smile className="h-8 w-8 text-primary" />,
+        title: "Express Yourself",
+        description: "React to messages with emojis to share your feelings and add personality to the chat."
+    },
+    {
+        icon: <Users className="h-8 w-8 text-primary" />,
+        title: "Exclusive Community",
+        description: "You are part of a private community of dedicated readers and supporters."
+    }
+]
+
 
 const PremiumChatPage = () => {
     const { user, loading: authLoading } = useAuth();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const isPremium = user?.premium?.active === true;
     
@@ -82,7 +105,6 @@ const PremiumChatPage = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     
     const [isSending, setIsSending] = useState(false);
-    const [newMessage, setNewMessage] = useState('');
     
     useEffect(() => {
         if (!isPremium) {
@@ -235,40 +257,37 @@ const PremiumChatPage = () => {
     }
 
     return (
-        <div className="h-[calc(100vh-80px)] flex flex-col">
-            <header className="p-4 border-b border-border/10 bg-background/50 backdrop-blur-sm sticky top-0 z-10">
-                <div className="container mx-auto flex items-center justify-between">
-                    <h1 className="text-xl font-headline font-bold tracking-tight">
+        <div className="container mx-auto px-4 py-8">
+            <div className="h-[calc(70vh+40px)] flex flex-col bg-secondary/40 glass-card">
+                <header className="p-4 border-b border-border/10 flex items-center justify-between">
+                     <h1 className="text-xl font-headline font-bold tracking-tight">
                         Premium Chat
                     </h1>
-                    <div className="flex items-center">
+                     <div className="flex items-center">
                         <span className="flex h-2 w-2 rounded-full bg-green-500 mr-2"></span>
                         <p className="text-sm text-muted-foreground">1 member online</p>
                     </div>
-                </div>
-            </header>
-            <div className="flex-1 overflow-hidden">
-                <div className="h-full flex flex-col">
-                    <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-2 container mx-auto">
-                        <AnimatePresence initial={false}>
-                        {messages.map((msg) => (
-                            <motion.div
-                                key={msg.id}
-                                layout
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.8 }}
-                                transition={{
-                                    opacity: { duration: 0.2 },
-                                    layout: { type: "spring", stiffness: 260, damping: 20 }
-                                }}
-                                className={cn("flex items-start gap-3 group relative py-1", msg.author.id === user.id ? 'flex-row-reverse' : 'flex-row')}
-                            >
-                                <div className={cn(
+                </header>
+                <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-2 bg-background">
+                    <AnimatePresence initial={false}>
+                    {messages.map((msg) => (
+                        <motion.div
+                            key={msg.id}
+                            layout
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            transition={{
+                                opacity: { duration: 0.2 },
+                                layout: { type: "spring", stiffness: 260, damping: 20 }
+                            }}
+                            className={cn("flex items-start gap-3 group relative py-1", msg.author.id === user.id ? 'flex-row-reverse' : 'flex-row')}
+                        >
+                             <div className={cn(
                                 "absolute top-0 z-10 flex items-center bg-card border rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity",
                                 msg.author.id === user.id ? "right-12" : "left-12"
-                                )}>
-                                <Popover>
+                            )}>
+                               <Popover>
                                     <PopoverTrigger asChild>
                                         <Button variant="ghost" size="icon" className="h-7 w-7 rounded-l-full"><Smile className="h-4 w-4" /></Button>
                                     </PopoverTrigger>
@@ -283,7 +302,7 @@ const PremiumChatPage = () => {
                                     </PopoverContent>
                                 </Popover>
                                 
-                                <DropdownMenu>
+                                 <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button variant="ghost" size="icon" className="h-7 w-7 rounded-r-full"><MoreHorizontal className="h-4 w-4" /></Button>
                                         </DropdownMenuTrigger>
@@ -307,127 +326,141 @@ const PremiumChatPage = () => {
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </div>
-                                
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Avatar className="h-8 w-8 cursor-pointer">
-                                            <AvatarImage src={msg.author.avatar} />
-                                            <AvatarFallback>{getInitials(msg.author.name)}</AvatarFallback>
-                                        </Avatar>
-                                    </DialogTrigger>
-                                    <DialogContent className="sm:max-w-md p-0">
-                                       <ProfileCard user={msg.author as Author} />
-                                    </DialogContent>
-                                </Dialog>
-                                
+                            
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Avatar className="h-8 w-8 cursor-pointer">
+                                        <AvatarImage src={msg.author.avatar} />
+                                        <AvatarFallback>{getInitials(msg.author.name)}</AvatarFallback>
+                                    </Avatar>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-md p-0">
+                                   <ProfileCard user={msg.author as Author} />
+                                </DialogContent>
+                            </Dialog>
 
-                                <div className={cn("flex flex-col w-full max-w-xs md:max-w-md", msg.author.id === user.id ? 'items-end' : 'items-start')}>
-                                    <div className={cn(
-                                        "px-4 py-2 rounded-2xl",
-                                        msg.author.id === user.id ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-background rounded-bl-none'
-                                    )}>
-                                        <p className="text-sm font-semibold mb-1">{msg.author.name}</p>
-                                        {msg.replyTo && (
-                                            <div className="p-2 mb-2 rounded-md bg-black/20 opacity-80">
-                                                <p className="text-xs font-bold">{msg.replyTo.authorName}</p>
-                                                <p className="text-xs line-clamp-2">{msg.replyTo.text}</p>
-                                            </div>
-                                        )}
-
-                                        {editingMessage?.id === msg.id ? (
-                                            <div className="space-y-2">
-                                                <Textarea value={editedText} onChange={(e) => setEditedText(e.target.value)} className="text-sm bg-background text-foreground focus:ring-0" autoFocus />
-                                                <div className="flex justify-end gap-2">
-                                                    <Button size="sm" variant="ghost" onClick={() => setEditingMessage(null)}>Cancel</Button>
-                                                    <Button size="sm" onClick={() => handleEditMessage(msg)}>Save</Button>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <>
-                                            {msg.image && (
-                                                <div className="relative aspect-video rounded-md overflow-hidden my-2">
-                                                    <Image src={msg.image} alt="attached image" fill className="object-cover"/>
-                                                </div>
-                                            )}
-                                            {msg.text && <p className="text-sm whitespace-pre-wrap">{msg.text}</p>}
-                                            </>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <p className="text-xs text-muted-foreground mt-1 px-1">
-                                            {msg.isEdited && `(edited) `}
-                                            {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
-                                        </p>
-                                    </div>
-                                    {msg.reactions && Object.keys(msg.reactions).length > 0 && (
-                                        <div className="flex gap-1 mt-1">
-                                            {Object.entries(msg.reactions).map(([emoji, userIds]) => (
-                                                <Button key={emoji} variant="secondary" size="sm" className={cn("h-6 px-2 rounded-full", userIds.includes(user.id) && "border-primary")} onClick={() => handleToggleReaction(msg, emoji)}>
-                                                    {emoji} <span className="text-xs ml-1">{userIds.length}</span>
-                                                </Button>
-                                            ))}
+                            <div className={cn("flex flex-col w-full max-w-xs md:max-w-md", msg.author.id === user.id ? 'items-end' : 'items-start')}>
+                                <div className={cn(
+                                    "px-4 py-2 rounded-2xl",
+                                    msg.author.id === user.id ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-background rounded-bl-none'
+                                )}>
+                                    <p className="text-sm font-semibold mb-1">{msg.author.name}</p>
+                                    {msg.replyTo && (
+                                        <div className="p-2 mb-2 rounded-md bg-black/20 opacity-80">
+                                            <p className="text-xs font-bold">{msg.replyTo.authorName}</p>
+                                            <p className="text-xs line-clamp-2">{msg.replyTo.text}</p>
                                         </div>
                                     )}
+
+                                    {editingMessage?.id === msg.id ? (
+                                        <div className="space-y-2">
+                                            <Textarea value={editedText} onChange={(e) => setEditedText(e.target.value)} className="text-sm bg-background text-foreground focus:ring-0" autoFocus />
+                                            <div className="flex justify-end gap-2">
+                                                <Button size="sm" variant="ghost" onClick={() => setEditingMessage(null)}>Cancel</Button>
+                                                <Button size="sm" onClick={() => handleEditMessage(msg)}>Save</Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                        {msg.image && (
+                                            <div className="relative aspect-video rounded-md overflow-hidden my-2">
+                                                <Image src={msg.image} alt="attached image" fill className="object-cover"/>
+                                            </div>
+                                        )}
+                                        {msg.text && <p className="text-sm whitespace-pre-wrap">{msg.text}</p>}
+                                        </>
+                                    )}
                                 </div>
-                            </motion.div>
-                        ))}
-                        </AnimatePresence>
-                        <div ref={messagesEndRef} />
-                    </div>
-                    
-                    <div className="p-4 border-t border-border/10 bg-background/50 sticky bottom-0">
-                        <div className="container mx-auto">
-                        <AnimatePresence>
-                        {replyingTo && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 10 }}
-                                className="flex items-center justify-between p-2 mb-2 rounded-md bg-secondary"
-                            >
-                                <div className="text-xs">
-                                    <p className="font-semibold">Replying to {replyingTo.author.name}</p>
-                                    <p className="text-muted-foreground line-clamp-1">{replyingTo.text}</p>
+                                <div className="flex items-center gap-1">
+                                    <p className="text-xs text-muted-foreground mt-1 px-1">
+                                        {msg.isEdited && `(edited) `}
+                                        {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
+                                    </p>
                                 </div>
-                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setReplyingTo(null)}>
-                                    <X className="h-4 w-4"/>
-                                </Button>
-                            </motion.div>
-                        )}
-                        {imagePreview && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 10 }}
-                                className="relative w-24 h-24 mb-2 rounded-md overflow-hidden border p-1 glass-card"
-                            >
-                                <Image src={imagePreview} alt="image preview" fill className="object-cover rounded-md"/>
-                                <Button variant="destructive" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => {setImagePreview(null); setImageFile(null)}}>
-                                    <X className="h-4 w-4"/>
-                                </Button>
-                            </motion.div>
-                        )}
-                        </AnimatePresence>
-                        <form onSubmit={handleSendMessage} className="flex items-center gap-2 glass-card p-2 rounded-full">
-                            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
-                            <Button type="button" variant="ghost" size="icon" className="rounded-full" onClick={() => fileInputRef.current?.click()}>
-                                <Paperclip className="h-5 w-5 text-muted-foreground" />
+                                {msg.reactions && Object.keys(msg.reactions).length > 0 && (
+                                    <div className="flex gap-1 mt-1">
+                                        {Object.entries(msg.reactions).map(([emoji, userIds]) => (
+                                            <Button key={emoji} variant="secondary" size="sm" className={cn("h-6 px-2 rounded-full", userIds.includes(user.id) && "border-primary")} onClick={() => handleToggleReaction(msg, emoji)}>
+                                                {emoji} <span className="text-xs ml-1">{userIds.length}</span>
+                                            </Button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    ))}
+                    </AnimatePresence>
+                    <div ref={messagesEndRef} />
+                </div>
+                
+                 <div className="p-4 border-t border-border/10">
+                   <AnimatePresence>
+                    {replyingTo && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            className="flex items-center justify-between p-2 mb-2 rounded-md bg-secondary"
+                        >
+                            <div className="text-xs">
+                                <p className="font-semibold">Replying to {replyingTo.author.name}</p>
+                                <p className="text-muted-foreground line-clamp-1">{replyingTo.text}</p>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setReplyingTo(null)}>
+                                <X className="h-4 w-4"/>
                             </Button>
-                            <Input
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                placeholder="Type a message..."
-                                autoComplete="off"
-                                className="h-10 bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                            />
-                            <Button type="submit" size="icon" className="rounded-full" disabled={isSending || (!newMessage.trim() && !imageFile)}>
-                            {isSending ? <Loader2 className="h-4 w-4 animate-spin"/> : <Send className="h-4 w-4" />}
+                        </motion.div>
+                    )}
+                    {imagePreview && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                            className="relative w-24 h-24 mb-2 rounded-md overflow-hidden border p-1 glass-card"
+                        >
+                            <Image src={imagePreview} alt="image preview" fill className="object-cover rounded-md"/>
+                            <Button variant="destructive" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={() => {setImagePreview(null); setImageFile(null)}}>
+                                <X className="h-4 w-4"/>
                             </Button>
-                        </form>
-                        </div>
-                    </div>
+                        </motion.div>
+                    )}
+                    </AnimatePresence>
+                    <form onSubmit={handleSendMessage} className="flex items-center gap-2 glass-card p-2 rounded-full">
+                        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+                        <Button type="button" variant="ghost" size="icon" className="rounded-full" onClick={() => fileInputRef.current?.click()}>
+                            <Paperclip className="h-5 w-5 text-muted-foreground" />
+                        </Button>
+                        <Input
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            placeholder="Type a message..."
+                            autoComplete="off"
+                            className="h-10 bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        />
+                        <Button type="submit" size="icon" className="rounded-full" disabled={isSending || (!newMessage.trim() && !imageFile)}>
+                        {isSending ? <Loader2 className="h-4 w-4 animate-spin"/> : <Send className="h-4 w-4" />}
+                        </Button>
+                    </form>
                 </div>
             </div>
+
+            <section className="mt-24 mb-12">
+                <div className="text-center mb-12">
+                    <h2 className="text-3xl md:text-4xl font-headline font-bold">Your Exclusive Chat Experience</h2>
+                    <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">As a Glare+ supporter, you get access to a private, feature-rich chat environment.</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {featureHighlights.map((feature, index) => (
+                        <div key={index} className="glass-card text-center p-8 transition-transform transform hover:-translate-y-2">
+                        <div className="inline-block p-4 bg-primary/10 rounded-full mb-4">
+                            {feature.icon}
+                        </div>
+                        <h3 className="text-xl font-headline font-semibold mb-2">{feature.title}</h3>
+                        <p className="text-muted-foreground text-sm">{feature.description}</p>
+                        </div>
+                    ))}
+                </div>
+            </section>
 
             <AlertDialog open={!!messageToDelete} onOpenChange={(isOpen) => !isOpen && setMessageToDelete(null)}>
                 <AlertDialogContent>
