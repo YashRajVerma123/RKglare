@@ -1,4 +1,3 @@
-
 'use client'
 
 import { Post } from "@/lib/data";
@@ -215,39 +214,72 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
     }
 
     setIsDownloading(true);
-    toast({ title: "Preparing Download...", description: "Your PDF will begin downloading shortly." });
+    toast({ title: "Preparing Download...", description: "Your PDF will begin downloading shortly. This may take a moment." });
 
     try {
-        const canvas = await html2canvas(articleContentElement, {
-            scale: 2, // Higher scale for better quality
-            useCORS: true,
-            backgroundColor: null,
-        });
-
-        const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
-        const ratio = imgWidth / imgHeight;
-        
-        let finalImgHeight = pdfWidth / ratio;
-        let heightLeft = finalImgHeight;
-        let position = 15; // Top margin
+        const margin = 15;
+        const maxLineWidth = pdfWidth - margin * 2;
+        let yPos = margin;
 
         pdf.setFontSize(22);
-        pdf.text(post.title, pdfWidth / 2, position, { align: 'center'});
-        position += 15;
+        const titleLines = pdf.splitTextToSize(post.title, maxLineWidth);
+        pdf.text(titleLines, pdfWidth / 2, yPos, { align: 'center'});
+        yPos += pdf.getTextDimensions(titleLines).h + 10;
+        
+        pdf.setFontSize(12);
 
-        pdf.addImage(imgData, 'PNG', 15, position, pdfWidth - 30, finalImgHeight);
-        heightLeft -= (pdfHeight - position - 15);
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = post.content;
+        
+        const elements = Array.from(tempDiv.children);
 
-        while (heightLeft > 0) {
-            position = -finalImgHeight + (pdfHeight - 30);
-            pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 15, position, pdfWidth - 30, finalImgHeight);
-            heightLeft -= pdfHeight;
+        for (const element of elements) {
+            if (yPos > pdf.internal.pageSize.getHeight() - margin) {
+                pdf.addPage();
+                yPos = margin;
+            }
+
+            if (element.tagName === 'H3') {
+                pdf.setFontSize(16);
+                const lines = pdf.splitTextToSize(element.textContent || '', maxLineWidth);
+                yPos += 5;
+                pdf.text(lines, margin, yPos);
+                yPos += pdf.getTextDimensions(lines).h + 2;
+                pdf.setFontSize(12);
+            } else if (element.tagName === 'P') {
+                const lines = pdf.splitTextToSize(element.textContent || '', maxLineWidth);
+                pdf.text(lines, margin, yPos);
+                yPos += pdf.getTextDimensions(lines).h + 5;
+            } else if (element.tagName === 'IMG') {
+                try {
+                    const img = element as HTMLImageElement;
+                    const response = await fetch(img.src);
+                    const blob = await response.blob();
+                    const reader = new FileReader();
+                    
+                    const imageData = await new Promise<string>((resolve, reject) => {
+                        reader.onloadend = () => resolve(reader.result as string);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+
+                    const imgProps = pdf.getImageProperties(imageData);
+                    const imgWidth = maxLineWidth;
+                    const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+                    if (yPos + imgHeight > pdf.internal.pageSize.getHeight() - margin) {
+                        pdf.addPage();
+                        yPos = margin;
+                    }
+
+                    pdf.addImage(imageData, 'JPEG', margin, yPos, imgWidth, imgHeight);
+                    yPos += imgHeight + 10;
+                } catch (e) {
+                    console.error("Could not process image for PDF:", e);
+                }
+            }
         }
 
         pdf.save(`${post.slug}.pdf`);

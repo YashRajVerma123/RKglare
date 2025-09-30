@@ -1,4 +1,3 @@
-
 import { Suspense } from 'react';
 import PostsClient from '../posts/posts-client';
 import { getPosts, Post, getAuthorById } from '@/lib/data';
