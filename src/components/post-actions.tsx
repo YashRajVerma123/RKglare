@@ -216,12 +216,21 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
     setIsDownloading(true);
     toast({ title: "Preparing Download...", description: "Your PDF will begin downloading shortly. This may take a moment." });
 
+    // Temporarily force black text color for PDF
+    const originalColor = articleElement.style.color;
+    articleElement.style.color = 'black';
+
     try {
         const canvas = await html2canvas(articleElement, {
-            scale: 2, // Higher scale for better quality
-            useCORS: true, // Important for external images
-            backgroundColor: null, // Use page background
+            scale: 2,
+            useCORS: true,
+            backgroundColor: null,
+            logging: false, // Disables console logging from html2canvas
+            foreignObjectRendering: false, // Can sometimes improve rendering
         });
+
+        // Restore original color
+        articleElement.style.color = originalColor;
 
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p', 'mm', 'a4');
@@ -253,6 +262,8 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
     } catch (e) {
       console.error("PDF generation failed:", e);
       toast({ title: "Download Failed", description: "Could not generate the PDF. Please try again.", variant: "destructive" });
+      // Restore original color on error
+      articleElement.style.color = originalColor;
     } finally {
       setIsDownloading(false);
     }
