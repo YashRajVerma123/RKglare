@@ -8,7 +8,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Flame, ShieldAlert, Star } from 'lucide-react';
+import { Calendar, Clock, Flame, Star } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import BlogPostCard from '@/components/blog-post-card';
 import CommentSection from '@/components/comment-section';
@@ -17,8 +17,6 @@ import { useAuth } from '@/hooks/use-auth';
 import { updateReadingProgress } from '@/app/actions/user-data-actions';
 import ReadingProgressBar from '@/components/reading-progress-bar';
 import { useDynamicTheme } from '@/contexts/dynamic-theme-context';
-import { useInView } from 'react-intersection-observer';
-import { awardPoints } from '@/app/actions/gamification-actions';
 import ReaderMode from '@/components/reader-mode';
 import ReadingTimer from '@/components/reading-timer';
 import { Button } from '@/components/ui/button';
@@ -48,10 +46,9 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
   
   const isBookmarked = post ? bookmarks[post.id] : false;
   
-  // Determine content visibility based on user subscription status
   const isPremium = user?.premium?.active === true && user.premium.expires && new Date(user.premium.expires) > new Date();
   const now = new Date();
-  const isEarlyAccessActive = post.earlyAccess && new Date(post.publishedAt).getTime() + (24 * 60 * 60 * 1000) > now.getTime();
+  const isEarlyAccessActive = post.earlyAccess && post.publishedAt && new Date(post.publishedAt).getTime() + (24 * 60 * 60 * 1000) > now.getTime();
   const canViewContent = isPreview || !post.premiumOnly && !isEarlyAccessActive || isPremium;
 
 

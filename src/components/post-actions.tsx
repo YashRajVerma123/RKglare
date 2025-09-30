@@ -121,7 +121,7 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
-  const isPremium = user?.premium?.active;
+  const isPremium = user?.premium?.active === true && user.premium.expires && new Date(user.premium.expires) > new Date();
 
 
   const isBookmarked = user ? bookmarks[post.id] !== undefined : false;

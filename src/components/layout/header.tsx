@@ -52,7 +52,7 @@ const Header = () => {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const { user } = useAuth();
-  const isPremium = user?.premium?.active;
+  const isPremium = user?.premium?.active === true && user.premium.expires && new Date(user.premium.expires) > new Date();
 
 
   useEffect(() => {
