@@ -28,7 +28,6 @@ import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { togglePostLike, toggleBookmark } from "@/app/actions/user-data-actions";
 import ReaderMode from "./reader-mode";
-import ReaderModeTransition from "./reader-mode-transition";
 
 
 const LikeButton = ({ post }: { post: Post }) => {
@@ -120,14 +119,13 @@ export default function PostActions({ post }: { post: Post }) {
   const [currentUrl, setCurrentUrl] = useState('');
   const [isMounted, setIsMounted] = useState(false);
   const [isSummaryDialogOpen, setSummaryDialogOpen] = useState(false);
-  const [readerState, setReaderState] = useState<'closed' | 'opening' | 'open' | 'closing'>('closed');
+  const [isReaderOpen, setReaderOpen] = useState(false);
   const [summary, setSummary] = useState('');
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
 
   const isBookmarked = user ? bookmarks[post.id] !== undefined : false;
-  const isReaderOpen = readerState === 'open' || readerState === 'opening';
 
   useEffect(() => {
     setIsMounted(true);
@@ -209,7 +207,7 @@ export default function PostActions({ post }: { post: Post }) {
      {
       label: "Reader Mode",
       icon: <BookOpen className="h-5 w-5" />,
-      onClick: () => setReaderState('opening'),
+      onClick: () => setReaderOpen(true),
     },
     {
       label: "Summarize",
@@ -358,16 +356,10 @@ export default function PostActions({ post }: { post: Post }) {
         </DialogContent>
       </Dialog>
       
-      <ReaderModeTransition
-        state={readerState}
-        onOpen={() => setReaderState('open')}
-        onClose={() => setReaderState('closed')}
-      />
-      
-      {isReaderOpen && (
+      {isMounted && (
         <ReaderMode
             isOpen={isReaderOpen}
-            onClose={() => setReaderState('closing')}
+            onClose={() => setReaderOpen(false)}
             title={post.title}
             content={post.content}
         />
