@@ -17,7 +17,7 @@ import {
 const READING_TIME_SECONDS = 300; // 5 minutes
 
 const ReadingTimer = ({ postId }: { postId: string }) => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, refreshUser } = useAuth();
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
   const [hasClaimed, setHasClaimed] = useState(false);
@@ -70,6 +70,7 @@ const ReadingTimer = ({ postId }: { postId: string }) => {
         description: `You earned ${result.pointsAwarded} points for reading!`,
       });
       setHasClaimed(true);
+      refreshUser(); // Refresh user data to show new points in profile dropdown
       
       // Store in local storage
       const claimedPosts = JSON.parse(localStorage.getItem(`reading_timer_claimed_${user.id}`) || '[]');
