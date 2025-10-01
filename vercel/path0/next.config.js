@@ -1,18 +1,4 @@
 
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
-  buildExcludes: [/app-build-manifest.json$/], // Exclude manifest files from precaching
-  workboxOptions: {
-    // Other Workbox options can be configured here if needed
-    // For example, to exclude certain files from caching:
-    // exclude: [/.(?:png|jpg|jpeg|svg)$/], 
-    // runtimeCaching: [...]
-  }
-});
-
 const {
   NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   NEXT_PUBLIC_FIREBASE_APP_ID,
@@ -94,4 +80,5 @@ const nextConfig = {
   },
 };
 
-module.exports = withPWA(nextConfig);
+// Removed withPWA wrapper to avoid conflicts
+module.exports = nextConfig;
