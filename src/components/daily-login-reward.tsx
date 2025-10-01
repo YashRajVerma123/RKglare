@@ -11,6 +11,40 @@ import { DailyChallenge, UserStreak } from '@/lib/data';
 import { thoughts } from '@/lib/thoughts';
 import { Progress } from './ui/progress';
 
+const Countdown = ({ to }: { to: string }) => {
+    const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const now = new Date();
+            const future = new Date(to);
+            const diff = future.getTime() - now.getTime();
+
+            if (diff <= 0) {
+                setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+                clearInterval(interval);
+                return;
+            }
+
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            setTimeLeft({ hours, minutes, seconds });
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [to]);
+
+    return (
+        <span>
+            {String(timeLeft.hours).padStart(2, '0')}:
+            {String(timeLeft.minutes).padStart(2, '0')}:
+            {String(timeLeft.seconds).padStart(2, '0')}
+        </span>
+    );
+};
+
+
 const DailyLoginReward = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -19,6 +53,7 @@ const DailyLoginReward = () => {
     streak: number;
     pointsAwarded: number;
     challenge: DailyChallenge | null;
+    nextRewardTime?: string;
   } | null>(null);
 
   const { user, refreshUser } = useAuth();
@@ -55,6 +90,8 @@ const DailyLoginReward = () => {
     return null;
   }
 
+  const alreadyClaimed = data.pointsAwarded === 0 && data.nextRewardTime;
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="glass-card sm:max-w-md">
@@ -82,13 +119,26 @@ const DailyLoginReward = () => {
             </div>
         ) : (
             <div className="space-y-6 py-4">
-                <div className="text-center bg-muted/50 p-4 rounded-lg">
-                    <div className="flex items-center justify-center gap-2">
-                        <Flame className="h-6 w-6 text-orange-500"/>
-                        <p className="text-lg font-bold text-orange-500">Day {data.streak} Streak!</p>
+                {alreadyClaimed ? (
+                    <div className="text-center bg-muted/50 p-4 rounded-lg">
+                        <p className="text-lg font-bold">Daily Reward Claimed!</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                            Claim again in:
+                        </p>
+                        <p className="text-lg font-mono font-bold text-primary mt-1">
+                          <Countdown to={data.nextRewardTime!} />
+                        </p>
                     </div>
-                    <p className="text-sm text-muted-foreground">You earned <span className="font-bold text-primary">{data.pointsAwarded}</span> points for your daily visit.</p>
-                </div>
+                ) : (
+                    <div className="text-center bg-muted/50 p-4 rounded-lg">
+                        <div className="flex items-center justify-center gap-2">
+                            <Flame className="h-6 w-6 text-orange-500"/>
+                            <p className="text-lg font-bold text-orange-500">Day {data.streak} Streak!</p>
+                        </div>
+                        <p className="text-sm text-muted-foreground">You earned <span className="font-bold text-primary">{data.pointsAwarded}</span> points for your daily visit.</p>
+                    </div>
+                )}
+
 
                 {data.challenge && (
                     <div className="space-y-2">

@@ -24,12 +24,23 @@ function getYesterdayDateInIST() {
     return ist.toISOString().split('T')[0]; // YYYY-MM-DD
 }
 
+function getStartOfNextDayIST(): string {
+    const now = new Date();
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const ist = new Date(utc + IST_OFFSET);
+    ist.setDate(ist.getDate() + 1);
+    ist.setHours(0, 0, 0, 0);
+    const nextDayUTC = new Date(ist.getTime() - IST_OFFSET);
+    return nextDayUTC.toISOString();
+}
+
 
 export async function checkAndUpdateStreak(userId: string): Promise<{
     thought: { quote: string; author: string };
     streak: number;
     pointsAwarded: number;
     challenge: DailyChallenge | null;
+    nextRewardTime?: string;
 }> {
     const userRef = doc(db, 'users', userId).withConverter(authorConverter);
     const batch = writeBatch(db);
@@ -56,6 +67,7 @@ export async function checkAndUpdateStreak(userId: string): Promise<{
             streak: currentStreak,
             pointsAwarded: 0,
             challenge: user.challenge || null,
+            nextRewardTime: getStartOfNextDayIST(),
         };
     }
 
