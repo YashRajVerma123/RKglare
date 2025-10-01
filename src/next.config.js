@@ -1,3 +1,4 @@
+
 const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
@@ -59,7 +60,7 @@ const nextConfig = {
         pathname: '/**',
       },
        {
-        protocol: 'https,',
+        protocol: 'https',
         hostname: 'www.hindustantimes.com',
         port: '',
         pathname: '/**',
