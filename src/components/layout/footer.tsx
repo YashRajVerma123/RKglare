@@ -29,7 +29,7 @@ const Footer = () => {
           <div className="md:col-span-2"></div>
           <div className="md:col-span-2">
             <h3 className="font-headline text-lg font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-2">
+            <ul className="flex flex-wrap gap-x-4 gap-y-2">
               {quickLinks.map((link) => (
                 <li key={link.label}>
                   <Link href={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
