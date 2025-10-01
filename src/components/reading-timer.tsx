@@ -6,13 +6,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { awardPoints } from '@/app/actions/gamification-actions';
 import { useToast } from '@/hooks/use-toast';
 import { Check, Clock, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const READING_TIME_SECONDS = 300; // 5 minutes
 
@@ -122,10 +116,9 @@ const ReadingTimer = ({ postId }: { postId: string }) => {
 
   return (
     <div className="fixed top-24 left-6 z-40">
-      <TooltipProvider>
-        <Tooltip delayDuration={100}>
-          <TooltipTrigger asChild>
-            <div className="relative h-14 w-14">
+       <Popover>
+        <PopoverTrigger asChild>
+          <div className="relative h-14 w-14 cursor-pointer">
               <svg className="h-full w-full" viewBox="0 0 100 100">
                 <circle
                   className="stroke-current text-muted/20"
@@ -160,8 +153,9 @@ const ReadingTimer = ({ postId }: { postId: string }) => {
                  )}
               </div>
             </div>
-          </TooltipTrigger>
-          <TooltipContent side="right">
+        </PopoverTrigger>
+        <PopoverContent side="right">
+          <div className="text-sm">
             {hasClaimed ? (
               <p>You've earned the reading reward for this post.</p>
             ) : isClaiming ? (
@@ -171,9 +165,9 @@ const ReadingTimer = ({ postId }: { postId: string }) => {
                 Read for {minutes}:{seconds < 10 ? `0${seconds}` : seconds} to earn 20 points.
               </p>
             )}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+           </div>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };
