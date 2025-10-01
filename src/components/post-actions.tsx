@@ -30,7 +30,7 @@ import { togglePostLike, toggleBookmark } from "@/app/actions/user-data-actions"
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
-const LikeButton = ({ post }: { post: Post }) => {
+const LikeButton = ({ post, isMobile = false }: { post: Post, isMobile?: boolean }) => {
   const { user, likedPosts, setLikedPosts, signIn } = useAuth();
   const { toast } = useToast();
   const [likeCount, setLikeCount] = useState(post.likes || 0);
@@ -65,6 +65,51 @@ const LikeButton = ({ post }: { post: Post }) => {
   
   const particleColors = ["#FFC700", "#FF0000", "#2E3192", "#455E55"];
 
+  const buttonContent = (
+     <div className="relative">
+        <Heart
+          className={cn(
+            "transition-colors duration-300",
+            isMobile ? "h-5 w-5" : "h-6 w-6",
+            isLiked ? 'fill-red-500 text-red-500' : '',
+            isAnimating && 'like-button-burst'
+          )}
+          onAnimationEnd={() => setIsAnimating(false)}
+        />
+        {isAnimating && (
+          <div className="particle-burst animate">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="particle"
+                style={
+                  {
+                    '--tx': `${Math.random() * 40 - 20}px`,
+                    '--ty': `${Math.random() * 40 - 20}px`,
+                    'background': particleColors[i % particleColors.length],
+                    'animationDelay': `${Math.random() * 0.1}s`,
+                  } as React.CSSProperties
+                }
+              />
+            ))}
+          </div>
+        )}
+      </div>
+  );
+
+  if (isMobile) {
+      return (
+         <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleLike}
+          className="rounded-full h-10 w-10"
+        >
+          {buttonContent}
+        </Button>
+      );
+  }
+
   return (
     <Tooltip delayDuration={100}>
       <TooltipTrigger asChild>
@@ -74,34 +119,7 @@ const LikeButton = ({ post }: { post: Post }) => {
           onClick={handleLike}
           className="rounded-full h-auto w-auto p-2 flex flex-row items-center gap-2 md:flex-col"
         >
-          <div className="relative">
-            <Heart
-              className={cn(
-                "h-6 w-6 transition-colors duration-300",
-                isLiked ? 'fill-red-500 text-red-500' : '',
-                isAnimating && 'like-button-burst'
-              )}
-              onAnimationEnd={() => setIsAnimating(false)}
-            />
-            {isAnimating && (
-              <div className="particle-burst animate">
-                {[...Array(6)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="particle"
-                    style={
-                      {
-                        '--tx': `${Math.random() * 40 - 20}px`,
-                        '--ty': `${Math.random() * 40 - 20}px`,
-                        'background': particleColors[i % particleColors.length],
-                        'animationDelay': `${Math.random() * 0.1}s`,
-                      } as React.CSSProperties
-                    }
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+         {buttonContent}
           <span className="text-sm font-sans pr-2 md:pr-0">{likeCount}</span>
         </Button>
       </TooltipTrigger>
@@ -320,13 +338,13 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
      <TooltipProvider>
       {/* Mobile Bar */}
       <div className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
-          <div className="flex items-center justify-center p-1.5 gap-1 rounded-full bg-background/30 backdrop-blur-xl border border-white/20 shadow-2xl">
-              <LikeButton post={post} />
+          <div className="flex items-center justify-center p-1 gap-1 rounded-full bg-background/30 backdrop-blur-xl border border-white/20 shadow-2xl">
+              <LikeButton post={post} isMobile={true}/>
               {actions.filter(a => !a.premium || isPremium).map((action, index) => (
                  action.isShare ? (
                     <Dialog key={action.label}>
                       <DialogTrigger asChild>
-                         <Button variant="ghost" size="icon" className="rounded-full text-foreground/80 hover:text-foreground hover:bg-white/10">
+                         <Button variant="ghost" size="icon" className="rounded-full text-foreground/80 hover:text-foreground hover:bg-white/10 h-10 w-10">
                             {action.icon}
                             <span className="sr-only">{action.label}</span>
                         </Button>
@@ -343,7 +361,7 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
                       </DialogContent>
                     </Dialog>
                   ) : (
-                    <Button key={action.label} variant="ghost" size="icon" onClick={action.onClick} className="rounded-full text-foreground/80 hover:text-foreground hover:bg-white/10" disabled={action.premium && isDownloading}>
+                    <Button key={action.label} variant="ghost" size="icon" onClick={action.onClick} className="rounded-full text-foreground/80 hover:text-foreground hover:bg-white/10 h-10 w-10" disabled={action.premium && isDownloading}>
                       {action.icon}
                     </Button>
                   )
@@ -446,4 +464,3 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
   return ReactDOM.createPortal(actionBar, portalContainer);
 }
 
-    

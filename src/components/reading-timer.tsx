@@ -121,7 +121,7 @@ const ReadingTimer = ({ postId }: { postId: string }) => {
   const seconds = timeLeft % 60;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-6 left-6 md:bottom-6 md:right-6 md:left-auto z-40">
       <TooltipProvider>
         <Tooltip delayDuration={100}>
           <TooltipTrigger asChild>
@@ -161,7 +161,7 @@ const ReadingTimer = ({ postId }: { postId: string }) => {
               </div>
             </div>
           </TooltipTrigger>
-          <TooltipContent side="left">
+          <TooltipContent side="right">
             {hasClaimed ? (
               <p>You've earned the reading reward for this post.</p>
             ) : isClaiming ? (
