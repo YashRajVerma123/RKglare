@@ -26,26 +26,31 @@ const Footer = () => {
               Your essential destination for making sense of today. We provide current affairs news for the modern reader, delivering sharp, focused journalism that explains not only what is happening but why it matters.
             </p>
           </div>
-          <div className="md:col-span-2"></div>
-          <div className="md:col-span-2">
-            <h3 className="font-headline text-lg font-semibold mb-4">Quick Links</h3>
-            <ul className="flex flex-wrap gap-x-4 gap-y-2">
-              {quickLinks.map((link) => (
-                <li key={link.label}>
-                  <Link href={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          <div className="md:col-span-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 className="font-headline text-lg font-semibold mb-4">Quick Links</h3>
+                    <div className="flex flex-wrap gap-x-4 gap-y-2">
+                    {quickLinks.map((link) => (
+                        <Link
+                            key={link.label}
+                            href={link.href}
+                            className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                        >
+                            {link.label}
+                        </Link>
+                    ))}
+                    </div>
+                </div>
+                <div>
+                    <h3 className="font-headline text-lg font-semibold mb-4">Contact</h3>
+                    <p className="text-sm text-muted-foreground">For any inquiries, please email us at:</p>
+                    <a href="mailto:help.novablog@gmail.com" className="text-sm text-primary hover:underline">
+                        help.novablog@gmail.com
+                    </a>
+                </div>
+            </div>
           </div>
-           <div className="md:col-span-4">
-              <h3 className="font-headline text-lg font-semibold mb-4">Contact</h3>
-              <p className="text-sm text-muted-foreground">For any inquiries, please email us at:</p>
-              <a href="mailto:help.novablog@gmail.com" className="text-sm text-primary hover:underline">
-                help.novablog@gmail.com
-              </a>
-           </div>
         </div>
 
         <Separator className="my-8 bg-border/20" />
