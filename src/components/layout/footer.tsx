@@ -4,8 +4,6 @@ import Logo from '@/components/logo';
 import { Separator } from '@/components/ui/separator';
 
 const quickLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/posts', label: 'Posts' },
   { href: '/glare-plus', label: 'Glare+' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact Us' },
@@ -27,7 +25,7 @@ const Footer = () => {
             </p>
           </div>
           <div className="md:col-span-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-8">
                 <div>
                     <h3 className="font-headline text-lg font-semibold mb-4">Quick Links</h3>
                     <div className="flex flex-wrap gap-x-4 gap-y-2">
