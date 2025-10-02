@@ -6,9 +6,6 @@ const withPWA = require('next-pwa')({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverActions: {
-    bodySizeLimit: '5mb',
-  },
   images: {
     remotePatterns: [
       {
@@ -74,6 +71,11 @@ const nextConfig = {
       },
     ],
   },
+  experimental: {
+     serverActions: {
+        bodySizeLimit: '5mb',
+     },
+  }
 };
 
 module.exports = withPWA(nextConfig);
