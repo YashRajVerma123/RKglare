@@ -58,9 +58,6 @@ const profileFormSchema = z.object({
     showEmail: z.boolean().default(false),
     instagramUrl: z.string().url('Please enter a valid Instagram URL.').optional().or(z.literal('')),
     signature: z.string().optional(),
-    preferences: z.object({
-        font: z.enum(['default', 'serif', 'mono']).optional(),
-    }).optional(),
 });
 
 const getInitials = (name: string) => {
@@ -104,9 +101,6 @@ const UserNav = () => {
     showEmail: user?.showEmail || false,
     instagramUrl: user?.instagramUrl || '',
     signature: user?.signature || '',
-    preferences: {
-        font: user?.preferences?.font || 'default',
-    },
   }), [user]);
 
   const profileForm = useForm<z.infer<typeof profileFormSchema>>({
@@ -576,45 +570,6 @@ const UserNav = () => {
                             </FormItem>
                             )}
                         />
-                        {user?.premium?.active && (
-                            <FormField
-                                control={profileForm.control}
-                                name="preferences.font"
-                                render={({ field }) => (
-                                <FormItem className="space-y-3">
-                                    <FormLabel className='flex items-center gap-2'><Type className='h-4 w-4' /> Reading Font</FormLabel>
-                                    <FormControl>
-                                    <RadioGroup
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                        className="flex flex-col space-y-1"
-                                    >
-                                        <FormItem className="flex items-center space-x-3 space-y-0">
-                                            <FormControl>
-                                                <RadioGroupItem value="default" />
-                                            </FormControl>
-                                            <FormLabel className="font-normal font-content">Default</FormLabel>
-                                        </FormItem>
-                                        <FormItem className="flex items-center space-x-3 space-y-0">
-                                            <FormControl>
-                                                <RadioGroupItem value="serif" />
-                                            </FormControl>
-                                            <FormLabel className="font-normal font-reader">Serif</FormLabel>
-                                        </FormItem>
-                                        <FormItem className="flex items-center space-x-3 space-y-0">
-                                            <FormControl>
-                                                <RadioGroupItem value="mono" />
-                                            </FormControl>
-                                            <FormLabel className="font-normal font-mono">Monospace</FormLabel>
-                                        </FormItem>
-                                    </RadioGroup>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                                )}
-                            />
-                        )}
-
 
                         <DialogFooter className="pt-4">
                             <Button variant="ghost" onClick={() => setProfileOpen(false)}>Cancel</Button>

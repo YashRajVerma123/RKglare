@@ -35,9 +35,6 @@ export type Author = {
     active: boolean;
     expires: string | null; // ISO Date string
   };
-  preferences?: {
-    font?: 'default' | 'serif' | 'mono';
-  };
 };
 
 export type Comment = {
@@ -242,7 +239,6 @@ export const authorConverter = {
             streak: data.streak,
             challenge: data.challenge,
             premium: data.premium ? { ...data.premium, expires: safeToISOString(data.premium.expires) } : { active: false, expires: null },
-            preferences: data.preferences || { font: 'default' },
         };
     },
     toFirestore: (author: Omit<Author, 'id'>) => {

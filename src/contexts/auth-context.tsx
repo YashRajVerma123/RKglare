@@ -87,7 +87,6 @@ const formatUser = (user: FirebaseUser, firestoreData?: any): Author => {
             active: !!(premiumData?.active && expires && new Date(expires) > new Date()),
             expires: expires,
         },
-        preferences: firestoreData?.preferences || { font: 'default' },
     };
 };
 
@@ -119,7 +118,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         points: 0,
         streak: { currentStreak: 0, lastLoginDate: '' },
         premium: { active: false, expires: null },
-        preferences: { font: 'default' },
     };
     await setDoc(userRef, newUser, { merge: true });
     return newUser;

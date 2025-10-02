@@ -60,12 +60,7 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
   
   const canViewContent = isPreview || !post.premiumOnly && !isEarlyAccessActive || (isPremium ?? false);
 
-  const fontPreference = user?.preferences?.font || 'default';
-  const fontClass = {
-      default: 'font-content',
-      serif: 'font-reader',
-      mono: 'font-mono'
-  }[fontPreference];
+  const fontClass = 'font-content';
 
   const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
     setSelectedIndex(emblaApi.selectedScrollSnap());

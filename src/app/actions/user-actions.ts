@@ -16,9 +16,6 @@ const profileSchema = z.object({
   avatar: z.string().optional(),
   bannerImage: z.string().optional(),
   showEmail: z.boolean().optional(),
-  preferences: z.object({
-      font: z.enum(['default', 'serif', 'mono']).optional(),
-  }).optional(),
 });
 
 export async function updateAuthorProfile(authorId: string, values: Partial<z.infer<typeof profileSchema>> & { avatar?: string, bannerImage?: string }): Promise<{ success: boolean }> {
@@ -38,7 +35,6 @@ export async function updateAuthorProfile(authorId: string, values: Partial<z.in
   if (values.avatar) updateData.avatar = values.avatar;
   if (values.bannerImage) updateData.bannerImage = values.bannerImage;
   if (values.showEmail !== undefined) updateData.showEmail = values.showEmail;
-  if (values.preferences?.font !== undefined) updateData['preferences.font'] = values.preferences.font;
 
   if (Object.keys(updateData).length > 0) {
     await updateDoc(authorRef, updateData);
