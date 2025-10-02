@@ -55,11 +55,7 @@ const formSchema = z.object({
     path: ['trendingPosition'],
 });
 
-interface PageProps {
-  params: { slug: string };
-}
-
-export default function EditPostPage({ params }: PageProps) {
+export default function EditPostPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
   const { toast } = useToast();
   const router = useRouter();
