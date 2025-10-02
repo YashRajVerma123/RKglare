@@ -41,7 +41,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import ProfileCard from '@/components/profile-card';
 
@@ -112,15 +111,19 @@ const PremiumChatPage = () => {
 
     const handleAvatarClick = async (authorId: string) => {
         setIsProfileLoading(true);
-        setProfileCardOpen(true);
-        const fullAuthor = await getAuthorById(authorId);
-        if(fullAuthor) {
-            setSelectedProfileUser(fullAuthor);
-        } else {
-            toast({title: "Error", description: "Could not load user profile.", variant: "destructive"});
-            setProfileCardOpen(false);
+        try {
+            const fullAuthor = await getAuthorById(authorId);
+            if (fullAuthor) {
+                setSelectedProfileUser(fullAuthor);
+                setProfileCardOpen(true);
+            } else {
+                toast({ title: "Error", description: "Could not load user profile.", variant: "destructive" });
+            }
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to fetch profile.", variant: "destructive" });
+        } finally {
+            setIsProfileLoading(false);
         }
-        setIsProfileLoading(false);
     };
     
     useEffect(() => {
@@ -493,13 +496,12 @@ const PremiumChatPage = () => {
 
              <Dialog open={isProfileCardOpen} onOpenChange={setProfileCardOpen}>
                 <DialogContent className="sm:max-w-md p-0">
-                    {isProfileLoading ? (
+                    {isProfileLoading && (
                         <div className="flex justify-center items-center h-48">
                             <Loader2 className="h-8 w-8 animate-spin" />
                         </div>
-                    ) : selectedProfileUser ? (
-                       <ProfileCard user={selectedProfileUser} />
-                    ) : null}
+                    )}
+                    {!isProfileLoading && selectedProfileUser && <ProfileCard user={selectedProfileUser} />}
                 </DialogContent>
             </Dialog>
         </div>
@@ -507,5 +509,7 @@ const PremiumChatPage = () => {
 };
 
 export default PremiumChatPage;
+
+    
 
     
