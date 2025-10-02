@@ -37,9 +37,9 @@ const nunito = Nunito({
 });
 
 const libreBaskerville = Libre_Baskerville({
-  subsets: ['latin'],
-  variable: '--font-libre-baskerville',
-  weight: ['400', '700'],
+    subsets: ['latin'],
+    variable: '--font-libre-baskerville',
+    weight: ['400', '700'],
 });
 
 
@@ -58,6 +58,18 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const websiteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Glare',
+    url: 'https://theglare.vercel.app',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: 'https://theglare.vercel.app/posts?q={search_term_string}',
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -65,6 +77,10 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192x192.png"></link>
         <meta name="theme-color" content="#7c3aed" />
         <meta name="google-site-verification" content="vVS4lyOVugEqlbEBJPkMRGw768T2DkiXThG-X51xKGE" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
       </head>
       <body
         className={cn(

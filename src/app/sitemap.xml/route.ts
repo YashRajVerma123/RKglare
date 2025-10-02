@@ -1,5 +1,4 @@
 import { getPosts } from '@/lib/data';
-import { MetadataRoute } from 'next';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://theglare.vercel.app';
 

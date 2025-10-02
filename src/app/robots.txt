@@ -1,7 +1,3 @@
 User-agent: *
 Allow: /
-<<<<<<< HEAD
-
-=======
->>>>>>> da6367b9eb324990e455230d2ee2a4bcba7891e1
 Sitemap: https://theglare.vercel.app/sitemap.xml
