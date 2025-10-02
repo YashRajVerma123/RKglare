@@ -27,6 +27,7 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  type CarouselApi,
 } from "@/components/ui/carousel"
 
 // Placeholder Ad Component
@@ -51,6 +52,8 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
   const contentRef = useRef<HTMLDivElement>(null);
   const { setTheme, resetTheme } = useDynamicTheme();
   const [isReaderOpen, setReaderOpen] = useState(false);
+  const [api, setApi] = useState<CarouselApi>()
+  const [current, setCurrent] = useState(0)
   
   const isBookmarked = post ? bookmarks[post.id] : false;
   
@@ -108,6 +111,24 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
         clearTimeout(timeout);
     };
   }, [post, user, isBookmarked, isPreview]);
+  
+  useEffect(() => {
+    if (!api) {
+      return
+    }
+    setCurrent(api.selectedScrollSnap())
+
+    const onSelect = (api: CarouselApi) => {
+        if (!api) return;
+        setCurrent(api.selectedScrollSnap())
+    }
+
+    api.on("select", onSelect)
+
+    return () => {
+      api.off("select", onSelect)
+    }
+  }, [api])
   
 
   const getInitials = (name: string) => {
@@ -226,26 +247,28 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
               {relatedPosts.length > 0 && (
                 <>
                   <div className="my-12 h-[2px] w-full bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-                  <section className="animate-fade-in-up" style={{animationDelay: '1s'}}>
+                  <section className="animate-fade-in-up w-full" style={{animationDelay: '1s'}}>
                     <div className="flex justify-between items-center mb-8">
                       <h2 className="text-3xl font-headline font-bold">Continue Reading</h2>
                     </div>
-                     <Carousel
+                     <Carousel setApi={setApi}
                       opts={{
                         align: "start",
                         loop: true,
                       }}
-                      className="w-full max-w-4xl mx-auto"
+                      className="w-full"
                     >
-                      <CarouselContent className="-ml-2 md:-ml-4">
+                      <CarouselContent>
                         {relatedPosts.map((relatedPost, index) => (
-                          <CarouselItem key={index} className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/2 lg:basis-1/3">
-                              <BlogPostCard post={relatedPost} />
+                          <CarouselItem key={index} className="sm:basis-1/2 md:basis-1/2 lg:basis-1/3">
+                            <div className={cn("p-1 transition-all duration-500", index === current ? "opacity-100 scale-100" : "opacity-50 scale-90")}>
+                                <BlogPostCard post={relatedPost} />
+                            </div>
                           </CarouselItem>
                         ))}
                       </CarouselContent>
-                      <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10" />
-                      <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10" />
+                      <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-8 z-10" />
+                      <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-8 z-10" />
                     </Carousel>
                   </section>
                 </>
