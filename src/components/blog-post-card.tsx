@@ -25,11 +25,6 @@ const BlogPostCard = ({ post, priority = false }: BlogPostCardProps) => {
             data-ai-hint="blog post cover"
           />
           <div className="absolute inset-0 bg-black/40"></div>
-          <div className="absolute inset-0 p-6 flex items-center justify-center">
-            <h3 className="font-headline text-3xl font-bold text-white text-center leading-tight drop-shadow-md">
-              {post.title}
-            </h3>
-          </div>
         </div>
         <div className="p-6 flex flex-col flex-grow">
           <div className="flex justify-between items-center text-xs text-zinc-400 mb-4">
