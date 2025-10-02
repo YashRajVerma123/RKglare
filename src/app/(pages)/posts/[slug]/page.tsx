@@ -1,9 +1,9 @@
 
 
 import { notFound } from 'next/navigation';
-import { Post, getPost, getRelatedPosts, getComments, Comment as CommentType } from '@/lib/data';
+import { Post, getPost, getRelatedPosts, getComments, Comment as CommentType, Author } from '@/lib/data';
 import PostActions from '@/components/post-actions';
-import type { Metadata } from 'next';
+import type { Metadata, ResolvingMetadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,8 +15,13 @@ import CommentSection from '@/components/comment-section';
 import AboutTheAuthor from '@/components/about-the-author';
 import PostClientPage from './post-client-page';
 
+interface PostPageProps {
+  params: { slug: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+
+export async function generateMetadata({ params }: PostPageProps, parent: ResolvingMetadata): Promise<Metadata> {
   const { slug } = params;
   const post = await getPost(slug);
 
