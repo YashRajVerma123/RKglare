@@ -26,13 +26,7 @@ const formSchema = z.object({
   coverImage: z.string().url().optional().or(z.literal('')),
 });
 
-interface EditBulletinPageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function EditBulletinPage({ params }: EditBulletinPageProps) {
+export default function EditBulletinPage({ params }: { params: { id: string } }) {
   const { id } = params;
   const { toast } = useToast();
   const router = useRouter();

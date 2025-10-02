@@ -24,13 +24,7 @@ const formSchema = z.object({
   image: z.string().url().optional().or(z.literal('')),
 });
 
-interface EditNotificationPageProps {
-    params: {
-      id: string;
-    };
-}
-
-export default function EditNotificationPage({ params }: EditNotificationPageProps) {
+export default function EditNotificationPage({ params }: { params: { id: string } }) {
   const { id } = params;
   const { toast } = useToast();
   const router = useRouter();
