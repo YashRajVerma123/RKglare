@@ -63,7 +63,7 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
                     />
                 )}
             </div>
-            <div className="p-6 pt-0 flex flex-col items-center -mt-16">
+            <div className="p-6 pt-0 flex flex-col items-center -mt-16 text-center">
                 <div className={cn(
                     "relative rounded-full p-1",
                     isPremium && "gold-aurora-border"
@@ -121,7 +121,7 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
                 
                 {author.showEmail && author.email && (
                     <div 
-                        className="group relative text-xs flex items-center gap-2 text-muted-foreground bg-muted p-2 rounded-full cursor-pointer transition-colors hover:bg-primary/10 hover:text-primary"
+                        className="group relative text-xs flex items-center gap-2 text-muted-foreground bg-muted p-2 rounded-full cursor-pointer transition-colors hover:bg-primary/10 hover:text-primary mb-4"
                         onClick={handleEmailCopy}
                     >
                         <Mail className="h-3 w-3" />
@@ -129,12 +129,12 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
                         <Copy className="h-3 w-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity"/>
                     </div>
                 )}
+                 {author.signature && (
+                    <div className="mt-2">
+                        <p className="font-signature text-4xl bg-gradient-to-r from-foreground/80 to-foreground/50 bg-clip-text text-transparent drop-shadow-sm">~{author.signature}</p>
+                    </div>
+                 )}
             </div>
-            {author.signature && (
-                <div className="absolute bottom-4 right-6">
-                    <p className="font-signature text-4xl bg-gradient-to-r from-foreground/80 to-foreground/50 bg-clip-text text-transparent drop-shadow-sm">~{author.signature}</p>
-                </div>
-            )}
         </div>
     );
 };
