@@ -23,14 +23,6 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import useEmblaCarousel, { EmblaCarouselType } from 'embla-carousel-react';
 
-const AdPlaceholder = () => (
-    <div className="my-8 flex justify-center">
-        <div className="w-full max-w-lg h-24 bg-muted rounded-lg flex items-center justify-center">
-            <p className="text-muted-foreground text-sm">Advertisement</p>
-        </div>
-    </div>
-);
-
 
 interface PostClientPageProps {
   post: Post;
@@ -216,8 +208,6 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
          {!isPreview && (
            <>
               <Separator className="my-12" />
-              
-              {!(isPremium ?? false) && <AdPlaceholder />}
               
               <div className="animate-fade-in-up" style={{animationDelay: '0.6s'}}>
                 <AboutTheAuthor />

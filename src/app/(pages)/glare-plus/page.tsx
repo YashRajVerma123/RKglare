@@ -1,6 +1,6 @@
 
 import { getPremiumUsers, Author } from '@/lib/data';
-import { Award, BadgeCheck, FileDown, MessageCircle, Star, Users, Zap } from 'lucide-react';
+import { Award, BadgeCheck, FileDown, LifeBuoy, MessageCircle, Palette, Star, Users, Zap } from 'lucide-react';
 import GlarePlusClient from './glare-plus-client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -15,9 +15,14 @@ const features = [
         description: "Get 24-hour early access to articles and read premium-only posts."
     },
     {
+        icon: <Palette className="h-6 w-6" />,
+        title: "Customize Your UI",
+        description: "Personalize your reading experience with custom themes and fonts."
+    },
+    {
         icon: <MessageCircle className="h-6 w-6" />,
         title: "Premium Chat",
-        description: "Join a private chat room with other supporters and the author to discuss topics."
+        description: "Join a private chat room with other supporters and the author."
     },
     {
         icon: <FileDown className="h-6 w-6" />,
@@ -38,6 +43,11 @@ const features = [
         icon: <Users className="h-6 w-6" />,
         title: "Featured Supporter",
         description: "Be showcased on this page as a thank you for your incredible support."
+    },
+     {
+        icon: <LifeBuoy className="h-6 w-6" />,
+        title: "Priority Support",
+        description: "Get faster responses and dedicated help for any issues or questions."
     }
 ];
 
@@ -109,7 +119,7 @@ const GlarePlusPage = async () => {
             </section>
             
             <section className="mb-24">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {features.map((feature, index) => (
                         <div key={index} className="glass-card text-center p-8 transition-transform transform hover:-translate-y-2">
                         <div className="inline-block p-4 bg-primary/10 rounded-full mb-4 text-primary">
