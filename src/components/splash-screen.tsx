@@ -17,26 +17,21 @@ const SplashScreen = () => {
       return;
     }
 
-    // Function to handle the end of the splash screen
-    const endSplash = () => {
+    // Start the fade-out process after 2 seconds (2000ms)
+    const fadeOutTimer = setTimeout(() => {
       setIsFadingOut(true);
-      setTimeout(() => {
-        setIsLoading(false);
-        sessionStorage.setItem('splashShown', 'true');
-      }, 500); // Corresponds to fade-out duration
-    };
-    
-    // If the page is already loaded when the component mounts, end immediately.
-    if (document.readyState === 'complete') {
-      endSplash();
-    } else {
-      // Otherwise, listen for the window's 'load' event.
-      window.addEventListener('load', endSplash);
-    }
-    
-    // Cleanup the event listener
+    }, 2000);
+
+    // Hide the component completely after the fade-out animation (500ms)
+    const hideTimer = setTimeout(() => {
+      setIsLoading(false);
+      sessionStorage.setItem('splashShown', 'true');
+    }, 2500); // 2000ms wait + 500ms fade
+
+    // Cleanup timers if the component unmounts
     return () => {
-      window.removeEventListener('load', endSplash);
+      clearTimeout(fadeOutTimer);
+      clearTimeout(hideTimer);
     };
 
   }, []);
