@@ -1,4 +1,5 @@
 
+
 import { Space_Grotesk, Work_Sans, Dancing_Script, Nunito, Libre_Baskerville } from "next/font/google";
 
 export const spaceGrotesk = Space_Grotesk({
@@ -29,3 +30,14 @@ export const libreBaskerville = Libre_Baskerville({
     variable: '--font-libre-baskerville',
     weight: ['400', '700'],
 });
+
+export const mainFonts = [
+    { name: 'Work Sans', variable: 'font-work-sans', className: workSans.className },
+    { name: 'Nunito', variable: 'font-nunito', className: nunito.className },
+    { name: 'Libre Baskerville', variable: 'font-libre-baskerville', className: libreBaskerville.className },
+];
+
+export const specialFonts = [
+    { name: 'Space Grotesk', variable: 'font-space-grotesk', className: spaceGrotesk.className },
+    { name: 'Dancing Script', variable: 'font-dancing-script', className: dancingScript.className },
+];

@@ -40,6 +40,10 @@ import { Progress } from './ui/progress';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { getAuthors } from '@/lib/data';
 import { Trophy } from 'lucide-react';
+import { mainFonts, specialFonts } from '@/app/fonts';
+import { HexColorPicker } from 'react-colorful';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import Image from 'next/image';
 
 // Helper to convert file to Base64
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
@@ -89,6 +93,12 @@ const UserNav = () => {
   const [followListType, setFollowListType] = useState<'followers' | 'following'>('followers');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [rank, setRank] = useState<number | null>(null);
+
+  const [isCustomizeUIOpen, setCustomizeUIOpen] = useState(false);
+  const isPremium = user?.premium?.active;
+  const [primaryColor, setPrimaryColor] = useState(user?.primaryColor || '#7c3aed');
+  const [selectedFont, setSelectedFont] = useState(user?.font || 'work-sans');
+
 
   const profileFormDefaultValues = useMemo(() => ({
     name: user?.name || '',
@@ -158,6 +168,13 @@ const UserNav = () => {
     }
   }, [isProfileOpen]);
 
+    useEffect(() => {
+    if (user && isCustomizeUIOpen) {
+      setPrimaryColor(user.primaryColor || '#7c3aed');
+      setSelectedFont(user.font || 'work-sans');
+    }
+  }, [user, isCustomizeUIOpen]);
+
   const handleSignIn = async () => {
     setIsSigningIn(true);
     try {
@@ -221,6 +238,34 @@ const UserNav = () => {
     }
   };
 
+    const handleCustomizationSave = async () => {
+    if (!user) return;
+    setIsSaving(true);
+    try {
+      const updates = {
+        primaryColor: primaryColor,
+        font: selectedFont,
+      };
+      await updateAuthorProfile(user.id, updates);
+      await updateUserProfile(updates);
+
+      toast({
+        title: 'UI Updated!',
+        description: 'Your new look has been saved.',
+      });
+      setCustomizeUIOpen(false);
+    } catch (error) {
+      toast({
+        title: 'Update Failed',
+        description: (error as Error).message || 'Could not save your preferences.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
         const file = e.target.files[0];
@@ -265,7 +310,7 @@ const UserNav = () => {
   const MenuItem = ({ children, onSelect }: { children: React.ReactNode, onSelect?: () => void }) => (
     <div
       onClick={onSelect}
-      className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+      className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:bg-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
     >
       {children}
     </div>
@@ -358,6 +403,12 @@ const UserNav = () => {
                   <UserIcon className="mr-2 h-4 w-4" />
                   <span>Profile</span>
               </MenuItem>
+               {isPremium && (
+                <MenuItem onSelect={() => setCustomizeUIOpen(true)}>
+                    <Palette className="mr-2 h-4 w-4" />
+                    <span>Customize UI</span>
+                </MenuItem>
+              )}
               {isAdmin && (
                  <Link href="/admin" className="block">
                     <MenuItem>
@@ -561,6 +612,52 @@ const UserNav = () => {
                 </div>
             </div>
           </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+        <Dialog open={isCustomizeUIOpen} onOpenChange={setCustomizeUIOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Customize Your Experience</DialogTitle>
+            <DialogDescription>
+              As a Glare+ member, you can personalize your reading experience. Changes are saved automatically.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label>Accent Color</Label>
+                <div className="flex justify-center">
+                   <HexColorPicker color={primaryColor} onChange={setPrimaryColor} />
+                </div>
+                 <div className="flex items-center space-x-2">
+                    <span className="text-sm text-muted-foreground">#</span>
+                    <Input value={primaryColor.replace(/^#/, '')} onChange={(e) => setPrimaryColor(`#${e.target.value}`)} className="w-24"/>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+               <Label>Content Font</Label>
+               <ScrollArea className="h-96">
+                <RadioGroup value={selectedFont} onValueChange={setSelectedFont} className="space-y-1">
+                    {[...mainFonts, ...specialFonts].map(font => (
+                        <div key={font.variable} className="flex items-center space-x-2">
+                            <RadioGroupItem value={font.variable.replace('--font-', '')} id={font.variable} />
+                            <Label htmlFor={font.variable} className={`text-lg ${font.className}`}>
+                                {font.name}
+                            </Label>
+                        </div>
+                    ))}
+                </RadioGroup>
+              </ScrollArea>
+            </div>
+          </div>
+           <DialogFooter>
+            <Button variant="ghost" onClick={() => setCustomizeUIOpen(false)}>Cancel</Button>
+            <Button onClick={handleCustomizationSave} disabled={isSaving}>
+              {isSaving ? "Saving..." : "Save Customization"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
       {user && (
