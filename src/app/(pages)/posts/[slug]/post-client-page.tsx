@@ -241,7 +241,7 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
                     <div className="flex justify-between items-center mb-8">
                       <h2 className="text-3xl font-headline font-bold">Continue Reading</h2>
                     </div>
-                     <div className="embla" ref={emblaRef}>
+                     <div className="embla overflow-hidden" ref={emblaRef}>
                         <div className="embla__container">
                           {relatedPosts.map((relatedPost, index) => (
                             <div
