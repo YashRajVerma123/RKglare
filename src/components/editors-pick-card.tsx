@@ -30,18 +30,17 @@ const EditorsPickCard = ({ post, layout = 'medium', priority = false }: EditorsP
           className={cn(
             'font-headline font-bold leading-tight group-hover:text-primary transition-colors duration-300',
             layout === 'large' && 'text-3xl md:text-4xl',
-            layout === 'medium' && 'text-2xl',
-            layout === 'small' && 'text-lg',
+            layout === 'medium' && 'text-xl',
+            layout === 'small' && 'text-lg'
           )}
         >
           {post.title}
         </h3>
-        {layout !== 'small' && (
+        {layout === 'large' && (
           <p
             className={cn(
               'mt-2 text-white/80 line-clamp-2',
-              layout === 'large' && 'text-sm',
-              layout === 'medium' && 'text-xs'
+              'text-sm'
             )}
           >
             {post.description}
