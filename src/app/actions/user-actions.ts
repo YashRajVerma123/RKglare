@@ -9,9 +9,10 @@ import { Author } from '@/lib/data';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
-  bio: z.string().min(20, 'Bio must be at least 20 characters.'),
-  instagramUrl: z.string().url('Please enter a valid Instagram URL.'),
-  signature: z.string().min(2, 'Signature must be at least 2 characters.'),
+  username: z.string().min(3).max(15),
+  bio: z.string().min(20, 'Bio must be at least 20 characters.').optional().or(z.literal('')),
+  instagramUrl: z.string().url('Please enter a valid Instagram URL.').optional().or(z.literal('')),
+  signature: z.string().min(2, 'Signature must be at least 2 characters.').optional(),
   avatar: z.string().optional(),
   showEmail: z.boolean().optional(),
   preferences: z.object({
@@ -29,6 +30,7 @@ export async function updateAuthorProfile(authorId: string, values: Partial<z.in
   // Construct object with only defined values to avoid overwriting fields with undefined
   const updateData: { [key: string]: any } = {};
   if (values.name !== undefined) updateData.name = values.name;
+  if (values.username !== undefined) updateData.username = values.username;
   if (values.bio !== undefined) updateData.bio = values.bio;
   if (values.instagramUrl !== undefined) updateData.instagramUrl = values.instagramUrl;
   if (values.signature !== undefined) updateData.signature = values.signature;

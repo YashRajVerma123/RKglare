@@ -1,6 +1,6 @@
 
 'use client';
-import { CreditCard, LogOut, User as UserIcon, Upload, Moon, Sun, Loader2, PanelRightOpen, Settings, UserPlus,LogIn, RefreshCw, Type, X } from 'lucide-react';
+import { CreditCard, LogOut, User as UserIcon, Upload, Moon, Sun, Loader2, PanelRightOpen, Settings, UserPlus,LogIn, RefreshCw, Type, X, AtSign } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -52,6 +52,7 @@ const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) 
 
 const profileFormSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters.'),
+    username: z.string().min(3, "Username must be at least 3 characters.").max(15, "Username cannot exceed 15 characters.").regex(/^[a-z0-9_.]+$/, "Can only contain lowercase letters, numbers, underscores, and periods."),
     bio: z.string().optional(),
     showEmail: z.boolean().default(false),
     instagramUrl: z.string().url('Please enter a valid Instagram URL.').optional().or(z.literal('')),
@@ -94,6 +95,7 @@ const UserNav = () => {
 
   const profileFormDefaultValues = useMemo(() => ({
     name: user?.name || '',
+    username: user?.username || '',
     bio: user?.bio || '',
     showEmail: user?.showEmail || false,
     instagramUrl: user?.instagramUrl || '',
@@ -234,12 +236,8 @@ const UserNav = () => {
   const handleOpenProfile = () => {
     if (user) {
         profileForm.reset({
-            name: user.name,
-            bio: user.bio || '',
-            showEmail: user.showEmail || false,
-            instagramUrl: user.instagramUrl || '',
-            signature: user.signature || '',
-            preferences: { font: user.preferences?.font || 'default' }
+            ...profileFormDefaultValues,
+            username: user.username || '',
         });
         setPreviewUrl(user.avatar);
         setNewAvatarFile(null);
@@ -295,7 +293,7 @@ const UserNav = () => {
               <div className="p-2">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">{user.name}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user.username}</p>
                   <div className="flex gap-4 pt-1">
                     <div className="text-xs text-muted-foreground cursor-pointer hover:underline" onClick={() => handleOpenFollowList('followers')}>
                         <span className="font-bold text-foreground">{user.followers || 0}</span> Followers
@@ -469,6 +467,22 @@ const UserNav = () => {
                                 <FormLabel>Name</FormLabel>
                                 <FormControl>
                                 <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={profileForm.control}
+                            name="username"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Username</FormLabel>
+                                <FormControl>
+                                <div className="relative">
+                                    <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input className="pl-8" {...field} />
+                                </div>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

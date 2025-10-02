@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -8,6 +7,7 @@ import { UserPlus, UserCheck, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { toggleFollow } from '@/app/actions/follow-actions';
+import { cn } from '@/lib/utils';
 
 interface FollowButtonProps {
     authorId: string;
@@ -52,7 +52,15 @@ const FollowButton = ({ authorId, isFollowing, onToggle }: FollowButtonProps) =>
     };
 
     return (
-        <Button onClick={handleClick} disabled={isLoading} variant={isFollowing ? 'secondary' : 'default'} className="w-full">
+        <Button 
+            onClick={handleClick} 
+            disabled={isLoading} 
+            variant={isFollowing ? 'secondary' : 'default'} 
+            className={cn(
+                "w-full rounded-full transition-all duration-300",
+                 !isFollowing && "purple-animated-border"
+            )}
+        >
             {isLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : isFollowing ? (

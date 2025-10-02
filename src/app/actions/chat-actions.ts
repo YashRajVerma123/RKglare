@@ -7,10 +7,11 @@ import { Author, ChatMessage, messageConverter } from '@/lib/data';
 import { revalidateTag } from 'next/cache';
 
 const sendMessageSchema = z.object({
-  text: z.string().min(1).max(1000),
+  text: z.string().max(1000),
   author: z.object({
     id: z.string(),
     name: z.string(),
+    username: z.string(),
     avatar: z.string(),
   }),
   replyTo: z.object({
@@ -23,16 +24,16 @@ const sendMessageSchema = z.object({
 
 export async function sendMessage(
     text: string, 
-    author: Pick<Author, 'id' | 'name' | 'avatar'>,
+    author: Pick<Author, 'id' | 'name' | 'avatar' | 'username'>,
     replyTo: ChatMessage['replyTo'] | null,
     image?: string,
 ) {
-    if (!text && !image) return { error: "Message must contain text or an image." };
+    if (!text.trim() && !image) return { error: "Message must contain text or an image." };
     
-    const validation = sendMessageSchema.safeParse({ text, author, replyTo, image });
+    const validation = sendMessageSchema.safeParse({ text: text || '', author, replyTo, image });
 
     if (!validation.success) {
-        console.error("Invalid message format:", validation.error);
+        console.error("Invalid message format:", validation.error.flatten());
         return { error: "Invalid message format." };
     }
 

@@ -109,10 +109,10 @@ const AboutTheAuthor = ({ previewData }: AboutTheAuthorProps) => {
                             onToggle={handleFollowToggle}
                         />
                     )}
-                     <Button asChild variant="outline" className="insta-button-outline group/button">
+                    <Button asChild variant="outline" className="purple-animated-border rounded-full">
                         <Link href={instagramUrl} target="_blank" rel="noopener noreferrer">
-                            <Instagram className="h-4 w-4 mr-2 text-foreground dark:text-white transition-colors" />
-                            <span className="text-foreground dark:text-white group-hover/button:instagram-gradient transition-colors">Follow on Instagram</span>
+                            <Instagram className="h-4 w-4 mr-2" />
+                            Follow on Instagram
                         </Link>
                      </Button>
                 </div>

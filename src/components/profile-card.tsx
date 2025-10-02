@@ -3,16 +3,12 @@
 
 import { Author, isFollowing } from "@/lib/data";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Mail, Users, BadgeCheck, Star } from "lucide-react";
+import { Mail, Users, BadgeCheck, Star, Rss } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import FollowButton from "./follow-button";
 import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
-import { getLevel, getProgressToNextLevel } from "@/lib/gamification";
-import { Progress } from "./ui/progress";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
-
+import { getLevel } from "@/lib/gamification";
 
 interface ProfileCardProps {
     user: Author;
@@ -24,78 +20,41 @@ const getInitials = (name: string) => {
 };
 
 const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
-    const { user: loggedInUser, mainAuthor, updateMainAuthorFollowerCount } = useAuth();
-    const [isFollowingState, setIsFollowingState] = useState(false);
-    const [isLoadingFollow, setIsLoadingFollow] = useState(true);
-    
-    // Determine if the user prop is the main author
-    const isMainSiteAuthor = initialUser.email === 'yashrajverma916@gmail.com';
+    const { mainAuthor } = useAuth();
     
     // Use mainAuthor from context if it's the main author, otherwise use the prop
-    const author = isMainSiteAuthor && mainAuthor ? mainAuthor : initialUser;
+    const author = initialUser.email === 'yashrajverma916@gmail.com' && mainAuthor ? mainAuthor : initialUser;
 
-    const {level, progress, currentPoints, requiredPoints} = useMemo(() => {
+    const {level} = useMemo(() => {
         const points = author?.points || 0;
         const level = getLevel(points);
-        const { progress, currentPoints, requiredPoints } = getProgressToNextLevel(points);
-        return { level, progress, currentPoints, requiredPoints };
+        return { level };
     }, [author]);
 
     const isPremium = author?.premium?.active;
-
-    useEffect(() => {
-        const checkFollowing = async () => {
-            if (loggedInUser && author && loggedInUser.id !== author.id) {
-                setIsLoadingFollow(true);
-                const following = await isFollowing(loggedInUser.id, author.id);
-                setIsFollowingState(following);
-                setIsLoadingFollow(false);
-            } else {
-                setIsLoadingFollow(false);
-            }
-        };
-        checkFollowing();
-    }, [loggedInUser, author]);
-
-    const handleFollowToggle = (newFollowState: boolean) => {
-        setIsFollowingState(newFollowState);
-        if (isMainSiteAuthor) {
-            updateMainAuthorFollowerCount(newFollowState ? 1 : -1);
-        }
-        // If not the main author, we can't easily update a global state,
-        // so for now we just show the button state change. A more complex app
-        // might have a global store for all users.
-    };
+    const isVerifiedAuthor = author?.email === 'yashrajverma916@gmail.com';
 
     if (!author) {
         return null; // Or a loading skeleton
     }
     
-    const cardContent = (
-         <div className="relative flex flex-col items-center p-6 w-full overflow-hidden">
-            <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
-            <div className="relative z-10 flex flex-col items-center w-full">
-              <div className="relative">
+    return (
+        <div className="glass-card rounded-lg overflow-hidden">
+            <div className="h-24 bg-gradient-to-r from-primary via-purple-500 to-fuchsia-500"></div>
+            <div className="p-6 pt-0 flex flex-col items-center -mt-14">
                 <Avatar className={cn(
-                  "h-24 w-24 mb-4",
-                  isMainSiteAuthor && "border-2 border-blue-500",
-                  isPremium && "border-2 border-yellow-400"
+                  "h-28 w-28 mb-4 border-4",
+                  isPremium ? "border-yellow-400" : "border-background"
                 )}>
                     <AvatarImage src={author.avatar} alt={author.name} />
                     <AvatarFallback>{getInitials(author.name)}</AvatarFallback>
                 </Avatar>
-                 {isPremium && (
-                    <div className="absolute -top-1 -right-1 bg-yellow-400 p-1.5 rounded-full border-2 border-background">
-                       <Star className="h-4 w-4 text-background fill-background" />
-                    </div>
-                )}
-              </div>
 
-              <div className="flex flex-col items-center text-center gap-2">
-                  <h2 className="text-2xl font-bold font-headline">{author.name}</h2>
-                  <div className="flex gap-2">
-                    {isMainSiteAuthor && (
+                <h2 className="text-2xl font-bold font-headline">{author.name}</h2>
+                <p className="text-sm text-muted-foreground">{author.username}</p>
+
+                <div className="flex flex-wrap justify-center gap-2 my-4">
+                    {isVerifiedAuthor && (
                         <Badge variant="default" className={cn("flex items-center gap-1.5 border-blue-500/50 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20", "badge-shine")}>
                             <BadgeCheck className="h-4 w-4" />
                             Verified Author
@@ -107,72 +66,40 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
                             Glare+
                         </Badge>
                      )}
-                  </div>
-              </div>
-
-              <div className="flex flex-col items-center gap-1 my-2 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                      <Users className="h-4 w-4" />
-                      <span>{author.followers || 0} Followers</span>
-                  </div>
-                  {author.showEmail && author.email && (
-                      <div className="flex items-center gap-1">
-                          <Mail className="h-4 w-4" />
-                          <span>{author.email}</span>
-                      </div>
-                  )}
-              </div>
-              
-                <div className="w-full max-w-[200px] my-4">
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div className="text-center">
-                                    <div className="flex items-center gap-2 justify-center mb-1">
-                                        <level.icon className="h-5 w-5" style={{ color: level.color }} />
-                                        <span className="font-bold" style={{ color: level.color }}>{level.name}</span>
-                                    </div>
-                                    <Progress value={progress} className="h-2" />
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>{currentPoints.toLocaleString()} / {requiredPoints.toLocaleString()} points</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                     <Badge variant="secondary" className="flex items-center gap-1.5" style={{ color: level.color, backgroundColor: `${level.color}1A` }}>
+                        <level.icon className="h-4 w-4" />
+                        {level.name}
+                     </Badge>
                 </div>
+                
+                <p className="text-sm text-center text-muted-foreground max-w-xs">
+                    {author.bio || "A reader of Glare. No bio provided."}
+                </p>
 
-
-              <div className="mt-4 text-center text-muted-foreground px-4">
-                  <p className="text-sm italic">
-                      {author.bio || "This user hasn't written a bio yet."}
-                  </p>
-              </div>
-
-              {isMainSiteAuthor && author.signature && (
-                  <p className="font-signature text-3xl mt-4 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">~{author.signature}</p>
-              )}
-              
-              {!isLoadingFollow && loggedInUser && loggedInUser.id !== author.id && (
-                  <div className="mt-6 w-full max-w-[150px]">
-                      <FollowButton
-                          authorId={author.id}
-                          isFollowing={isFollowingState}
-                          onToggle={handleFollowToggle}
-                      />
-                  </div>
-              )}
+                <div className="flex items-center gap-6 my-4 text-sm text-center">
+                    <div>
+                        <p className="font-bold text-lg">{author.followers || 0}</p>
+                        <p className="text-xs text-muted-foreground">Followers</p>
+                    </div>
+                    <div>
+                        <p className="font-bold text-lg">{author.following || 0}</p>
+                        <p className="text-xs text-muted-foreground">Following</p>
+                    </div>
+                     <div>
+                        <p className="font-bold text-lg">{(author.points || 0).toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground">Points</p>
+                    </div>
+                </div>
+                
+                {author.showEmail && author.email && (
+                    <div className="text-xs flex items-center gap-2 text-muted-foreground bg-muted p-2 rounded-md">
+                        <Mail className="h-3 w-3" />
+                        <span>{author.email}</span>
+                    </div>
+                )}
             </div>
-        </div>
-    );
-    
-    return (
-        <div className="glass-card rounded-lg">
-            {cardContent}
         </div>
     );
 };
 
 export default ProfileCard;
-
-    

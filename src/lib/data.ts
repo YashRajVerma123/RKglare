@@ -17,6 +17,7 @@ import { unstable_cache } from 'next/cache';
 export type Author = {
   id: string;
   name: string;
+  username: string;
   avatar: string;
   email: string;
   bio?: string;
@@ -225,6 +226,7 @@ export const authorConverter = {
         return {
             id: snapshot.id,
             name: data.name,
+            username: data.username,
             avatar: data.avatar,
             email: data.email,
             bio: data.bio,
@@ -259,7 +261,7 @@ export type ChatMessage = {
   id: string;
   text: string;
   image?: string;
-  author: Pick<Author, 'id' | 'name' | 'avatar'>;
+  author: Pick<Author, 'id' | 'name' | 'avatar' | 'username'>;
   createdAt: string; // ISO string
   isEdited?: boolean;
   updatedAt?: string | null; // ISO string

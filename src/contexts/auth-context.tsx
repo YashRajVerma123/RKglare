@@ -49,8 +49,18 @@ const safeToISOString = (date: any): string | null => {
     try {
         return new Date(date).toISOString();
     } catch (e) {
-        return null;
+        return null; // Return null if conversion fails
     }
+}
+
+const generateUsername = (name: string): string => {
+    if (!name) return `user_${Date.now().toString().slice(-6)}`;
+    
+    return name
+        .toLowerCase()
+        .replace(/\s+/g, '.') // replace spaces with dots
+        .replace(/[^a-z0-9._]/g, '') // remove invalid characters
+        .slice(0, 15); // limit length
 }
 
 const formatUser = (user: FirebaseUser, firestoreData?: any): Author => {
@@ -59,7 +69,8 @@ const formatUser = (user: FirebaseUser, firestoreData?: any): Author => {
     
     return {
         id: user.uid,
-        name: firestoreData?.name || user.displayName || "No Name",
+        name: firestoreData?.name || user.displayName || "New User",
+        username: firestoreData?.username || generateUsername(user.displayName || 'user'),
         email: user.email || "no-email@example.com",
         avatar: firestoreData?.avatar || user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
         bio: firestoreData?.bio,
@@ -98,6 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const newUser = {
         name: fbUser.displayName,
+        username: generateUsername(fbUser.displayName || 'user'),
         email: fbUser.email,
         avatar: fbUser.photoURL,
         showEmail: false,
