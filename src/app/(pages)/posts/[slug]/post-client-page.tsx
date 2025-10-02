@@ -8,7 +8,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Flame, Star } from 'lucide-react';
+import { Calendar, Clock, Flame, Star, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import BlogPostCard from '@/components/blog-post-card';
 import CommentSection from '@/components/comment-section';
@@ -22,11 +22,6 @@ import ReadingTimer from '@/components/reading-timer';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import useEmblaCarousel, { EmblaCarouselType } from 'embla-carousel-react';
-import {
-  Carousel,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 
 const AdPlaceholder = () => (
     <div className="my-8 flex justify-center">
@@ -51,9 +46,8 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
   const [isReaderOpen, setReaderOpen] = useState(false);
   
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    align: 'center',
     loop: true,
-    containScroll: 'trimSnaps'
+    align: 'center',
   });
 
   const [slidesInView, setSlidesInView] = useState<number[]>([]);
@@ -248,38 +242,44 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
               {relatedPosts.length > 0 && (
                 <>
                   <div className="my-12 h-[2px] w-full bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-                  <section className="animate-fade-in-up w-full" style={{animationDelay: '1s'}}>
+                  <section className="animate-fade-in-up w-full relative" style={{animationDelay: '1s'}}>
                     <div className="flex justify-between items-center mb-8">
                       <h2 className="text-3xl font-headline font-bold">Continue Reading</h2>
                     </div>
-                     <Carousel
-                        opts={{
-                            align: 'center',
-                            loop: true,
-                        }}
-                        setApi={emblaApi}
-                        className="embla"
-                     >
-                        <div className="embla__viewport">
-                          <div className="embla__container">
-                            {relatedPosts.map((relatedPost, index) => (
-                              <div
-                                key={index}
-                                className={cn(
-                                  "embla__slide",
-                                  slidesInView.includes(index) && "is-in-view"
-                                )}
-                              >
-                                <div className="p-2 h-full">
-                                  <BlogPostCard post={relatedPost} />
-                                </div>
+                     <div className="embla" ref={emblaRef}>
+                        <div className="embla__container">
+                          {relatedPosts.map((relatedPost, index) => (
+                            <div
+                              key={relatedPost.id}
+                              className={cn(
+                                "embla__slide",
+                                "transition-transform duration-500 ease-in-out",
+                                slidesInView.includes(index) ? 'opacity-100 scale-100' : 'opacity-40 scale-85'
+                              )}
+                            >
+                              <div className="p-2 h-full">
+                                <BlogPostCard post={relatedPost} />
                               </div>
-                            ))}
-                          </div>
+                            </div>
+                          ))}
                         </div>
-                        <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-8 z-10 hidden md:inline-flex" />
-                        <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-8 z-10 hidden md:inline-flex" />
-                    </Carousel>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-8 z-10 hidden md:inline-flex"
+                      onClick={() => emblaApi?.scrollPrev()}
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-8 z-10 hidden md:inline-flex"
+                      onClick={() => emblaApi?.scrollNext()}
+                    >
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
                   </section>
                 </>
               )}

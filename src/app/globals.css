@@ -381,43 +381,27 @@
   }
 }
 
-/* Embla Carousel Glassmorphism Effect */
+/* Embla Carousel Focus Effect */
 .embla {
-  position: relative;
-}
-
-.embla__viewport {
   overflow: hidden;
 }
 
 .embla__container {
-  backface-visibility: hidden;
   display: flex;
-  touch-action: pan-y;
 }
 
 .embla__slide {
   flex: 0 0 100%;
   min-width: 0;
-  position: relative;
-  transition: transform 500ms ease-in-out, opacity 500ms ease-in-out;
-  opacity: 0.4;
-  transform: scale(0.85);
 }
 
 @media (min-width: 768px) {
   .embla__slide {
-    flex-basis: 50%;
+    flex: 0 0 50%;
   }
 }
-
 @media (min-width: 1024px) {
   .embla__slide {
-    flex-basis: 33.3333%;
+    flex: 0 0 33.3333%;
   }
-}
-
-.embla__slide.is-in-view {
-  transform: scale(1);
-  opacity: 1;
 }
