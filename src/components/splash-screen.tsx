@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -16,22 +17,23 @@ const SplashScreen = () => {
       return;
     }
 
-    sessionStorage.setItem('splashShown', 'true');
-
-    // Timer to start fading out the entire splash screen
+    // Start the fade-out process after 2 seconds (2000ms)
     const fadeOutTimer = setTimeout(() => {
       setIsFadingOut(true);
-    }, 250); // Reduced from 1200ms
+    }, 2000);
 
-    // Timer to remove the component from the DOM
+    // Hide the component completely after the fade-out animation (500ms)
     const hideTimer = setTimeout(() => {
       setIsLoading(false);
-    }, 750); // Should be fadeOut duration (500ms) + fadeOutTimer (250ms)
+      sessionStorage.setItem('splashShown', 'true');
+    }, 2500); // 2000ms wait + 500ms fade
 
+    // Cleanup timers if the component unmounts
     return () => {
       clearTimeout(fadeOutTimer);
       clearTimeout(hideTimer);
     };
+
   }, []);
 
   if (!isLoading) {
