@@ -3,24 +3,28 @@
 
 import { Author, isFollowing } from "@/lib/data";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Mail, Users, BadgeCheck, Star, Rss } from "lucide-react";
+import { Mail, Users, BadgeCheck, Star, Rss, Copy } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
 import { getLevel } from "@/lib/gamification";
+import Image from "next/image";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProfileCardProps {
     user: Author;
 }
 
 const getInitials = (name: string) => {
+    if (!name) return '';
     const names = name.split(' ');
     return names.length > 1 ? `${names[0][0]}${names[1][0]}` : name.substring(0, 2);
 };
 
 const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
     const { mainAuthor } = useAuth();
+    const { toast } = useToast();
     
     // Use mainAuthor from context if it's the main author, otherwise use the prop
     const author = initialUser.email === 'yashrajverma916@gmail.com' && mainAuthor ? mainAuthor : initialUser;
@@ -38,12 +42,31 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
         return null; // Or a loading skeleton
     }
     
+    const handleEmailCopy = () => {
+        if (author.email) {
+            navigator.clipboard.writeText(author.email);
+            toast({
+                title: "Email Copied!",
+                description: `${author.email} has been copied to your clipboard.`,
+            });
+        }
+    };
+
     return (
         <div className="glass-card rounded-lg overflow-hidden">
-            <div className="h-24 bg-gradient-to-r from-primary via-purple-500 to-fuchsia-500"></div>
-            <div className="p-6 pt-0 flex flex-col items-center -mt-14">
+             <div className="relative h-28 bg-gradient-to-r from-primary via-purple-500 to-fuchsia-500">
+                {author.bannerImage && (
+                    <Image
+                        src={author.bannerImage}
+                        alt={`${author.name}'s banner`}
+                        fill
+                        className="object-cover"
+                    />
+                )}
+            </div>
+            <div className="p-6 pt-0 flex flex-col items-center -mt-16">
                 <Avatar className={cn(
-                  "h-28 w-28 mb-4 border-4",
+                  "h-28 w-28 mb-4 border-4 shadow-lg",
                   isPremium ? "border-yellow-400" : "border-background"
                 )}>
                     <AvatarImage src={author.avatar} alt={author.name} />
@@ -51,7 +74,8 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
                 </Avatar>
 
                 <h2 className="text-2xl font-bold font-headline">{author.name}</h2>
-                <p className="text-sm text-muted-foreground">{author.username}</p>
+                <p className="text-sm text-muted-foreground">@{author.username}</p>
+
 
                 <div className="flex flex-wrap justify-center gap-2 my-4">
                     {isVerifiedAuthor && (
@@ -92,9 +116,13 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
                 </div>
                 
                 {author.showEmail && author.email && (
-                    <div className="text-xs flex items-center gap-2 text-muted-foreground bg-muted p-2 rounded-md">
+                    <div 
+                        className="group relative text-xs flex items-center gap-2 text-muted-foreground bg-muted p-2 rounded-full cursor-pointer transition-colors hover:bg-primary/10 hover:text-primary"
+                        onClick={handleEmailCopy}
+                    >
                         <Mail className="h-3 w-3" />
                         <span>{author.email}</span>
+                        <Copy className="h-3 w-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity"/>
                     </div>
                 )}
             </div>

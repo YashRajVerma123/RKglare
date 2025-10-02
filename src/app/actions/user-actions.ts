@@ -14,13 +14,14 @@ const profileSchema = z.object({
   instagramUrl: z.string().url('Please enter a valid Instagram URL.').optional().or(z.literal('')),
   signature: z.string().min(2, 'Signature must be at least 2 characters.').optional(),
   avatar: z.string().optional(),
+  bannerImage: z.string().optional(),
   showEmail: z.boolean().optional(),
   preferences: z.object({
       font: z.enum(['default', 'serif', 'mono']).optional(),
   }).optional(),
 });
 
-export async function updateAuthorProfile(authorId: string, values: Partial<z.infer<typeof profileSchema>> & { avatar?: string }): Promise<{ success: boolean }> {
+export async function updateAuthorProfile(authorId: string, values: Partial<z.infer<typeof profileSchema>> & { avatar?: string, bannerImage?: string }): Promise<{ success: boolean }> {
   if (!authorId) {
     throw new Error('Author ID is required.');
   }
@@ -35,6 +36,7 @@ export async function updateAuthorProfile(authorId: string, values: Partial<z.in
   if (values.instagramUrl !== undefined) updateData.instagramUrl = values.instagramUrl;
   if (values.signature !== undefined) updateData.signature = values.signature;
   if (values.avatar) updateData.avatar = values.avatar;
+  if (values.bannerImage) updateData.bannerImage = values.bannerImage;
   if (values.showEmail !== undefined) updateData.showEmail = values.showEmail;
   if (values.preferences?.font !== undefined) updateData['preferences.font'] = values.preferences.font;
 

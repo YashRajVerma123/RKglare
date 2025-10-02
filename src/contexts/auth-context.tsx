@@ -73,6 +73,7 @@ const formatUser = (user: FirebaseUser, firestoreData?: any): Author => {
         username: firestoreData?.username || generateUsername(user.displayName || 'user'),
         email: user.email || "no-email@example.com",
         avatar: firestoreData?.avatar || user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
+        bannerImage: firestoreData?.bannerImage,
         bio: firestoreData?.bio,
         instagramUrl: firestoreData?.instagramUrl,
         signature: firestoreData?.signature,

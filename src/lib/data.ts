@@ -1,3 +1,4 @@
+
 import { db } from '@/lib/firebase-server'; // <-- IMPORTANT: Use server DB
 import { 
     collection, 
@@ -19,6 +20,7 @@ export type Author = {
   name: string;
   username: string;
   avatar: string;
+  bannerImage?: string;
   email: string;
   bio?: string;
   instagramUrl?: string;
@@ -228,6 +230,7 @@ export const authorConverter = {
             name: data.name,
             username: data.username,
             avatar: data.avatar,
+            bannerImage: data.bannerImage,
             email: data.email,
             bio: data.bio,
             instagramUrl: data.instagramUrl,

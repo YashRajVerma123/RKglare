@@ -1,6 +1,6 @@
 
 'use client';
-import { CreditCard, LogOut, User as UserIcon, Upload, Moon, Sun, Loader2, PanelRightOpen, Settings, UserPlus,LogIn, RefreshCw, Type, X, AtSign } from 'lucide-react';
+import { CreditCard, LogOut, User as UserIcon, Upload, Moon, Sun, Loader2, PanelRightOpen, Settings, UserPlus,LogIn, RefreshCw, Type, X, AtSign, Image as ImageIcon } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -41,6 +41,7 @@ import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from './ui/t
 import { getAuthors } from '@/lib/data';
 import { Trophy } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import Image from 'next/image';
 
 // Helper to convert file to Base64
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
@@ -81,9 +82,12 @@ const UserNav = () => {
   const [isProfileOpen, setProfileOpen] = useState(false);
   
   const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState('');
+  const [newBannerFile, setNewBannerFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState('');
+  const [bannerPreview, setBannerPreview] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
   const [isMounted, setIsMounted] = useState(false);
@@ -155,7 +159,8 @@ const UserNav = () => {
   useEffect(() => {
     if (user && isProfileOpen) {
         profileForm.reset(profileFormDefaultValues);
-        setPreviewUrl(user.avatar);
+        setAvatarPreview(user.avatar);
+        setBannerPreview(user.bannerImage || '');
     }
   }, [user, profileForm, isProfileOpen, profileFormDefaultValues]);
   
@@ -169,12 +174,8 @@ const UserNav = () => {
     setIsSigningIn(true);
     try {
       await signIn();
-      // On success, the AuthProvider will update the user state,
-      // and this component will re-render, closing the dialog.
       setSignInOpen(false);
     } catch (error) {
-      // The auth context now handles the "popup closed" error silently.
-      // We only need to show a toast for actual errors.
       if ((error as Error).message.includes('auth/popup-closed-by-user')) {
         // Do nothing
       } else {
@@ -195,13 +196,19 @@ const UserNav = () => {
     setIsSaving(true);
     try {
       let newAvatarUrl = user.avatar;
+      let newBannerUrl = user.bannerImage;
+
       if (newAvatarFile) {
         newAvatarUrl = await toBase64(newAvatarFile);
+      }
+      if (newBannerFile) {
+        newBannerUrl = await toBase64(newBannerFile);
       }
       
       const updateData = {
           ...values,
           avatar: newAvatarUrl,
+          bannerImage: newBannerUrl,
       };
 
       await updateAuthorProfile(user.id, updateData);
@@ -212,6 +219,7 @@ const UserNav = () => {
         description: 'Your profile has been successfully updated.',
       });
       setNewAvatarFile(null);
+      setNewBannerFile(null);
       setProfileOpen(false);
     } catch (error) {
       console.error('Profile update failed', error);
@@ -229,9 +237,18 @@ const UserNav = () => {
     if (e.target.files && e.target.files[0]) {
         const file = e.target.files[0];
         setNewAvatarFile(file);
-        setPreviewUrl(URL.createObjectURL(file));
+        setAvatarPreview(URL.createObjectURL(file));
     }
   }
+  
+  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        setNewBannerFile(file);
+        setBannerPreview(URL.createObjectURL(file));
+    }
+  }
+
 
   const handleOpenProfile = () => {
     if (user) {
@@ -239,8 +256,10 @@ const UserNav = () => {
             ...profileFormDefaultValues,
             username: user.username || '',
         });
-        setPreviewUrl(user.avatar);
+        setAvatarPreview(user.avatar);
+        setBannerPreview(user.bannerImage || '');
         setNewAvatarFile(null);
+        setNewBannerFile(null);
         setProfileOpen(true);
     }
   }
@@ -293,7 +312,7 @@ const UserNav = () => {
               <div className="p-2">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">{user.name}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{user.username}</p>
+                  <p className="text-xs leading-none text-muted-foreground">@{user.username}</p>
                   <div className="flex gap-4 pt-1">
                     <div className="text-xs text-muted-foreground cursor-pointer hover:underline" onClick={() => handleOpenFollowList('followers')}>
                         <span className="font-bold text-foreground">{user.followers || 0}</span> Followers
@@ -441,24 +460,35 @@ const UserNav = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
                     <Form {...profileForm}>
                         <form onSubmit={profileForm.handleSubmit(handleProfileUpdate)} className="space-y-4">
-                        <div className="flex flex-col items-center gap-4">
-                            <Avatar className="h-24 w-24">
-                                <AvatarImage src={previewUrl} alt={watchedProfile.name} />
-                                <AvatarFallback>{getInitials(watchedProfile.name || '')}</AvatarFallback>
-                            </Avatar>
-                            <Input 
-                                id="avatar-upload"
-                                type="file"
-                                accept="image/*"
-                                onChange={handleAvatarChange}
-                                ref={fileInputRef}
-                                className="hidden"
-                            />
-                            <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                                <Upload className="mr-2 h-4 w-4" />
-                                Upload Photo
-                            </Button>
+                        <div className="space-y-4">
+                          <Label>Profile Picture</Label>
+                           <div className="flex items-center gap-4">
+                              <Avatar className="h-16 w-16">
+                                  <AvatarImage src={avatarPreview} alt={watchedProfile.name} />
+                                  <AvatarFallback>{getInitials(watchedProfile.name || '')}</AvatarFallback>
+                              </Avatar>
+                              <Input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarChange} ref={avatarInputRef} className="hidden"/>
+                              <Button type="button" variant="outline" onClick={() => avatarInputRef.current?.click()}>
+                                  <Upload className="mr-2 h-4 w-4" />
+                                  Upload
+                              </Button>
+                          </div>
                         </div>
+
+                         <div className="space-y-4">
+                          <Label>Banner Image</Label>
+                           <div className="flex items-center gap-4">
+                              <div className="w-24 h-12 rounded-md bg-muted overflow-hidden relative">
+                                {bannerPreview && <Image src={bannerPreview} alt="Banner preview" fill className="object-cover"/>}
+                              </div>
+                              <Input id="banner-upload" type="file" accept="image/*" onChange={handleBannerChange} ref={bannerInputRef} className="hidden"/>
+                              <Button type="button" variant="outline" onClick={() => bannerInputRef.current?.click()}>
+                                  <Upload className="mr-2 h-4 w-4" />
+                                  Upload
+                              </Button>
+                          </div>
+                        </div>
+
                         <FormField
                             control={profileForm.control}
                             name="name"
@@ -600,7 +630,8 @@ const UserNav = () => {
                             <ProfileCard user={{
                             ...user,
                             ...watchedProfile,
-                            avatar: previewUrl,
+                            avatar: avatarPreview,
+                            bannerImage: bannerPreview,
                             }} />
                         )}
                     </div>
