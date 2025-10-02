@@ -24,7 +24,13 @@ const formSchema = z.object({
   image: z.string().url().optional().or(z.literal('')),
 });
 
-export default function EditNotificationPage({ params }: { params: { id: string } }) {
+interface EditNotificationPageProps {
+    params: {
+      id: string;
+    };
+}
+
+export default function EditNotificationPage({ params }: EditNotificationPageProps) {
   const { id } = params;
   const { toast } = useToast();
   const router = useRouter();
@@ -160,5 +166,3 @@ export default function EditNotificationPage({ params }: { params: { id: string 
     </div>
   );
 }
-
-    
