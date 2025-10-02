@@ -253,8 +253,8 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
                               key={relatedPost.id}
                               className={cn(
                                 "embla__slide",
-                                "transition-transform duration-500 ease-in-out",
-                                slidesInView.includes(index) ? 'opacity-100 scale-100' : 'opacity-40 scale-85'
+                                "transition-all duration-500 ease-in-out",
+                                slidesInView.includes(index) ? 'opacity-100 scale-100' : 'opacity-50 scale-80 grayscale'
                               )}
                             >
                               <div className="p-2 h-full">
