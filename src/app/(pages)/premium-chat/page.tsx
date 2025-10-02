@@ -10,7 +10,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Send, Loader2, Star, Trash2, Smile, MessageSquareReply, Pencil, X, MoreHorizontal, Paperclip, Users, MessageSquare } from 'lucide-react';
 import { collection, query, orderBy, onSnapshot, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase-client';
-import { ChatMessage, messageConverter, Author } from '@/lib/data';
+import { ChatMessage, messageConverter, Author, getAuthorById } from '@/lib/data';
 import { sendMessage, deleteMessage, editMessage, toggleReaction } from '@/app/actions/chat-actions';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
@@ -105,6 +105,23 @@ const PremiumChatPage = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     
     const [isSending, setIsSending] = useState(false);
+
+    const [isProfileCardOpen, setProfileCardOpen] = useState(false);
+    const [selectedProfileUser, setSelectedProfileUser] = useState<Author | null>(null);
+    const [isProfileLoading, setIsProfileLoading] = useState(false);
+
+    const handleAvatarClick = async (authorId: string) => {
+        setIsProfileLoading(true);
+        setProfileCardOpen(true);
+        const fullAuthor = await getAuthorById(authorId);
+        if(fullAuthor) {
+            setSelectedProfileUser(fullAuthor);
+        } else {
+            toast({title: "Error", description: "Could not load user profile.", variant: "destructive"});
+            setProfileCardOpen(false);
+        }
+        setIsProfileLoading(false);
+    };
     
     useEffect(() => {
         if (!isPremium) {
@@ -177,6 +194,7 @@ const PremiumChatPage = () => {
             id: user.id,
             name: user.name,
             avatar: user.avatar || '',
+            username: user.username,
         }, replyContext, imageBase64);
         
         setIsSending(false);
@@ -327,24 +345,18 @@ const PremiumChatPage = () => {
                                     </DropdownMenu>
                                 </div>
                             
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Avatar className="h-8 w-8 cursor-pointer">
-                                        <AvatarImage src={msg.author.avatar} />
-                                        <AvatarFallback>{getInitials(msg.author.name)}</AvatarFallback>
-                                    </Avatar>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-md p-0">
-                                   <ProfileCard user={msg.author as Author} />
-                                </DialogContent>
-                            </Dialog>
+                            <Avatar className="h-8 w-8 cursor-pointer" onClick={() => handleAvatarClick(msg.author.id)}>
+                                <AvatarImage src={msg.author.avatar} />
+                                <AvatarFallback>{getInitials(msg.author.name)}</AvatarFallback>
+                            </Avatar>
+                            
 
                             <div className={cn("flex flex-col w-full max-w-xs md:max-w-md", msg.author.id === user.id ? 'items-end' : 'items-start')}>
                                 <div className={cn(
                                     "px-4 py-2 rounded-2xl",
                                     msg.author.id === user.id ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-background rounded-bl-none'
                                 )}>
-                                    <p className="text-sm font-semibold mb-1">{msg.author.name}</p>
+                                    <p className="text-sm font-semibold mb-1 cursor-pointer hover:underline" onClick={() => handleAvatarClick(msg.author.id)}>{msg.author.name}</p>
                                     {msg.replyTo && (
                                         <div className="p-2 mb-2 rounded-md bg-black/20 opacity-80">
                                             <p className="text-xs font-bold">{msg.replyTo.authorName}</p>
@@ -478,6 +490,18 @@ const PremiumChatPage = () => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+             <Dialog open={isProfileCardOpen} onOpenChange={setProfileCardOpen}>
+                <DialogContent className="sm:max-w-md p-0">
+                    {isProfileLoading ? (
+                        <div className="flex justify-center items-center h-48">
+                            <Loader2 className="h-8 w-8 animate-spin" />
+                        </div>
+                    ) : selectedProfileUser ? (
+                       <ProfileCard user={selectedProfileUser} />
+                    ) : null}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
