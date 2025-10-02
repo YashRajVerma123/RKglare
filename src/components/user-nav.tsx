@@ -265,6 +265,15 @@ const UserNav = () => {
     }
   };
 
+   const handleResetToDefault = () => {
+        setPrimaryColor('#7c3aed');
+        setSelectedFont('work-sans');
+        toast({
+            title: 'Theme Reset',
+            description: 'Your UI customizations have been reset. Click "Save" to confirm.',
+        });
+    };
+
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -652,11 +661,14 @@ const UserNav = () => {
               </ScrollArea>
             </div>
           </div>
-           <DialogFooter>
-            <Button variant="ghost" onClick={() => setCustomizeUIOpen(false)}>Cancel</Button>
-            <Button onClick={handleCustomizationSave} disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save Customization"}
-            </Button>
+           <DialogFooter className="sm:justify-between">
+            <Button variant="outline" onClick={handleResetToDefault}>Reset to Default</Button>
+            <div className="flex gap-2">
+                <Button variant="ghost" onClick={() => setCustomizeUIOpen(false)}>Cancel</Button>
+                <Button onClick={handleCustomizationSave} disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Customization"}
+                </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -673,3 +685,5 @@ const UserNav = () => {
 };
 
 export default UserNav;
+
+    
