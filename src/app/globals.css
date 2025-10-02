@@ -124,26 +124,31 @@
       100% { background-position: -200% 0; }
     }
 
-    .aurora-border {
+    .aurora-border, .gold-aurora-border {
         position: relative;
     }
     
-    .light .aurora-border {
+    .light .aurora-border, .light .gold-aurora-border {
         background: hsl(var(--card));
         border: 1px solid hsl(var(--border) / 0.2);
     }
-    .dark .aurora-border {
+    .dark .aurora-border, .dark .gold-aurora-border {
         background: hsl(var(--card) / 0.6);
+    }
+    
+    .dark .aurora-border {
         box-shadow: 0 0 40px -10px hsl(var(--primary) / 0.2);
     }
+    .dark .gold-aurora-border {
+        box-shadow: 0 0 40px -10px hsl(45 93% 47% / 0.2);
+    }
 
-    .aurora-border::before {
+    .aurora-border::before, .gold-aurora-border::before {
         content: '';
         position: absolute;
-        inset: -2px;
-        border-radius: inherit; /* Use the parent's border-radius */
-        padding: 2px;
-        background: conic-gradient(from var(--gradient-angle, 0deg), hsla(262, 84%, 59%, 0.8), hsla(262, 84%, 59%, 0) 20%, hsla(262, 84%, 59%, 0) 80%, hsla(262, 84%, 59%, 0.8));
+        inset: -1px;
+        border-radius: inherit;
+        padding: 1px;
         -webkit-mask: 
             linear-gradient(#fff 0 0) content-box,
             linear-gradient(#fff 0 0);
@@ -155,10 +160,21 @@
         pointer-events: none;
         animation: spin 4s linear infinite;
     }
-
+    
+    .aurora-border::before {
+        background: conic-gradient(from var(--gradient-angle, 0deg), hsla(262, 84%, 59%, 0.8), hsla(262, 84%, 59%, 0) 20%, hsla(262, 84%, 59%, 0) 80%, hsla(262, 84%, 59%, 0.8));
+    }
     .light .aurora-border::before {
       background: conic-gradient(from var(--gradient-angle, 0deg), hsla(262, 84%, 59%, 1), hsla(262, 84%, 59%, 0.1) 20%, hsla(262, 84%, 59%, 0.1) 80%, hsla(262, 84%, 59%, 1));
     }
+
+    .gold-aurora-border::before {
+      background: conic-gradient(from var(--gradient-angle, 0deg), hsl(51 98% 49% / 0.8), hsl(51 98% 49% / 0) 20%, hsl(51 98% 49% / 0) 80%, hsl(51 98% 49% / 0.8));
+    }
+    .light .gold-aurora-border::before {
+      background: conic-gradient(from var(--gradient-angle, 0deg), hsl(51 98% 49% / 1), hsl(51 98% 49% / 0.1) 20%, hsl(51 98% 49% / 0.1) 80%, hsl(51 98% 49% / 1));
+    }
+
 
      @property --gradient-angle {
       syntax: '<angle>';
@@ -363,4 +379,45 @@
     transform: translate(var(--tx), var(--ty)) scale(0);
     opacity: 0;
   }
+}
+
+/* Embla Carousel Glassmorphism Effect */
+.embla {
+  position: relative;
+}
+
+.embla__viewport {
+  overflow: hidden;
+}
+
+.embla__container {
+  backface-visibility: hidden;
+  display: flex;
+  touch-action: pan-y;
+}
+
+.embla__slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  position: relative;
+  transition: transform 500ms ease-in-out, opacity 500ms ease-in-out;
+  opacity: 0.4;
+  transform: scale(0.85);
+}
+
+@media (min-width: 768px) {
+  .embla__slide {
+    flex-basis: 50%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .embla__slide {
+    flex-basis: 33.3333%;
+  }
+}
+
+.embla__slide.is-in-view {
+  transform: scale(1);
+  opacity: 1;
 }

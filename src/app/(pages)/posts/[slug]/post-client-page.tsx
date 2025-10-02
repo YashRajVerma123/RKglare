@@ -3,7 +3,7 @@
 
 import { Post, Comment as CommentType } from '@/lib/data';
 import PostActions from '@/components/post-actions';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,16 +21,12 @@ import ReaderMode from '@/components/reader-mode';
 import ReadingTimer from '@/components/reading-timer';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import useEmblaCarousel, { EmblaCarouselType } from 'embla-carousel-react';
 import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
   CarouselNext,
   CarouselPrevious,
-  type CarouselApi,
-} from "@/components/ui/carousel"
+} from "@/components/ui/carousel";
 
-// Placeholder Ad Component
 const AdPlaceholder = () => (
     <div className="my-8 flex justify-center">
         <div className="w-full max-w-lg h-24 bg-muted rounded-lg flex items-center justify-center">
@@ -52,16 +48,21 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
   const contentRef = useRef<HTMLDivElement>(null);
   const { setTheme, resetTheme } = useDynamicTheme();
   const [isReaderOpen, setReaderOpen] = useState(false);
-  const [api, setApi] = useState<CarouselApi>()
-  const [current, setCurrent] = useState(0)
   
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    align: 'center',
+    loop: true,
+    containScroll: 'trimSnaps'
+  });
+
+  const [slidesInView, setSlidesInView] = useState<number[]>([]);
+
   const isBookmarked = post ? bookmarks[post.id] : false;
   
   const isPremium = user?.premium?.active === true;
   const now = new Date();
   const isEarlyAccessActive = post.earlyAccess && post.publishedAt && new Date(post.publishedAt).getTime() + (24 * 60 * 60 * 1000) > now.getTime();
   
-  // Determine if the user can view the content
   const canViewContent = isPreview || !post.premiumOnly && !isEarlyAccessActive || (isPremium ?? false);
 
   const fontPreference = user?.preferences?.font || 'default';
@@ -70,6 +71,23 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
       serif: 'font-reader',
       mono: 'font-mono'
   }[fontPreference];
+
+  const updateSlidesInView = useCallback((emblaApi: EmblaCarouselType) => {
+    setSlidesInView((slidesInView) => {
+      if (slidesInView.length === emblaApi.slidesInView().length) {
+        if (slidesInView.every((v, i) => v === emblaApi.slidesInView()[i]))
+          return slidesInView;
+      }
+      return emblaApi.slidesInView();
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    updateSlidesInView(emblaApi);
+    emblaApi.on('select', updateSlidesInView);
+    emblaApi.on('reInit', updateSlidesInView);
+  }, [emblaApi, updateSlidesInView]);
 
 
   useEffect(() => {
@@ -111,24 +129,6 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
         clearTimeout(timeout);
     };
   }, [post, user, isBookmarked, isPreview]);
-  
-  useEffect(() => {
-    if (!api) {
-      return
-    }
-    setCurrent(api.selectedScrollSnap())
-
-    const onSelect = (api: CarouselApi) => {
-        if (!api) return;
-        setCurrent(api.selectedScrollSnap())
-    }
-
-    api.on("select", onSelect)
-
-    return () => {
-      api.off("select", onSelect)
-    }
-  }, [api])
   
 
   const getInitials = (name: string) => {
@@ -251,25 +251,27 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
                     <div className="flex justify-between items-center mb-8">
                       <h2 className="text-3xl font-headline font-bold">Continue Reading</h2>
                     </div>
-                     <Carousel setApi={setApi}
-                      opts={{
-                        align: "center",
-                        loop: true,
-                      }}
-                      className="w-full"
-                    >
-                      <CarouselContent>
-                        {relatedPosts.map((relatedPost, index) => (
-                          <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
-                            <div className={cn("p-1 transition-all duration-500", index === current ? "opacity-100 scale-100" : "opacity-50 scale-90")}>
-                                <BlogPostCard post={relatedPost} />
-                            </div>
-                          </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                      <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-8 z-10" />
-                      <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-8 z-10" />
-                    </Carousel>
+                     <div className="embla">
+                        <div className="embla__viewport" ref={emblaRef}>
+                          <div className="embla__container">
+                            {relatedPosts.map((relatedPost, index) => (
+                              <div
+                                key={index}
+                                className={cn(
+                                  "embla__slide",
+                                  slidesInView.includes(index) && "is-in-view"
+                                )}
+                              >
+                                <div className="p-2 h-full">
+                                  <BlogPostCard post={relatedPost} />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-8 z-10 hidden md:inline-flex" onClick={() => emblaApi?.scrollPrev()} />
+                        <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-8 z-10 hidden md:inline-flex" onClick={() => emblaApi?.scrollNext()} />
+                    </div>
                   </section>
                 </>
               )}

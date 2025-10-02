@@ -1,10 +1,10 @@
 
 'use client';
 
-import { Author, isFollowing } from "@/lib/data";
+import { Author } from "@/lib/data";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Mail, Users, BadgeCheck, Star, Rss, Copy } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
@@ -26,7 +26,6 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
     const { mainAuthor } = useAuth();
     const { toast } = useToast();
     
-    // Use mainAuthor from context if it's the main author, otherwise use the prop
     const author = initialUser.email === 'yashrajverma916@gmail.com' && mainAuthor ? mainAuthor : initialUser;
 
     const {level} = useMemo(() => {
@@ -39,7 +38,7 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
     const isVerifiedAuthor = author?.email === 'yashrajverma916@gmail.com';
 
     if (!author) {
-        return null; // Or a loading skeleton
+        return null;
     }
     
     const handleEmailCopy = () => {
@@ -65,15 +64,20 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
                 )}
             </div>
             <div className="p-6 pt-0 flex flex-col items-center -mt-16">
-                <Avatar className={cn(
-                  "h-28 w-28 mb-4 border-4 shadow-lg",
-                  isPremium ? "border-yellow-400" : "border-background"
+                <div className={cn(
+                    "relative rounded-full p-1",
+                    isPremium && "gold-aurora-border"
                 )}>
-                    <AvatarImage src={author.avatar} alt={author.name} />
-                    <AvatarFallback>{getInitials(author.name)}</AvatarFallback>
-                </Avatar>
+                    <Avatar className={cn(
+                      "h-28 w-28 shadow-lg",
+                      !isPremium && "border-4 border-background"
+                    )}>
+                        <AvatarImage src={author.avatar} alt={author.name} />
+                        <AvatarFallback>{getInitials(author.name)}</AvatarFallback>
+                    </Avatar>
+                </div>
 
-                <h2 className="text-2xl font-bold font-headline">{author.name}</h2>
+                <h2 className="text-2xl font-bold font-headline mt-4">{author.name}</h2>
                 <p className="text-sm text-muted-foreground">@{author.username}</p>
 
 
