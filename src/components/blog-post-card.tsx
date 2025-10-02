@@ -1,9 +1,8 @@
+
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Calendar, Clock } from 'lucide-react';
-
+import { Eye, Calendar } from 'lucide-react';
 import type { Post } from '@/lib/data';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Badge } from './ui/badge';
 
 interface BlogPostCardProps {
@@ -12,18 +11,12 @@ interface BlogPostCardProps {
 }
 
 const BlogPostCard = ({ post, priority = false }: BlogPostCardProps) => {
-  const getInitials = (name: string) => {
-    const names = name.split(' ');
-    if (names.length > 1) {
-      return `${names[0][0]}${names[1][0]}`;
-    }
-    return names[0].substring(0, 2);
-  };
-  
+  const views = post.likes ? post.likes * 5 + 23 : 42; // Estimated views
+
   return (
     <Link href={`/posts/${post.slug}`} className="group block">
-      <div className="glass-card h-full flex flex-col overflow-hidden transition-all duration-300 hover:border-primary/50 hover:-translate-y-1">
-        <div className="relative aspect-[16/9] overflow-hidden">
+      <div className="h-full flex flex-col bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800 transition-all duration-300 hover:border-primary/50 hover:-translate-y-1">
+        <div className="relative aspect-video overflow-hidden">
           <Image
             src={post.coverImage}
             alt={post.title}
@@ -33,39 +26,31 @@ const BlogPostCard = ({ post, priority = false }: BlogPostCardProps) => {
             priority={priority}
             data-ai-hint="blog post cover"
           />
-           <div className="absolute top-3 right-3 flex gap-2">
-            {post.tags.slice(0, 2).map(tag => (
-              <Badge key={tag} variant="secondary" className="bg-background/70 backdrop-blur-sm">{tag}</Badge>
-            ))}
+          <div className="absolute inset-0 bg-black/40"></div>
+          <div className="absolute inset-0 p-6 flex items-center justify-center">
+            <h3 className="font-headline text-3xl font-bold text-white text-center leading-tight drop-shadow-md">
+              {post.title}
+            </h3>
           </div>
         </div>
         <div className="p-6 flex flex-col flex-grow">
-          <h3 className="font-title text-xl font-light leading-snug mb-2 group-hover:text-primary transition-colors">
-            {post.title}
-          </h3>
-          <p className="text-muted-foreground text-sm mb-4 flex-grow">{post.description}</p>
-          
-          <div className="text-xs text-muted-foreground flex items-center gap-4 mb-4">
-              <div className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  <span>{new Date(post.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  <span>{post.readTime} min read</span>
-              </div>
-          </div>
-
-          <div className="flex justify-between items-center mt-auto">
-            <div className="flex items-center gap-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={post.author.avatar} alt={post.author.name} />
-                <AvatarFallback>{getInitials(post.author.name)}</AvatarFallback>
-              </Avatar>
-              <span className="text-sm font-medium">{post.author.name}</span>
+          <div className="flex justify-between items-center text-xs text-zinc-400 mb-4">
+            <Badge variant="secondary" className="bg-zinc-800 text-zinc-300 border-none">{post.tags[0] || 'Article'}</Badge>
+            <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                    <Calendar className="h-3 w-3" />
+                    <span>{new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                    <Eye className="h-3 w-3" />
+                    <span>{views} views</span>
+                </div>
             </div>
-             <ArrowRight className="h-5 w-5 text-muted-foreground transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
           </div>
+          <h4 className="font-semibold text-lg text-white leading-snug mb-2 group-hover:text-primary transition-colors">
+            {post.title}
+          </h4>
+          <p className="text-zinc-400 text-sm flex-grow line-clamp-3">{post.description}</p>
         </div>
       </div>
     </Link>
@@ -73,3 +58,5 @@ const BlogPostCard = ({ post, priority = false }: BlogPostCardProps) => {
 };
 
 export default BlogPostCard;
+
+    

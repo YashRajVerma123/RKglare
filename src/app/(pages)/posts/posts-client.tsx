@@ -56,12 +56,13 @@ const PostsClient = ({ initialPosts }: { initialPosts: Post[] }) => {
   return (
     <div className="container mx-auto px-4 py-16">
       <section className="text-center mb-16 animate-fade-in-up">
-        <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight mb-4">
-          {searchQuery ? `Results for "${searchQuery}"` : "All Articles"}<span className="text-primary">.</span>
+        <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tight mb-4">
+          {searchQuery ? `Results for "${searchQuery}"` : "All Articles"}
         </h1>
-        <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-          {searchQuery ? `${filteredPosts.length} articles found.` : 'Explore our collection of stories, analyses, and insights from the team at Glare.'}
+        <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+          {searchQuery ? `${filteredPosts.length} articles found.` : 'Explore our collection of stories, analyses, and insights.'}
         </p>
+         {!searchQuery && <div className="mt-4 h-px w-32 mx-auto gradient-underline"></div>}
       </section>
 
       {filteredPosts.length > 0 ? (
@@ -83,3 +84,5 @@ const PostsClient = ({ initialPosts }: { initialPosts: Post[] }) => {
 };
 
 export default PostsClient;
+
+    

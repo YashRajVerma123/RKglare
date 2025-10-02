@@ -263,6 +263,10 @@
     .page-loaded {
         @apply opacity-100;
     }
+    
+    .gradient-underline {
+       background: linear-gradient(to right, transparent, hsl(var(--primary)/0.5), transparent);
+    }
 }
 
 
@@ -405,3 +409,5 @@
     flex: 0 0 33.3333%;
   }
 }
+
+    
