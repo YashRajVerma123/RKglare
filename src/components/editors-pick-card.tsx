@@ -28,10 +28,11 @@ const EditorsPickCard = ({ post, layout = 'medium', priority = false }: EditorsP
         {post.tags[0] && <Badge variant="secondary" className="mb-2 self-start bg-white/20 text-white backdrop-blur-sm border-0">{post.tags[0]}</Badge>}
         <h3
           className={cn(
-            'font-headline font-bold leading-tight group-hover:text-primary transition-colors',
+            'font-headline font-bold leading-tight group-hover:text-primary transition-opacity duration-300',
             layout === 'large' && 'text-3xl md:text-4xl',
             layout === 'medium' && 'text-2xl',
-            layout === 'small' && 'text-xl'
+            layout === 'small' && 'text-xl',
+            'opacity-0 group-hover:opacity-100'
           )}
         >
           {post.title}
