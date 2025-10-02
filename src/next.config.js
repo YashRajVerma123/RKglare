@@ -1,23 +1,9 @@
-<<<<<<< HEAD:vercel/path0/next.config.js
+
 
 const withPWA = require('next-pwa')({
   dest: 'public',
   disable: process.env.NODE_ENV === 'development',
-  register: true,
-  skipWaiting: true,
 });
-
-const {
-  NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  NEXT_PUBLIC_FIREBASE_APP_ID,
-  NEXT_PUBLIC_FIREBASE_API_KEY,
-  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
-  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-} = process.env;
-=======
->>>>>>> adf5293402b30075a0eced5c165a6617766ad9ed:src/next.config.js
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -66,7 +52,7 @@ const nextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'httpshttps',
+        protocol: 'https',
         hostname: 'i.ibb.co',
         port: '',
         pathname: '/**',
@@ -87,10 +73,10 @@ const nextConfig = {
     ],
   },
   experimental: {
-    serverActions: {
-      bodySizeLimit: '5mb',
-    },
-  },
+     serverActions: {
+        bodySizeLimit: '5mb',
+     },
+  }
 };
 
 module.exports = withPWA(nextConfig);
