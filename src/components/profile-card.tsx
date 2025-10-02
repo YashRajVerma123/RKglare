@@ -52,7 +52,7 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
     };
 
     return (
-        <div className="glass-card rounded-lg overflow-hidden">
+        <div className="glass-card rounded-lg overflow-hidden relative">
              <div className="relative h-28 bg-gradient-to-r from-primary via-purple-500 to-fuchsia-500">
                 {author.bannerImage && (
                     <Image
@@ -130,6 +130,11 @@ const ProfileCard = ({ user: initialUser }: ProfileCardProps) => {
                     </div>
                 )}
             </div>
+            {author.signature && (
+                <div className="absolute bottom-4 right-6">
+                    <p className="font-signature text-4xl bg-gradient-to-r from-foreground/80 to-foreground/50 bg-clip-text text-transparent drop-shadow-sm">~{author.signature}</p>
+                </div>
+            )}
         </div>
     );
 };
