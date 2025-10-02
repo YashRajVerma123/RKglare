@@ -253,14 +253,14 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
                     </div>
                      <Carousel setApi={setApi}
                       opts={{
-                        align: "start",
+                        align: "center",
                         loop: true,
                       }}
                       className="w-full"
                     >
                       <CarouselContent>
                         {relatedPosts.map((relatedPost, index) => (
-                          <CarouselItem key={index} className="sm:basis-1/2 md:basis-1/2 lg:basis-1/3">
+                          <CarouselItem key={index} className="lg:basis-1/3">
                             <div className={cn("p-1 transition-all duration-500", index === current ? "opacity-100 scale-100" : "opacity-50 scale-90")}>
                                 <BlogPostCard post={relatedPost} />
                             </div>
