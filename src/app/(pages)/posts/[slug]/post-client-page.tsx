@@ -235,19 +235,17 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
                         align: "start",
                         loop: true,
                       }}
-                      className="w-full"
+                      className="w-full max-w-4xl mx-auto"
                     >
-                      <CarouselContent>
+                      <CarouselContent className="-ml-2 md:-ml-4">
                         {relatedPosts.map((relatedPost, index) => (
-                          <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
-                            <div className="p-1">
+                          <CarouselItem key={index} className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/2 lg:basis-1/3">
                               <BlogPostCard post={relatedPost} />
-                            </div>
                           </CarouselItem>
                         ))}
                       </CarouselContent>
-                      <CarouselPrevious className="absolute -top-14 left-auto right-12" />
-                      <CarouselNext className="absolute -top-14 right-0" />
+                      <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10" />
+                      <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10" />
                     </Carousel>
                   </section>
                 </>
