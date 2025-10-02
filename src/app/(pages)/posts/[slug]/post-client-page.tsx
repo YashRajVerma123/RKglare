@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import useEmblaCarousel, { EmblaCarouselType } from 'embla-carousel-react';
 import {
+  Carousel,
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
@@ -251,8 +252,15 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
                     <div className="flex justify-between items-center mb-8">
                       <h2 className="text-3xl font-headline font-bold">Continue Reading</h2>
                     </div>
-                     <div className="embla">
-                        <div className="embla__viewport" ref={emblaRef}>
+                     <Carousel
+                        opts={{
+                            align: 'center',
+                            loop: true,
+                        }}
+                        setApi={emblaApi}
+                        className="embla"
+                     >
+                        <div className="embla__viewport">
                           <div className="embla__container">
                             {relatedPosts.map((relatedPost, index) => (
                               <div
@@ -269,9 +277,9 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
                             ))}
                           </div>
                         </div>
-                        <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-8 z-10 hidden md:inline-flex" onClick={() => emblaApi?.scrollPrev()} />
-                        <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-8 z-10 hidden md:inline-flex" onClick={() => emblaApi?.scrollNext()} />
-                    </div>
+                        <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-8 z-10 hidden md:inline-flex" />
+                        <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-8 z-10 hidden md:inline-flex" />
+                    </Carousel>
                   </section>
                 </>
               )}
