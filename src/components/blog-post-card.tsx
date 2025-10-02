@@ -1,7 +1,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Eye, Calendar } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import type { Post } from '@/lib/data';
 import { Badge } from './ui/badge';
 
@@ -11,8 +11,6 @@ interface BlogPostCardProps {
 }
 
 const BlogPostCard = ({ post, priority = false }: BlogPostCardProps) => {
-  const views = post.likes ? post.likes * 5 + 23 : 42; // Estimated views
-
   return (
     <Link href={`/posts/${post.slug}`} className="group block">
       <div className="h-full flex flex-col bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800 transition-all duration-300 hover:border-primary/50 hover:-translate-y-1">
@@ -41,10 +39,6 @@ const BlogPostCard = ({ post, priority = false }: BlogPostCardProps) => {
                     <Calendar className="h-3 w-3" />
                     <span>{new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                    <Eye className="h-3 w-3" />
-                    <span>{views} views</span>
-                </div>
             </div>
           </div>
           <h4 className="font-semibold text-lg text-white leading-snug mb-2 group-hover:text-primary transition-colors">
@@ -58,5 +52,3 @@ const BlogPostCard = ({ post, priority = false }: BlogPostCardProps) => {
 };
 
 export default BlogPostCard;
-
-    
