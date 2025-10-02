@@ -519,11 +519,15 @@ export const getComments = async (postId: string): Promise<Comment[]> => {
 };
 
 export const getNotifications = async (): Promise<Notification[]> => {
+    // This function is called from the admin panel which needs all notifications.
+    // It's also called from the notification bell which manages read state on the client.
+    // Fetching all is fine here, as the number of notifications is expected to be small.
     const notificationsCollection = collection(db, 'notifications').withConverter(notificationConverter);
-    const q = query(notificationsCollection, orderBy('createdAt', 'desc'), limit(50));
+    const q = query(notificationsCollection, orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => doc.data());
 };
+
 
 export const getNotification = (id: string): Promise<Notification | null> => {
     return unstable_cache(
@@ -544,13 +548,45 @@ export const getNotificationClient = async (id: string): Promise<Notification | 
 
 
 // New Bulletin Functions
-
 export const getBulletins = async (
-    pageSize: number = 3,
+    currentUser?: Author | null
+): Promise<{ bulletins: Bulletin[]; lastDocId?: string }> => {
+    // This function is now used by the admin panel and needs to fetch ALL bulletins.
+    const bulletinsCollection = collection(db, 'bulletins').withConverter(bulletinConverter);
+    const q = query(bulletinsCollection, orderBy('publishedAt', 'desc'));
+    const snapshot = await getDocs(q);
+    
+    const allBulletins = snapshot.docs.map(doc => doc.data());
+    const lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
+
+    // No need to filter for the admin panel, but we'll keep the logic
+    // in case this function is reused elsewhere for non-admin users.
+    const isPremium = currentUser?.premium?.active === true;
+    const now = new Date();
+
+    const filteredBulletins = allBulletins.filter(bulletin => {
+        if (!bulletin.premiumOnly && !bulletin.earlyAccess) return true;
+        if (isPremium) return true;
+        if (bulletin.premiumOnly) return false;
+        if (bulletin.earlyAccess) {
+             const publishedAt = new Date(bulletin.publishedAt);
+             const hoursSincePublished = (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60);
+             return hoursSincePublished >= 24;
+        }
+        return false;
+    });
+    
+    return {
+        bulletins: filteredBulletins,
+        lastDocId: lastVisibleDoc?.id
+    };
+};
+
+export const getPaginatedBulletins = async (
+    pageSize: number,
     startAfterDocId?: string,
     currentUser?: Author | null
 ): Promise<{ bulletins: Bulletin[]; lastDocId?: string }> => {
-    // This function is called from a client component with pagination, so it should not be cached.
     let lastDoc;
     if (startAfterDocId) {
         lastDoc = await getDoc(doc(db, "bulletins", startAfterDocId));
@@ -564,6 +600,7 @@ export const getBulletins = async (
     if (lastDoc) {
         constraints.push(startAfter(lastDoc));
     }
+    
     constraints.push(limit(pageSize));
     
     const q = query(bulletinsCollection, ...constraints);
@@ -592,6 +629,7 @@ export const getBulletins = async (
         lastDocId: lastVisibleDoc?.id
     };
 };
+
 
 export const getBulletin = (id: string): Promise<Bulletin | null> => {
     return unstable_cache(

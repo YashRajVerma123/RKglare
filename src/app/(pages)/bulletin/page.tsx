@@ -1,7 +1,7 @@
 
 'use client';
 import { useState, useEffect } from 'react';
-import { Bulletin, getBulletins } from '@/lib/data';
+import { Bulletin, getPaginatedBulletins } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Calendar, Loader2 } from 'lucide-react';
 import Image from 'next/image';
@@ -50,7 +50,7 @@ const BulletinPage = () => {
     useEffect(() => {
         const loadInitialBulletins = async () => {
             setLoading(true);
-            const { bulletins: initialBulletins, lastDocId: newLastDocId } = await getBulletins(3, undefined, user);
+            const { bulletins: initialBulletins, lastDocId: newLastDocId } = await getPaginatedBulletins(3, undefined, user);
             setBulletins(initialBulletins);
             setLastDocId(newLastDocId);
             setHasMore(!!newLastDocId);
@@ -62,7 +62,7 @@ const BulletinPage = () => {
     const loadMoreBulletins = async () => {
         if (!lastDocId || !hasMore) return;
         setLoadingMore(true);
-        const { bulletins: newBulletins, lastDocId: newLastDocId } = await getBulletins(3, lastDocId, user);
+        const { bulletins: newBulletins, lastDocId: newLastDocId } = await getPaginatedBulletins(3, lastDocId, user);
         setBulletins(prev => [...prev, ...newBulletins]);
         setLastDocId(newLastDocId);
         setHasMore(!!newLastDocId);

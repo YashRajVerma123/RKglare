@@ -131,7 +131,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                 const [posts, notifications, bulletinsResponse, users] = await Promise.all([
                     getPosts(false),
                     getNotifications(),
-                    getBulletins(100),
+                    getBulletins(),
                     getAuthors(),
                 ]);
                 
