@@ -21,6 +21,13 @@ import ReaderMode from '@/components/reader-mode';
 import ReadingTimer from '@/components/reading-timer';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 
 // Placeholder Ad Component
 const AdPlaceholder = () => (
@@ -220,12 +227,28 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
                 <>
                   <div className="my-12 h-[2px] w-full bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
                   <section className="animate-fade-in-up" style={{animationDelay: '1s'}}>
-                    <h2 className="text-3xl font-headline font-bold mb-8 text-center">Continue Reading</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {relatedPosts.map(relatedPost => (
-                        <BlogPostCard key={relatedPost.id} post={relatedPost} />
-                      ))}
+                    <div className="flex justify-between items-center mb-8">
+                      <h2 className="text-3xl font-headline font-bold">Continue Reading</h2>
                     </div>
+                     <Carousel
+                      opts={{
+                        align: "start",
+                        loop: true,
+                      }}
+                      className="w-full"
+                    >
+                      <CarouselContent>
+                        {relatedPosts.map((relatedPost, index) => (
+                          <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                            <div className="p-1">
+                              <BlogPostCard post={relatedPost} />
+                            </div>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                      <CarouselPrevious className="absolute -top-14 left-auto right-12" />
+                      <CarouselNext className="absolute -top-14 right-0" />
+                    </Carousel>
                   </section>
                 </>
               )}
