@@ -238,13 +238,22 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
     const style = document.createElement('style');
     style.id = 'pdf-styles';
     style.innerHTML = `
+      body {
+        --primary: 0 0 0;
+      }
       #article-content * {
         color: #000 !important;
         text-shadow: none !important;
       }
+      #article-content a {
+        text-decoration: underline;
+        color: #0000EE !important;
+      }
       #article-content mark {
-        background: none !important;
-        text-decoration: underline !important;
+        background: yellow !important;
+        color: #000 !important;
+      }
+      .prose-headings\:font-headline h1, .prose-headings\:font-headline h2, .prose-headings\:font-headline h3, .prose-headings\:font-headline h4, .prose-headings\:font-headline h5, .prose-headings\:font-headline h6 {
         color: #000 !important;
       }
     `;
@@ -463,4 +472,3 @@ export default function PostActions({ post, onReaderModeToggle }: { post: Post; 
 
   return ReactDOM.createPortal(actionBar, portalContainer);
 }
-
