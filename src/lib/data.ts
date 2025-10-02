@@ -31,6 +31,8 @@ export type Author = {
   points?: number;
   streak?: UserStreak;
   challenge?: DailyChallenge;
+  primaryColor?: string;
+  font?: string;
   premium?: {
     active: boolean;
     expires: string | null; // ISO Date string
@@ -238,6 +240,8 @@ export const authorConverter = {
             points: data.points || 0,
             streak: data.streak,
             challenge: data.challenge,
+            primaryColor: data.primaryColor,
+            font: data.font,
             premium: data.premium ? { ...data.premium, expires: safeToISOString(data.premium.expires) } : { active: false, expires: null },
         };
     },

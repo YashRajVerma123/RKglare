@@ -63,6 +63,52 @@ const generateUsername = (name: string): string => {
         .slice(0, 15); // limit length
 }
 
+function hexToHsl(hex: string): string {
+    if (!hex) return '';
+    hex = hex.replace(/^#/, '');
+    const r = parseInt(hex.substring(0, 2), 16) / 255;
+    const g = parseInt(hex.substring(2, 4), 16) / 255;
+    const b = parseInt(hex.substring(4, 6), 16) / 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0, s = 0, l = (max + min) / 2;
+
+    if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+
+    return `${(h * 360).toFixed(0)} ${(s * 100).toFixed(0)}% ${(l * 100).toFixed(0)}%`;
+}
+
+const applyUserTheme = (user: Author | null) => {
+    const root = document.documentElement;
+    if (user?.primaryColor) {
+        root.style.setProperty('--primary', hexToHsl(user.primaryColor));
+    } else {
+        root.style.removeProperty('--primary');
+    }
+
+    document.body.classList.forEach(className => {
+        if (className.startsWith('font-')) {
+            document.body.classList.remove(className);
+        }
+    });
+
+    if (user?.font) {
+        document.body.classList.add(`font-${user.font}`);
+    } else {
+        document.body.classList.add('font-body'); // Fallback to default
+    }
+};
+
 const formatUser = (user: FirebaseUser, firestoreData?: any): Author => {
     const premiumData = firestoreData?.premium;
     const expires = premiumData?.expires ? safeToISOString(premiumData.expires) : null;
@@ -83,6 +129,8 @@ const formatUser = (user: FirebaseUser, firestoreData?: any): Author => {
         points: firestoreData?.points || 0,
         streak: firestoreData?.streak,
         challenge: firestoreData?.challenge,
+        primaryColor: firestoreData?.primaryColor,
+        font: firestoreData?.font,
         premium: {
             active: !!(premiumData?.active && expires && new Date(expires) > new Date()),
             expires: expires,
@@ -133,10 +181,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(true);
         const firestoreData = await fetchUserFromFirestore(firebaseUser);
         const userData = await getUserData(firebaseUser.uid);
-        setUser(formatUser(firebaseUser, firestoreData));
+        const formattedUser = formatUser(firebaseUser, firestoreData);
+        setUser(formattedUser);
         setLikedPosts(userData.likedPosts);
         setLikedComments(userData.likedComments);
         setBookmarks(userData.bookmarks);
+        applyUserTheme(formattedUser);
         setLoading(false);
       }
   }, [firebaseUser]);
@@ -183,6 +233,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setLikedPosts(userData.likedPosts);
               setLikedComments(userData.likedComments);
               setBookmarks(userData.bookmarks);
+              applyUserTheme(formattedUser);
               if (formattedUser.premium?.active) {
                 document.body.classList.add('premium-user');
               } else {
@@ -194,6 +245,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setLikedPosts({});
               setLikedComments({});
               setBookmarks({});
+              applyUserTheme(null);
               document.body.classList.remove('premium-user');
             }
             setLoading(false);
@@ -250,6 +302,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
         document.body.classList.remove('premium-user');
     }
+    applyUserTheme(newUserData(user));
     
     if (mainAuthor && auth.currentUser.uid === mainAuthor.id) {
         setMainAuthor(prev => prev ? {...prev, ...updates} : null);

@@ -16,6 +16,8 @@ const profileSchema = z.object({
   avatar: z.string().optional(),
   bannerImage: z.string().optional(),
   showEmail: z.boolean().optional(),
+  primaryColor: z.string().optional(),
+  font: z.string().optional(),
 });
 
 export async function updateAuthorProfile(authorId: string, values: Partial<z.infer<typeof profileSchema>> & { avatar?: string, bannerImage?: string }): Promise<{ success: boolean }> {
@@ -35,6 +37,8 @@ export async function updateAuthorProfile(authorId: string, values: Partial<z.in
   if (values.avatar) updateData.avatar = values.avatar;
   if (values.bannerImage) updateData.bannerImage = values.bannerImage;
   if (values.showEmail !== undefined) updateData.showEmail = values.showEmail;
+  if (values.primaryColor) updateData.primaryColor = values.primaryColor;
+  if (values.font) updateData.font = values.font;
 
   if (Object.keys(updateData).length > 0) {
     await updateDoc(authorRef, updateData);
@@ -65,5 +69,3 @@ export async function getAuthorProfileAction(authorId: string): Promise<{ succes
         return { success: false, error: "A server error occurred while fetching the profile." };
     }
 }
-
-    

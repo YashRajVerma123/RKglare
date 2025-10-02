@@ -1,5 +1,5 @@
 
-import { Space_Grotesk, Work_Sans, Dancing_Script, Nunito } from "next/font/google";
+import { Space_Grotesk, Work_Sans, Dancing_Script, Nunito, Libre_Baskerville } from "next/font/google";
 
 export const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -22,4 +22,10 @@ export const nunito = Nunito({
   subsets: ['latin'],
   variable: '--font-nunito',
   weight: '300'
+});
+
+export const libreBaskerville = Libre_Baskerville({
+    subsets: ['latin'],
+    variable: '--font-libre-baskerville',
+    weight: ['400', '700'],
 });

@@ -117,7 +117,7 @@ const AboutTheAuthor = ({ previewData }: AboutTheAuthorProps) => {
                      </Button>
                 </div>
                 {signature && (
-                    <div className="mt-4">
+                    <div className="mt-4 text-center md:text-right w-full">
                         <p className="font-signature text-4xl bg-gradient-to-r from-foreground/80 to-foreground/50 bg-clip-text text-transparent drop-shadow-sm">~{signature}</p>
                     </div>
                 )}

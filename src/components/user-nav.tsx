@@ -1,6 +1,6 @@
 
 'use client';
-import { CreditCard, LogOut, User as UserIcon, Upload, Moon, Sun, Loader2, PanelRightOpen, Settings, UserPlus,LogIn, RefreshCw, Type, X, AtSign, Image as ImageIcon } from 'lucide-react';
+import { CreditCard, LogOut, User as UserIcon, Upload, Moon, Sun, Loader2, PanelRightOpen, Settings, UserPlus,LogIn, RefreshCw, Type, X, AtSign, Image as ImageIcon, Palette } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -40,8 +40,6 @@ import { Progress } from './ui/progress';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { getAuthors } from '@/lib/data';
 import { Trophy } from 'lucide-react';
-import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import Image from 'next/image';
 
 // Helper to convert file to Base64
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
@@ -56,8 +54,6 @@ const profileFormSchema = z.object({
     username: z.string().min(3, "Username must be at least 3 characters.").max(15, "Username cannot exceed 15 characters.").regex(/^[a-z0-9_.]+$/, "Can only contain lowercase letters, numbers, underscores, and periods."),
     bio: z.string().optional(),
     showEmail: z.boolean().default(false),
-    instagramUrl: z.string().url('Please enter a valid Instagram URL.').optional().or(z.literal('')),
-    signature: z.string().optional(),
 });
 
 const getInitials = (name: string) => {
@@ -99,8 +95,6 @@ const UserNav = () => {
     username: user?.username || '',
     bio: user?.bio || '',
     showEmail: user?.showEmail || false,
-    instagramUrl: user?.instagramUrl || '',
-    signature: user?.signature || '',
   }), [user]);
 
   const profileForm = useForm<z.infer<typeof profileFormSchema>>({
@@ -524,32 +518,6 @@ const UserNav = () => {
                                     rows={3}
                                     {...field}
                                     />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={profileForm.control}
-                            name="instagramUrl"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Instagram URL</FormLabel>
-                                <FormControl>
-                                <Input placeholder="https://instagram.com/your-profile" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={profileForm.control}
-                            name="signature"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Signature</FormLabel>
-                                <FormControl>
-                                <Input placeholder="Your Signature" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
