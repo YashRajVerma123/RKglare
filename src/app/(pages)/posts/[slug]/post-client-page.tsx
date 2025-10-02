@@ -50,7 +50,7 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
     align: 'center',
   });
 
-  const [slidesInView, setSlidesInView] = useState<number[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const isBookmarked = post ? bookmarks[post.id] : false;
   
@@ -67,22 +67,17 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
       mono: 'font-mono'
   }[fontPreference];
 
-  const updateSlidesInView = useCallback((emblaApi: EmblaCarouselType) => {
-    setSlidesInView((slidesInView) => {
-      if (slidesInView.length === emblaApi.slidesInView().length) {
-        if (slidesInView.every((v, i) => v === emblaApi.slidesInView()[i]))
-          return slidesInView;
-      }
-      return emblaApi.slidesInView();
-    });
+  const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
+    setSelectedIndex(emblaApi.selectedScrollSnap());
   }, []);
+
 
   useEffect(() => {
     if (!emblaApi) return;
-    updateSlidesInView(emblaApi);
-    emblaApi.on('select', updateSlidesInView);
-    emblaApi.on('reInit', updateSlidesInView);
-  }, [emblaApi, updateSlidesInView]);
+    onSelect(emblaApi);
+    emblaApi.on('select', onSelect);
+    emblaApi.on('reInit', onSelect);
+  }, [emblaApi, onSelect]);
 
 
   useEffect(() => {
@@ -252,9 +247,8 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
                             <div
                               key={relatedPost.id}
                               className={cn(
-                                "embla__slide",
-                                "transition-all duration-500 ease-in-out",
-                                slidesInView.includes(index) ? 'opacity-100 scale-100' : 'opacity-50 scale-80 grayscale'
+                                "embla__slide transition-all duration-500 ease-in-out",
+                                index === selectedIndex ? 'opacity-100 scale-100' : 'opacity-50 scale-80 grayscale'
                               )}
                             >
                               <div className="p-2 h-full">
