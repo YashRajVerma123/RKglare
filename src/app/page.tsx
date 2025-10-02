@@ -1,13 +1,6 @@
 
 import Link from 'next/link';
-import { ArrowRight, BrainCircuit, Rocket, SatelliteDish, Mail } from 'lucide-react';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel"
+import { ArrowRight, BrainCircuit, Rocket, SatelliteDish } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { getFeaturedPosts, getRecentPosts, getTrendingPosts } from '@/lib/data';
@@ -15,7 +8,6 @@ import FeedTabs from '@/components/feed-tabs';
 import AboutTheAuthor from '@/components/about-the-author';
 import PopularPostCard from '@/components/popular-post-card';
 import EditorsPickCard from '@/components/editors-pick-card';
-import FeaturedPostCard from '@/components/featured-post-card';
 
 const topics = [
     {
@@ -72,29 +64,27 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Featured Posts Carousel */}
+      {/* Featured Posts Bento Grid */}
       {featuredPosts.length > 0 && (
           <section className="container mx-auto px-4">
-              <h2 className="text-3xl font-headline font-bold mb-8 text-center">Featured Stories</h2>
-              <Carousel
-                  opts={{
-                      align: "start",
-                      loop: true,
-                  }}
-                  className="w-full"
-              >
-                  <CarouselContent>
-                      {featuredPosts.map((post) => (
-                          <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3">
-                              <div className="p-1 h-full">
-                                  <FeaturedPostCard post={post} />
-                              </div>
-                          </CarouselItem>
-                      ))}
-                  </CarouselContent>
-                  <CarouselPrevious className="hidden md:flex" />
-                  <CarouselNext className="hidden md:flex" />
-              </Carousel>
+               <h2 className="text-3xl font-headline font-bold mb-8 text-center">Editor's Picks</h2>
+               <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-6 h-[600px]">
+                    {mainPost && (
+                        <div className="md:col-span-2 md:row-span-2">
+                            <EditorsPickCard post={mainPost} layout="large" priority />
+                        </div>
+                    )}
+                    {secondaryPost && (
+                         <div className="md:col-span-2 md:row-span-1">
+                            <EditorsPickCard post={secondaryPost} layout="medium" priority />
+                        </div>
+                    )}
+                    {tertiaryPosts.map((post) => (
+                        <div key={post.id} className="md:col-span-1 md:row-span-1">
+                             <EditorsPickCard post={post} layout="small" />
+                        </div>
+                    ))}
+               </div>
           </section>
       )}
 
