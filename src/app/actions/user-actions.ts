@@ -3,9 +3,9 @@
 
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/firebase-server'; // Use server db
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { z } from 'zod';
-import { Author } from '@/lib/data';
+import { Author, authorConverter } from '@/lib/data';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -50,3 +50,24 @@ export async function updateAuthorProfile(authorId: string, values: Partial<z.in
   
   return { success: true };
 }
+
+
+export async function getAuthorProfileAction(authorId: string): Promise<{ success: boolean, author?: Author | null, error?: string }> {
+    if (!authorId) {
+        return { success: false, error: "Author ID is required." };
+    }
+    try {
+        const authorRef = doc(db, 'users', authorId).withConverter(authorConverter);
+        const docSnap = await getDoc(authorRef);
+        if (docSnap.exists()) {
+            return { success: true, author: docSnap.data() };
+        } else {
+            return { success: false, error: "User not found." };
+        }
+    } catch (e) {
+        console.error("Error fetching author profile:", e);
+        return { success: false, error: "A server error occurred while fetching the profile." };
+    }
+}
+
+    

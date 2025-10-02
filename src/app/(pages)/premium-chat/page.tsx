@@ -10,7 +10,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Send, Loader2, Star, Trash2, Smile, MessageSquareReply, Pencil, X, MoreHorizontal, Paperclip, Users, MessageSquare } from 'lucide-react';
 import { collection, query, orderBy, onSnapshot, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase-client';
-import { ChatMessage, messageConverter, Author, getAuthorById } from '@/lib/data';
+import { ChatMessage, messageConverter, Author } from '@/lib/data';
 import { sendMessage, deleteMessage, editMessage, toggleReaction } from '@/app/actions/chat-actions';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
@@ -43,6 +43,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import ProfileCard from '@/components/profile-card';
+import { getAuthorProfileAction } from '@/app/actions/user-actions';
 
 const getInitials = (name: string) => {
     if (!name) return '';
@@ -111,16 +112,18 @@ const PremiumChatPage = () => {
 
     const handleAvatarClick = async (authorId: string) => {
         setIsProfileLoading(true);
+        setProfileCardOpen(true);
         try {
-            const fullAuthor = await getAuthorById(authorId);
-            if (fullAuthor) {
-                setSelectedProfileUser(fullAuthor);
-                setProfileCardOpen(true);
+            const result = await getAuthorProfileAction(authorId);
+            if (result.success && result.author) {
+                setSelectedProfileUser(result.author);
             } else {
-                toast({ title: "Error", description: "Could not load user profile.", variant: "destructive" });
+                toast({ title: "Error", description: result.error || "Could not load user profile.", variant: "destructive" });
+                setProfileCardOpen(false);
             }
         } catch (error) {
             toast({ title: "Error", description: "Failed to fetch profile.", variant: "destructive" });
+            setProfileCardOpen(false);
         } finally {
             setIsProfileLoading(false);
         }
@@ -496,12 +499,13 @@ const PremiumChatPage = () => {
 
              <Dialog open={isProfileCardOpen} onOpenChange={setProfileCardOpen}>
                 <DialogContent className="sm:max-w-md p-0">
-                    {isProfileLoading && (
+                    {isProfileLoading ? (
                         <div className="flex justify-center items-center h-48">
                             <Loader2 className="h-8 w-8 animate-spin" />
                         </div>
-                    )}
-                    {!isProfileLoading && selectedProfileUser && <ProfileCard user={selectedProfileUser} />}
+                    ) : selectedProfileUser ? (
+                        <ProfileCard user={selectedProfileUser} />
+                    ) : null}
                 </DialogContent>
             </Dialog>
         </div>
@@ -509,6 +513,8 @@ const PremiumChatPage = () => {
 };
 
 export default PremiumChatPage;
+
+    
 
     
 
