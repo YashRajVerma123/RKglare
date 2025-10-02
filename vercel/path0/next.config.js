@@ -1,3 +1,11 @@
+
+const withPWA = require('next-pwa')({
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development',
+  register: true,
+  skipWaiting: true,
+});
+
 const {
   NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   NEXT_PUBLIC_FIREBASE_APP_ID,
@@ -70,7 +78,8 @@ const nextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https',
+        protocol: 'https'
+        ,
         hostname: 'source.unsplash.com',
         port: '',
         pathname: '/**',
@@ -82,4 +91,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+module.exports = withPWA(nextConfig);
