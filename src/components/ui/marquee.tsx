@@ -29,7 +29,7 @@ const Marquee = React.forwardRef<HTMLDivElement, MarqueeProps>(
         ref={ref}
         {...props}
         className={cn(
-          "group flex overflow-hidden p-2 [--duration:60s] [--gap:1rem] [background:radial-gradient(ellipse_at_center,rgba(var(--primary),0.1),transparent_80%)]",
+          "group flex overflow-hidden p-2 [--gap:1rem] [--duration:60s]",
           {
             "flex-row": !vertical,
             "flex-col": vertical,
@@ -43,13 +43,21 @@ const Marquee = React.forwardRef<HTMLDivElement, MarqueeProps>(
             <div
               key={i}
               className={cn("flex shrink-0 justify-around [gap:var(--gap)]", {
-                "animate-marquee-horizontal": !vertical,
-                "animate-marquee-vertical": vertical,
                 "group-hover:[animation-play-state:paused]": pauseOnHover,
                 "[animation-direction:reverse]": reverse,
               })}
+              style={{
+                animation: `${vertical ? 'marquee-vertical' : 'marquee-horizontal'} var(--duration) linear infinite`,
+              }}
             >
-              {children}
+              {React.Children.map(children, (child) => 
+                React.cloneElement(child as React.ReactElement, {
+                  className: cn(
+                    (child as React.ReactElement).props.className,
+                    "rounded-2xl"
+                  ),
+                })
+              )}
             </div>
           ))}
       </div>
