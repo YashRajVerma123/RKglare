@@ -22,6 +22,7 @@ import ReadingTimer from '@/components/reading-timer';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import useEmblaCarousel, { EmblaCarouselType } from 'embla-carousel-react';
+import ParallaxContainer from '@/components/parallax-container';
 
 
 interface PostClientPageProps {
@@ -166,8 +167,8 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
             </div>
           </header>
           
-          <div 
-            className="relative aspect-video rounded-xl overflow-hidden mb-8 shadow-lg animate-fade-in-up"
+          <ParallaxContainer 
+            className="aspect-video rounded-xl overflow-hidden mb-8 shadow-lg animate-fade-in-up"
             style={{ animationDelay: '0.2s' }}
           >
             <Image
@@ -178,7 +179,7 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
               className="object-cover"
               data-ai-hint="blog post header"
             />
-          </div>
+          </ParallaxContainer>
 
           { canViewContent ? (
              <div 
@@ -281,3 +282,5 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
     </>
   );
 };
+
+    

@@ -2,6 +2,7 @@
 import { Award, FileText, Globe, Users } from "lucide-react";
 import { Newspaper, Rss, ShieldCheck } from "lucide-react";
 import Counter from "@/components/counter";
+import ParallaxContainer from "@/components/parallax-container";
 
 const features = [
   {
@@ -31,14 +32,16 @@ const stats = [
 const AboutPage = () => {
   return (
     <div className="container mx-auto px-4 py-16">
-      <section className="text-center mb-24 animate-fade-in-up">
-        <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight mb-4">
-          About Glare<span className="text-primary">.</span>
-        </h1>
-        <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
-          Cutting through the noise, delivering clarity. We are your essential destination for making sense of today's complex world.
-        </p>
-      </section>
+      <ParallaxContainer>
+        <section className="text-center mb-24 animate-fade-in-up">
+          <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight mb-4">
+            About Glare<span className="text-primary">.</span>
+          </h1>
+          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
+            Cutting through the noise, delivering clarity. We are your essential destination for making sense of today's complex world.
+          </p>
+        </section>
+      </ParallaxContainer>
 
       <section className="mb-24">
         <div className="text-center mb-12">
@@ -82,3 +85,5 @@ const AboutPage = () => {
 };
 
 export default AboutPage;
+
+    

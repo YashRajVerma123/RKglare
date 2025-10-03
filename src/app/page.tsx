@@ -10,6 +10,7 @@ import PopularPostCard from '@/components/popular-post-card';
 import EditorsPickCard from '@/components/editors-pick-card';
 import Marquee from '@/components/ui/marquee';
 import { Badge } from '@/components/ui/badge';
+import ParallaxContainer from '@/components/parallax-container';
 
 const topics = [
     { icon: <SatelliteDish className="h-5 w-5" />, title: "Modern Tech" },
@@ -63,17 +64,23 @@ export default async function HomePage() {
                <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-6 md:h-[600px]">
                     {mainPost && (
                         <div className="md:col-span-2 md:row-span-2">
+                           <ParallaxContainer>
                             <EditorsPickCard post={mainPost} layout="large" priority />
+                           </ParallaxContainer>
                         </div>
                     )}
                     {secondaryPost && (
                          <div className="md:col-span-2 md:row-span-1">
+                           <ParallaxContainer>
                             <EditorsPickCard post={secondaryPost} layout="medium" priority />
+                           </ParallaxContainer>
                         </div>
                     )}
                     {tertiaryPosts.map((post) => (
                         <div key={post.id} className="md:col-span-1 md:row-span-1">
+                            <ParallaxContainer>
                              <EditorsPickCard post={post} layout="small" />
+                            </ParallaxContainer>
                         </div>
                     ))}
                </div>
@@ -107,7 +114,7 @@ export default async function HomePage() {
             <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">We focus on the subjects that are shaping tomorrow, today.</p>
         </div>
         <div className="relative flex w-full flex-col items-center justify-center overflow-hidden rounded-lg border bg-background/50 py-8 md:py-12">
-          <Marquee>
+          <Marquee className="[--gap:3rem]">
             {topics.map((topic) => (
               <div key={topic.title} className="flex items-center gap-3 text-xl font-semibold text-muted-foreground mx-4">
                 {topic.icon}
@@ -126,3 +133,5 @@ export default async function HomePage() {
     </div>
   );
 }
+
+    

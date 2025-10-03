@@ -268,13 +268,20 @@
        background: linear-gradient(to right, transparent, hsl(var(--primary)/0.5), transparent);
     }
     
-    /* New Marquee Animation */
+    /* Marquee Animation */
     .animate-marquee-horizontal {
-      animation: marquee-horizontal var(--duration, 60s) linear infinite;
+      animation: marquee-horizontal 60s linear infinite;
+      will-change: transform;
     }
     
     .animate-marquee-vertical {
-      animation: marquee-vertical var(--duration, 60s) linear infinite;
+      animation: marquee-vertical 60s linear infinite;
+      will-change: transform;
+    }
+    
+    .parallax > * {
+      animation: parallax-scroll linear;
+      animation-timeline: scroll(root);
     }
 }
 
@@ -425,7 +432,7 @@
     transform: translateX(0);
   }
   to {
-    transform: translateX(calc(-100% - var(--gap)));
+    transform: translateX(-100%);
   }
 }
 
@@ -434,6 +441,17 @@
     transform: translateY(0);
   }
   to {
-    transform: translateY(calc(-100% - var(--gap)));
+    transform: translateY(-100%);
   }
 }
+
+@keyframes parallax-scroll {
+  from {
+    transform: translateY(-50px);
+  }
+  to {
+    transform: translateY(50px);
+  }
+}
+
+    
