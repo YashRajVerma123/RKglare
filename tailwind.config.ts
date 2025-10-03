@@ -127,14 +127,6 @@ export default {
                 transform: 'translateY(0)'
             }
         },
-        "marquee-horizontal": {
-          "0%": { transform: "translateX(0)" },
-          "100%": { transform: "translateX(calc(-100% - var(--gap)))" },
-        },
-        "marquee-vertical": {
-          "0%": { transform: "translateY(0)" },
-          "100%": { transform: "translateY(calc(-100% - var(--gap)))" },
-        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -142,8 +134,6 @@ export default {
         'pulse-dot': 'pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         spin: 'spin 1s linear infinite',
         'fade-in-up': 'fade-in-up 0.5s ease-out',
-        "marquee-horizontal": "marquee-horizontal var(--duration) linear infinite",
-        "marquee-vertical": "marquee-vertical var(--duration) linear infinite",
       },
     },
   },

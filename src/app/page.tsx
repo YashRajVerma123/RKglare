@@ -77,12 +77,12 @@ export default async function HomePage() {
       </section>
 
       {/* Marquee Section */}
-      <section className="relative w-full">
+      <section className="relative w-full py-12">
         <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-headline font-bold">Why Glare?</h2>
             <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">We focus on the subjects that are shaping tomorrow, today.</p>
         </div>
-        <Marquee pauseOnHover className="[--duration:60s]">
+        <Marquee pauseOnHover>
             {topics.map((topic) => (
                 <div key={topic.title} className="glass-card text-center p-8 transition-transform transform hover:-translate-y-2 w-72 h-full flex flex-col">
                     <div className="flex-shrink-0 inline-block p-4 bg-primary/10 rounded-full mb-4 mx-auto">
@@ -137,25 +137,6 @@ export default async function HomePage() {
       {/* Recent Posts Section */}
       <section className="container mx-auto px-4">
         <FeedTabs recentPosts={recentPosts} />
-      </section>
-
-      {/* Why Glare? Section */}
-      <section className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-headline font-bold">Why Glare?</h2>
-            <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">We focus on the subjects that are shaping tomorrow, today.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {topics.slice(0,3).map((topic, index) => (
-                  <div key={index} className="glass-card text-center p-8 transition-transform transform hover:-translate-y-2">
-                      <div className="inline-block p-4 bg-primary/10 rounded-full mb-4">
-                          {topic.icon}
-                      </div>
-                      <h3 className="text-xl font-headline font-semibold mb-2">{topic.title}</h3>
-                      <p className="text-muted-foreground text-sm">{topic.description}</p>
-                  </div>
-              ))}
-          </div>
       </section>
 
       {/* About the Developer Section */}

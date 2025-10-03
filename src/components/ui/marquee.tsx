@@ -1,3 +1,4 @@
+
 import { cn } from "@/lib/utils";
 import { ReactNode } from "react";
 
@@ -24,7 +25,7 @@ export default function Marquee({
     <div
       {...props}
       className={cn(
-        "group flex overflow-hidden p-2 [--gap:1rem] [--duration:60s]",
+        "group flex overflow-hidden p-2 [--gap:1rem] [--duration:60s] [background:radial-gradient(ellipse_at_center,rgba(var(--primary),0.1),transparent_80%)]",
         {
           "flex-row": !vertical,
           "flex-col": vertical,
@@ -37,7 +38,7 @@ export default function Marquee({
         .map((_, i) => (
           <div
             key={i}
-            className={cn("flex shrink-0 justify-start [gap:var(--gap)]", {
+            className={cn("flex shrink-0 justify-around [gap:var(--gap)]", {
               "animate-marquee-horizontal": !vertical,
               "animate-marquee-vertical": vertical,
               "group-hover:[animation-play-state:paused]": pauseOnHover,
