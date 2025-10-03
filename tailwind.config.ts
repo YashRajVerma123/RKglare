@@ -126,14 +126,24 @@ export default {
                 opacity: '1',
                 transform: 'translateY(0)'
             }
-        }
+        },
+        "marquee-horizontal": {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(calc(-100% - var(--gap)))" },
+        },
+        "marquee-vertical": {
+          from: { transform: "translateY(0)" },
+          to: { transform: "translateY(calc(-100% - var(--gap)))" },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'pulse-dot': 'pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         spin: 'spin 1s linear infinite',
-        'fade-in-up': 'fade-in-up 0.5s ease-out'
+        'fade-in-up': 'fade-in-up 0.5s ease-out',
+        "marquee-horizontal": "marquee-horizontal var(--duration) linear infinite",
+        "marquee-vertical": "marquee-vertical var(--duration) linear infinite",
       },
     },
   },

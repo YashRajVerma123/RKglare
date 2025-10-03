@@ -8,6 +8,8 @@ import FeedTabs from '@/components/feed-tabs';
 import AboutTheAuthor from '@/components/about-the-author';
 import PopularPostCard from '@/components/popular-post-card';
 import EditorsPickCard from '@/components/editors-pick-card';
+import Marquee from '@/components/ui/marquee';
+import { Badge } from '@/components/ui/badge';
 
 const topics = [
     {
@@ -62,6 +64,17 @@ export default async function HomePage() {
             </Button>
           </div>
         </div>
+      </section>
+
+      {/* Marquee Section */}
+      <section className="relative w-full">
+        <Marquee pauseOnHover className="[--duration:60s]">
+            {topics.map((topic) => (
+                <Badge key={topic.title} variant="secondary" className="px-4 py-2 text-lg rounded-full">
+                    {topic.title}
+                </Badge>
+            ))}
+        </Marquee>
       </section>
 
       {/* Featured Posts Bento Grid */}
