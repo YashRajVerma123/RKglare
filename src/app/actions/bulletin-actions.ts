@@ -46,5 +46,3 @@ export async function deleteBulletinAction(bulletinId: string): Promise<{ succes
         return { success: false, error: "A server error occurred while deleting the bulletin." };
     }
 }
-
-    

@@ -919,7 +919,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                                     <Card className="glass-card">
                                         <CardHeader>
                                             <CardTitle>Manage Content</CardTitle>
-                                            <CardDescription>Edit or delete existing content.</CardDescription>
+                                            <CardDescription>Delete existing content.</CardDescription>
                                         </CardHeader>
                                         <CardContent>
                                             <Tabs defaultValue="bulletins" className="w-full">
@@ -1079,5 +1079,3 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
 };
 
 export default AdminClientPage;
-
-    
