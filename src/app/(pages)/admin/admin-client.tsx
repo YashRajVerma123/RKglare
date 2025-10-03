@@ -937,9 +937,6 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                                                                     <p className="text-xs text-muted-foreground">{item.content}</p>
                                                                 </div>
                                                                 <div className="flex items-center">
-                                                                    <Button asChild variant="ghost" size="icon">
-                                                                        <Link href={`/admin/edit-bulletin/${item.id}`}><Edit className="h-4 w-4" /></Link>
-                                                                    </Button>
                                                                     <Button variant="ghost" size="icon" onClick={() => handleDeleteBulletinClick(item)}>
                                                                         <Trash className="h-4 w-4 text-red-500" />
                                                                     </Button>
@@ -1085,3 +1082,5 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
 };
 
 export default AdminClientPage;
+
+    
