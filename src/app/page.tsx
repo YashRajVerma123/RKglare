@@ -1,6 +1,6 @@
 
 import Link from 'next/link';
-import { ArrowRight, BrainCircuit, Cpu, Dna, Rocket, SatelliteDish } from 'lucide-react';
+import { ArrowRight, BrainCircuit, Cpu, Dna, Rocket, SatelliteDish, Star } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { getFeaturedPosts, getRecentPosts, getTrendingPosts } from '@/lib/data';
@@ -12,32 +12,12 @@ import Marquee from '@/components/ui/marquee';
 import { Badge } from '@/components/ui/badge';
 
 const topics = [
-    {
-        icon: <SatelliteDish className="h-10 w-10 text-primary mb-4" />,
-        title: "Modern Tech",
-        description: "Exploring the latest trends and breakthroughs in the world of technology, from gadgets to global networks."
-    },
-    {
-        icon: <BrainCircuit className="h-10 w-10 text-primary mb-4" />,
-        title: "Artificial Intelligence",
-        description: "Diving deep into the AI revolution, demystifying algorithms and exploring its impact on our future."
-    },
-    {
-        icon: <Rocket className="h-10 w-10 text-primary mb-4" />,
-        title: "Space Exploration",
-        description: "Journeying through the cosmos, covering the latest missions, discoveries, and the quest to understand our universe."
-    },
-    {
-        icon: <Cpu className="h-10 w-10 text-primary mb-4" />,
-        title: "Quantum Computing",
-        description: "Unlocking the next frontier of computation, from qubits to quantum supremacy and its potential applications."
-    },
-    {
-        icon: <Dna className="h-10 w-10 text-primary mb-4" />,
-        title: "Biotechnology",
-        description: "Covering the latest advances in life sciences, from gene editing with CRISPR to personalized medicine."
-    }
-]
+    { icon: <SatelliteDish className="h-5 w-5" />, title: "Modern Tech" },
+    { icon: <BrainCircuit className="h-5 w-5" />, title: "Artificial Intelligence" },
+    { icon: <Rocket className="h-5 w-5" />, title: "Space Exploration" },
+    { icon: <Cpu className="h-5 w-5" />, title: "Quantum Computing" },
+    { icon: <Dna className="h-5 w-5" />, title: "Biotechnology" },
+];
 
 export default async function HomePage() {
   const [featuredPosts, recentPosts, trendingPosts] = await Promise.all([
@@ -123,20 +103,19 @@ export default async function HomePage() {
       {/* Marquee Section */}
       <section className="relative w-full py-12">
         <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-headline font-bold">Why Glare?</h2>
+            <h2 className="text-3xl md:text-4xl font-headline font-bold">Covering What Matters</h2>
             <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">We focus on the subjects that are shaping tomorrow, today.</p>
         </div>
-        <Marquee pauseOnHover>
-            {topics.map((topic) => (
-                <div key={topic.title} className="glass-card text-center p-8 transition-transform transform hover:-translate-y-2 w-72 h-full flex flex-col">
-                    <div className="flex-shrink-0 inline-block p-4 bg-primary/10 rounded-full mb-4 mx-auto">
-                        {topic.icon}
-                    </div>
-                    <h3 className="text-xl font-headline font-semibold mb-2">{topic.title}</h3>
-                    <p className="text-muted-foreground text-sm flex-grow">{topic.description}</p>
-                </div>
+        <div className="relative flex w-full flex-col items-center justify-center overflow-hidden rounded-lg border bg-background/50 py-8 md:py-12">
+          <Marquee pauseOnHover className="[--duration:60s]">
+            {topics.map((topic, index) => (
+              <div key={index} className="flex items-center gap-3 text-xl font-semibold text-muted-foreground mx-4">
+                {topic.icon}
+                <span>{topic.title}</span>
+              </div>
             ))}
-        </Marquee>
+          </Marquee>
+        </div>
       </section>
 
     </div>
