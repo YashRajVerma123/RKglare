@@ -68,11 +68,19 @@ export default async function HomePage() {
 
       {/* Marquee Section */}
       <section className="relative w-full">
+        <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-headline font-bold">Why Glare?</h2>
+            <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">We focus on the subjects that are shaping tomorrow, today.</p>
+        </div>
         <Marquee pauseOnHover className="[--duration:60s]">
             {topics.map((topic) => (
-                <Badge key={topic.title} variant="secondary" className="px-4 py-2 text-lg rounded-full">
-                    {topic.title}
-                </Badge>
+                <div key={topic.title} className="glass-card text-center p-8 transition-transform transform hover:-translate-y-2 w-72 h-full flex flex-col">
+                    <div className="flex-shrink-0 inline-block p-4 bg-primary/10 rounded-full mb-4 mx-auto">
+                        {topic.icon}
+                    </div>
+                    <h3 className="text-xl font-headline font-semibold mb-2">{topic.title}</h3>
+                    <p className="text-muted-foreground text-sm flex-grow">{topic.description}</p>
+                </div>
             ))}
         </Marquee>
       </section>
