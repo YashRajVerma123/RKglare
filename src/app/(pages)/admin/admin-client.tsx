@@ -1,3 +1,4 @@
+
 'use client';
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
@@ -1078,3 +1079,5 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
 };
 
 export default AdminClientPage;
+
+    
