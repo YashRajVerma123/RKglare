@@ -84,5 +84,3 @@ const PostsClient = ({ initialPosts }: { initialPosts: Post[] }) => {
 };
 
 export default PostsClient;
-
-    

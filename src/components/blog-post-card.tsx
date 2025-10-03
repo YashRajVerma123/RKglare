@@ -29,11 +29,9 @@ const BlogPostCard = ({ post, priority = false }: BlogPostCardProps) => {
         <div className="p-6 flex flex-col flex-grow">
           <div className="flex justify-between items-center text-xs text-zinc-400 mb-4">
             <Badge variant="secondary" className="bg-zinc-800 text-zinc-300 border-none">{post.tags[0] || 'Article'}</Badge>
-            <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5">
-                    <Calendar className="h-3 w-3" />
-                    <span>{new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                </div>
+            <div className="flex items-center gap-1.5">
+                <Calendar className="h-3 w-3" />
+                <span>{new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}</span>
             </div>
           </div>
           <h4 className="font-semibold text-lg text-white leading-snug mb-2 group-hover:text-primary transition-colors">

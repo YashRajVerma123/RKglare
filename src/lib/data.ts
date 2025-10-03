@@ -737,6 +737,3 @@ export type DailyChallenge = {
   completed: boolean;
   assignedAt: string; // ISO string
 };
-
-
-      

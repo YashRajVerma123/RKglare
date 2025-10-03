@@ -129,9 +129,9 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
             try {
                 setDataLoading(true);
                 const [posts, notifications, bulletinsResponse, users] = await Promise.all([
-                    getPosts(false),
+                    getPosts(false, user),
                     getNotifications(),
-                    getBulletins(),
+                    getBulletins(user),
                     getAuthors(),
                 ]);
                 
@@ -154,7 +154,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
             }
         };
         fetchAllData();
-    }, [toast]);
+    }, [toast, user]);
 
 
     const notificationForm = useForm<z.infer<typeof notificationSchema>>({
