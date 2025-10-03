@@ -267,13 +267,13 @@
     .gradient-underline {
        background: linear-gradient(to right, transparent, hsl(var(--primary)/0.5), transparent);
     }
-
+    
     .animate-marquee-horizontal {
-      animation: marquee-horizontal var(--duration) linear infinite;
+      animation: marquee-horizontal var(--duration, 60s) linear infinite;
     }
-
+    
     .animate-marquee-vertical {
-      animation: marquee-vertical var(--duration) linear infinite;
+      animation: marquee-vertical var(--duration, 60s) linear infinite;
     }
 }
 
@@ -420,12 +420,19 @@
 
 /* Marquee */
 @keyframes marquee-horizontal {
-  from { transform: translateX(0); }
-  to { transform: translateX(calc(-100% - var(--gap))); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+  }
 }
 
 @keyframes marquee-vertical {
-  from { transform: translateY(0); }
-  to { transform: translateY(calc(-100% - var(--gap))); }
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+  }
 }
-    
