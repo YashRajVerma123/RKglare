@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter, notFound } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
-import { useEffect, useState, useRef, use } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Post, getPostClient } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { updatePost } from '@/app/actions/post-actions';
@@ -56,7 +56,7 @@ const formSchema = z.object({
 });
 
 export default function EditPostPage({ params }: { params: { slug: string } }) {
-  const { slug } = use(params);
+  const { slug } = params;
   const { toast } = useToast();
   const router = useRouter();
   const { user, isAdmin, loading: authLoading } = useAuth();

@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter, notFound } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
 import { Bulletin, getBulletinClient } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,7 @@ type PageProps = {
 };
 
 export default function EditBulletinPage({ params }: PageProps) {
-  const { id } = use(params);
+  const { id } = params;
   const { toast } = useToast();
   const router = useRouter();
   const { isAdmin, loading: authLoading } = useAuth();
