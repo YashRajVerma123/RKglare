@@ -68,7 +68,7 @@ export default async function HomePage() {
       {featuredPosts.length > 0 && (
           <section className="container mx-auto px-4">
                <h2 className="text-3xl font-headline font-bold mb-8 text-center">Editor's Picks</h2>
-               <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-6 h-[600px]">
+               <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-6 md:h-[600px]">
                     {mainPost && (
                         <div className="md:col-span-2 md:row-span-2">
                             <EditorsPickCard post={mainPost} layout="large" priority />
