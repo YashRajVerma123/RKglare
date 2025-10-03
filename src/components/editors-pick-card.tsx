@@ -52,7 +52,7 @@ const EditorsPickCard = ({ post, layout = 'medium', priority = false }: EditorsP
           <div className="mt-auto pt-2 text-xs text-muted-foreground">
             <span>{post.author.name}</span>
             <span className="mx-1.5">&bull;</span>
-            <span>{new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</span>
+            <span>{new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' })}</span>
           </div>
         </div>
       </div>
