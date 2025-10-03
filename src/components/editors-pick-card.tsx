@@ -32,9 +32,15 @@ const EditorsPickCard = ({ post, layout = 'medium', priority = false }: EditorsP
         </div>
         
         {/* Overlay and Text Content */}
-        <div className="absolute inset-0 flex flex-col justify-end">
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-            <div className="relative p-4 text-white transform transition-transform duration-500 ease-in-out translate-y-full group-hover:translate-y-0">
+        <div className={cn(
+            "absolute inset-0 flex flex-col justify-end transition-all duration-500 ease-in-out",
+            // On devices that support hover, the content is hidden by default and translates up on group-hover
+            "[@media(hover:hover)]:translate-y-full [@media(hover:hover)]:group-hover:translate-y-0",
+             // On touch devices, the content is always visible
+            "[@media(hover:none)]:translate-y-0"
+        )}>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent opacity-100"></div>
+            <div className="relative p-4 text-white">
                 {post.tags[0] && <Badge variant="secondary" className="mb-2 self-start">{post.tags[0]}</Badge>}
                 <h3
                     className={cn(
