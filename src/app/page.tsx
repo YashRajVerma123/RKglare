@@ -100,11 +100,6 @@ export default async function HomePage() {
         <FeedTabs recentPosts={recentPosts} />
       </section>
 
-      {/* About the Author Section */}
-      <section className="container mx-auto px-4">
-        <AboutTheAuthor />
-      </section>
-
       {/* Marquee Section */}
       <section className="relative w-full py-12">
         <div className="text-center mb-12">
@@ -121,6 +116,11 @@ export default async function HomePage() {
             ))}
           </Marquee>
         </div>
+      </section>
+
+      {/* About the Author Section */}
+      <section className="container mx-auto px-4">
+        <AboutTheAuthor />
       </section>
 
     </div>
