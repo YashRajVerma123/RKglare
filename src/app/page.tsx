@@ -100,6 +100,11 @@ export default async function HomePage() {
         <FeedTabs recentPosts={recentPosts} />
       </section>
 
+      {/* About the Author Section */}
+      <section className="container mx-auto px-4">
+        <AboutTheAuthor />
+      </section>
+
       {/* Marquee Section */}
       <section className="relative w-full py-12">
         <div className="text-center mb-12">
@@ -107,9 +112,9 @@ export default async function HomePage() {
             <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">We focus on the subjects that are shaping tomorrow, today.</p>
         </div>
         <div className="relative flex w-full flex-col items-center justify-center overflow-hidden rounded-lg border bg-background/50 py-8 md:py-12">
-          <Marquee pauseOnHover className="[--duration:60s]">
-            {topics.map((topic, index) => (
-              <div key={index} className="flex items-center gap-3 text-xl font-semibold text-muted-foreground mx-4">
+          <Marquee>
+            {topics.map((topic) => (
+              <div key={topic.title} className="flex items-center gap-3 text-xl font-semibold text-muted-foreground mx-4">
                 {topic.icon}
                 <span>{topic.title}</span>
               </div>
