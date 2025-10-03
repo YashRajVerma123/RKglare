@@ -6,37 +6,36 @@ import Logo from './logo';
 import { cn } from '@/lib/utils';
 
 const SplashScreen = () => {
-  const [isLoading, setIsLoading] = useState(true);
+  const [visible, setVisible] = useState(true);
   const [isFadingOut, setIsFadingOut] = useState(false);
 
   useEffect(() => {
+    // Only show the splash screen once per session
     const hasBeenShown = sessionStorage.getItem('splashShown') === 'true';
 
     if (hasBeenShown) {
-      setIsLoading(false);
+      setVisible(false);
       return;
     }
 
-    // Start the fade-out process after 2 seconds (2000ms)
+    // Start fading out after a very short delay, allowing the page to render.
     const fadeOutTimer = setTimeout(() => {
       setIsFadingOut(true);
-    }, 2000);
+    }, 100); // Start fade-out almost immediately
 
-    // Hide the component completely after the fade-out animation (500ms)
+    // Hide component completely after fade-out animation
     const hideTimer = setTimeout(() => {
-      setIsLoading(false);
+      setVisible(false);
       sessionStorage.setItem('splashShown', 'true');
-    }, 2500); // 2000ms wait + 500ms fade
+    }, 600); // 100ms wait + 500ms fade duration
 
-    // Cleanup timers if the component unmounts
     return () => {
       clearTimeout(fadeOutTimer);
       clearTimeout(hideTimer);
     };
-
   }, []);
 
-  if (!isLoading) {
+  if (!visible) {
     return null;
   }
 

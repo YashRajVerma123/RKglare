@@ -19,7 +19,7 @@ const RecentPostCard = ({ post }: RecentPostCardProps) => {
   };
   
   return (
-    <Link href={`/posts/${post.slug}`} className="group block">
+    <Link href={`/posts/${post.slug}`} className="group block" prefetch={true}>
       <div className="glass-card h-full flex flex-row overflow-hidden transition-all duration-300 hover:border-primary/50 hover-translate-y-1">
         <div className="relative w-2/5 md:w-1/3 aspect-video overflow-hidden">
           <Image

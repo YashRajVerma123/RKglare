@@ -1,9 +1,8 @@
 
 // src/app/layout.tsx
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk, Dancing_Script, Work_Sans, Nunito, Libre_Baskerville } from "next/font/google";
 import { cn } from "@/lib/utils";
-import "./globals.css"; // Corrected import path
+import "./globals.css";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/toaster";
@@ -12,36 +11,8 @@ import { Suspense } from "react";
 import SplashScreen from "@/components/splash-screen";
 import Script from "next/script";
 import { ClientProviders } from "@/components/client-providers";
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  variable: '--font-space-grotesk',
-});
-
-const dancingScript = Dancing_Script({
-  subsets: ['latin'],
-  variable: '--font-dancing-script',
-  weight: '700'
-});
-
-const workSans = Work_Sans({
-  subsets: ['latin'],
-  variable: '--font-work-sans',
-  weight: ['300', '400', '500', '600', '700', '800'], // Including 300 for light
-});
-
-const nunito = Nunito({
-  subsets: ['latin'],
-  variable: '--font-nunito',
-  weight: '300'
-});
-
-const libreBaskerville = Libre_Baskerville({
-    subsets: ['latin'],
-    variable: '--font-libre-baskerville',
-    weight: ['400', '700'],
-});
-
+import { Analytics } from "@vercel/analytics/react";
+import { spaceGrotesk, dancingScript, workSans, nunito, libreBaskerville } from "./fonts";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://theglare.vercel.app'),
@@ -118,6 +89,7 @@ export default function RootLayout({
           }}
         />
         <ClientProviders>
+           <Analytics />
            <div className="fixed inset-0 -z-10 h-full w-full">
             <div className="bg-ball w-[20vw] h-[20vw] bg-primary/30 dark:bg-primary/20 top-[-5%] left-[-5%]"></div>
             <div className="bg-ball w-[15vw] h-[15vw] bg-secondary/30 dark:bg-secondary/10 bottom-[10%] left-[10%]"></div>
