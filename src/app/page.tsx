@@ -1,6 +1,6 @@
 
 import Link from 'next/link';
-import { ArrowRight, BrainCircuit, Rocket, SatelliteDish } from 'lucide-react';
+import { ArrowRight, BrainCircuit, Cpu, Dna, Rocket, SatelliteDish } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { getFeaturedPosts, getRecentPosts, getTrendingPosts } from '@/lib/data';
@@ -26,6 +26,16 @@ const topics = [
         icon: <Rocket className="h-10 w-10 text-primary mb-4" />,
         title: "Space Exploration",
         description: "Journeying through the cosmos, covering the latest missions, discoveries, and the quest to understand our universe."
+    },
+    {
+        icon: <Cpu className="h-10 w-10 text-primary mb-4" />,
+        title: "Quantum Computing",
+        description: "Unlocking the next frontier of computation, from qubits to quantum supremacy and its potential applications."
+    },
+    {
+        icon: <Dna className="h-10 w-10 text-primary mb-4" />,
+        title: "Biotechnology",
+        description: "Covering the latest advances in life sciences, from gene editing with CRISPR to personalized medicine."
     }
 ]
 
@@ -136,7 +146,7 @@ export default async function HomePage() {
             <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">We focus on the subjects that are shaping tomorrow, today.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {topics.map((topic, index) => (
+              {topics.slice(0,3).map((topic, index) => (
                   <div key={index} className="glass-card text-center p-8 transition-transform transform hover:-translate-y-2">
                       <div className="inline-block p-4 bg-primary/10 rounded-full mb-4">
                           {topic.icon}
