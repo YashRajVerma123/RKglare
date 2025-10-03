@@ -47,4 +47,10 @@ export async function deleteBulletinAction(bulletinId: string): Promise<{ succes
     }
 }
 
+export async function updateBulletinAction(bulletinId: string, values: z.infer<typeof bulletinSchema>) {
+    await updateDoc(doc(db, 'bulletins', bulletinId), values);
+    revalidateTag('bulletins');
+    revalidateTag(`bulletin:${bulletinId}`);
+}
+
     

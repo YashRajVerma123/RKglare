@@ -7,8 +7,8 @@ import { useRouter, notFound } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useEffect, useState, use } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { updateNotificationAction } from '@/app/actions/notification-actions';
-import { Notification, getNotificationClient } from '@/lib/data';
+import { updateBulletinAction } from '@/app/actions/bulletin-actions';
+import { Bulletin, getBulletinClient } from '@/lib/data';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -20,44 +20,44 @@ import Link from 'next/link';
 
 const formSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
-  description: z.string().min(10, 'Description must be at least 10 characters.'),
-  image: z.string().url().optional().or(z.literal('')),
+  content: z.string().min(20, 'Content must be at least 20 characters.'),
+  coverImage: z.string().url().optional().or(z.literal('')),
 });
 
-export default function EditNotificationPage({ params: paramsProp }: { params: { id: string } }) {
+export default function EditBulletinPage({ params: paramsProp }: { params: { id: string } }) {
   const params = use(paramsProp);
   const { id } = params;
   const { toast } = useToast();
   const router = useRouter();
   const { isAdmin, loading: authLoading } = useAuth();
-  const [notification, setNotification] = useState<Notification | null>(null);
+  const [bulletin, setBulletin] = useState<Bulletin | null>(null);
   const [loading, setLoading] = useState(true);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: '',
-      description: '',
-      image: '',
+      content: '',
+      coverImage: '',
     },
   });
 
   useEffect(() => {
-    const fetchNotification = async () => {
+    const fetchBulletin = async () => {
       setLoading(true);
-      const fetchedNotification = await getNotificationClient(id);
-      if (fetchedNotification) {
-        setNotification(fetchedNotification);
+      const fetchedBulletin = await getBulletinClient(id);
+      if (fetchedBulletin) {
+        setBulletin(fetchedBulletin);
         form.reset({
-          title: fetchedNotification.title,
-          description: fetchedNotification.description,
-          image: fetchedNotification.image || '',
+          title: fetchedBulletin.title,
+          content: fetchedBulletin.content,
+          coverImage: fetchedBulletin.coverImage || '',
         });
       }
       setLoading(false);
     }
     if (id) {
-        fetchNotification();
+        fetchBulletin();
     }
   }, [id, form]);
 
@@ -75,22 +75,22 @@ export default function EditNotificationPage({ params: paramsProp }: { params: {
       );
   }
 
-  if (!notification) {
+  if (!bulletin) {
       return notFound();
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!notification) return;
+    if (!bulletin) return;
     try {
-        await updateNotificationAction(notification.id, values);
+        await updateBulletinAction(bulletin.id, values);
         toast({
-            title: 'Notification Updated!',
+            title: 'Bulletin Updated!',
             description: 'Your changes have been saved successfully.',
         });
         router.push(`/admin`);
     } catch (error) {
        toast({
-        title: 'Error Updating Notification',
+        title: 'Error Updating Bulletin',
         description: (error as Error).message || 'Something went wrong. Please try again later.',
         variant: 'destructive',
       });
@@ -106,8 +106,8 @@ export default function EditNotificationPage({ params: paramsProp }: { params: {
         </div>
         <Card className="glass-card">
             <CardHeader>
-                <CardTitle>Edit Notification</CardTitle>
-                <CardDescription>Make changes to your notification below.</CardDescription>
+                <CardTitle>Edit Bulletin</CardTitle>
+                <CardDescription>Make changes to your bulletin below.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Form {...form}>
@@ -119,7 +119,7 @@ export default function EditNotificationPage({ params: paramsProp }: { params: {
                         <FormItem>
                         <FormLabel>Title</FormLabel>
                         <FormControl>
-                            <Input placeholder="New Feature Alert!" {...field} />
+                            <Input placeholder="Daily Market Wrap-up" {...field} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -127,12 +127,12 @@ export default function EditNotificationPage({ params: paramsProp }: { params: {
                     />
                     <FormField
                     control={form.control}
-                    name="description"
+                    name="content"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Description</FormLabel>
+                        <FormLabel>Content</FormLabel>
                         <FormControl>
-                            <Textarea placeholder="Check out our new comment system!" {...field} />
+                            <Textarea placeholder="Markets closed mixed today..." {...field} />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -140,7 +140,7 @@ export default function EditNotificationPage({ params: paramsProp }: { params: {
                     />
                     <FormField
                         control={form.control}
-                        name="image"
+                        name="coverImage"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Image URL (Optional)</FormLabel>
