@@ -15,22 +15,20 @@ const EditorsPickCard = ({ post, layout = 'medium', priority = false }: EditorsP
   return (
     <Link href={`/posts/${post.slug}`} className="group block h-full w-full">
       <div className="glass-card flex flex-col h-full overflow-hidden rounded-xl transition-all duration-300 hover:border-primary/50 hover:-translate-y-1">
-        <div className="relative w-full overflow-hidden">
-          <div
-            className={cn('relative w-full', {
-              'aspect-video': layout !== 'large',
-              'aspect-square': layout === 'large',
-            })}
-          >
-            <Image
-              src={post.coverImage}
-              alt={post.title}
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-              priority={priority}
-            />
-          </div>
+        <div
+          className={cn('relative w-full overflow-hidden', {
+            'aspect-video': layout !== 'large',
+            'aspect-square': layout === 'large',
+          })}
+        >
+          <Image
+            src={post.coverImage}
+            alt={post.title}
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            priority={priority}
+          />
         </div>
         <div className="p-4 flex flex-col flex-grow">
           {post.tags[0] && <Badge variant="secondary" className="mb-2 self-start">{post.tags[0]}</Badge>}
