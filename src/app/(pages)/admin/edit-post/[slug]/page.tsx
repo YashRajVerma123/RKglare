@@ -56,7 +56,7 @@ const formSchema = z.object({
 });
 
 export default function EditPostPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+  const { slug } = use(params);
   const { toast } = useToast();
   const router = useRouter();
   const { user, isAdmin, loading: authLoading } = useAuth();

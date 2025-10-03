@@ -27,7 +27,7 @@ const formSchema = z.object({
 });
 
 export default function EditBulletinPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+  const { id } = use(params);
   const { toast } = useToast();
   const router = useRouter();
   const { isAdmin, loading: authLoading } = useAuth();
