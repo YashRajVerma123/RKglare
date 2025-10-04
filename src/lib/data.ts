@@ -568,6 +568,14 @@ export const getNotifications = unstable_cache(async (): Promise<Notification[]>
     return snapshot.docs.map(doc => doc.data());
 }, ['notifications'], { revalidate: 60, tags: ['notifications'] });
 
+// This function is for client-side use only.
+export const getNotificationsClient = async (): Promise<Notification[]> => {
+    const notificationsCollection = collection(db, 'notifications').withConverter(notificationConverter);
+    const q = query(notificationsCollection, orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data());
+};
+
 
 export const getNotification = (id: string): Promise<Notification | null> => {
     return unstable_cache(

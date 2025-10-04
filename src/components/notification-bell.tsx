@@ -5,7 +5,7 @@ import { Bell } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Notification, getNotifications } from '@/lib/data';
+import { Notification, getNotificationsClient } from '@/lib/data';
 import { Separator } from './ui/separator';
 
 const NOTIFICATION_READ_STATE_KEY = 'read_notifications';
@@ -18,7 +18,7 @@ const NotificationBell = () => {
   const fetchAndSetNotifications = async () => {
     setLoading(true);
     try {
-      const currentNotifications = await getNotifications();
+      const currentNotifications = await getNotificationsClient();
       const readIds = JSON.parse(localStorage.getItem(NOTIFICATION_READ_STATE_KEY) || '[]');
       
       const updatedNotifications = currentNotifications.map(n => ({
