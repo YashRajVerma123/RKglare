@@ -39,7 +39,6 @@ import AboutTheAuthor from "@/components/about-the-author";
 import { generateNewsletterMailto } from "@/app/actions/newsletter-actions";
 import { Label } from "@/components/ui/label";
 import { BulletinCard } from "@/app/(pages)/bulletin/page";
-import { getPosts, getNotifications, getBulletins, getAuthors } from '@/lib/data';
 import { generateBulletinContent } from "@/ai/flows/bulletin-flow";
 import { updateUserPoints } from "@/app/actions/gamification-actions";
 import {
@@ -103,7 +102,6 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
     const [allNotifications, setAllNotifications] = useState<Notification[]>(initialNotifications);
     const [allBulletins, setAllBulletins] = useState<Bulletin[]>(initialBulletins);
     const [allUsers, setAllUsers] = useState<Author[]>(initialUsers);
-    const [dataLoading, setDataLoading] = useState(true);
     
     const [isPostDeleteDialogOpen, setPostDeleteDialogOpen] = useState(false);
     const [isNotifDeleteDialogOpen, setNotifDeleteDialogOpen] = useState(false);
@@ -123,39 +121,6 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
         resolver: zodResolver(pointsSchema),
         defaultValues: { points: 0, reason: "" },
     });
-
-     useEffect(() => {
-        const fetchAllData = async () => {
-            try {
-                setDataLoading(true);
-                const [posts, notifications, bulletinsResponse, users] = await Promise.all([
-                    getPosts(true, user),
-                    getNotifications(),
-                    getBulletins(user),
-                    getAuthors(),
-                ]);
-                
-                const sortedPosts = posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-                
-                setAllPosts(sortedPosts);
-                setAllNotifications(notifications);
-                setAllBulletins(bulletinsResponse.bulletins);
-                setAllUsers(users);
-
-            } catch (error) {
-                console.error("Couldn't load dashboard data", error);
-                toast({
-                    title: "Error",
-                    description: "Couldn't load dashboard data. Please try refreshing.",
-                    variant: "destructive",
-                });
-            } finally {
-                setDataLoading(false);
-            }
-        };
-        fetchAllData();
-    }, [toast, user]);
-
 
     const notificationForm = useForm<z.infer<typeof notificationSchema>>({
       resolver: zodResolver(notificationSchema),
@@ -213,7 +178,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
         }
     }, [user, isAdmin, authLoading, router]);
     
-    if (authLoading || !isAdmin) {
+    if (authLoading) {
         return (
             <div className="flex h-screen items-center justify-center">
                 <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
@@ -452,540 +417,533 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                         <TabsTrigger value="management"><BarChart className="mr-2 h-4 w-4"/>Management</TabsTrigger>
                     </TabsList>
                 </div>
-                 {dataLoading ? (
-                    <div className="flex h-64 items-center justify-center">
-                        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+                
+                <TabsContent value="analytics">
+                    <AnalyticsDashboard posts={allPosts} />
+                </TabsContent>
+                <TabsContent value="management">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-full mx-auto mb-12">
+                        <Card className="glass-card">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
+                                <BarChart className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{allPosts.length}</div>
+                                <p className="text-xs text-muted-foreground">Manage all posts below</p>
+                            </CardContent>
+                        </Card>
+                        <Card className="glass-card">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                                <Users className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{allUsers.length}</div>
+                                <p className="text-xs text-muted-foreground">Manage all users below</p>
+                            </CardContent>
+                        </Card>
+                        <Card className="glass-card">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Bulletins</CardTitle>
+                                <Megaphone className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{allBulletins.length}</div>
+                                <p className="text-xs text-muted-foreground">Manage all bulletins below</p>
+                            </CardContent>
+                        </Card>
+                        <Link href="/admin/create-post" className="group">
+                            <Card className="aurora-border h-full flex flex-col items-center justify-center text-center hover:shadow-2xl transition-shadow duration-300 rounded-xl">
+                                <CardHeader>
+                                    <PlusCircle className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                                </CardHeader>
+                                <CardContent>
+                                    <CardTitle className="text-lg">Create New Post</CardTitle>
+                                    <CardDescription className="text-xs">Write and publish a new article.</CardDescription>
+                                </CardContent>
+                            </Card>
+                        </Link>
                     </div>
-                 ) : (
-                    <>
-                        <TabsContent value="analytics">
-                            <AnalyticsDashboard posts={allPosts} />
-                        </TabsContent>
-                        <TabsContent value="management">
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-full mx-auto mb-12">
-                                <Card className="glass-card">
-                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                        <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
-                                        <BarChart className="h-4 w-4 text-muted-foreground" />
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="text-2xl font-bold">{allPosts.length}</div>
-                                        <p className="text-xs text-muted-foreground">Manage all posts below</p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="glass-card">
-                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                        <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-                                        <Users className="h-4 w-4 text-muted-foreground" />
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="text-2xl font-bold">{allUsers.length}</div>
-                                        <p className="text-xs text-muted-foreground">Manage all users below</p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="glass-card">
-                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                        <CardTitle className="text-sm font-medium">Bulletins</CardTitle>
-                                        <Megaphone className="h-4 w-4 text-muted-foreground" />
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="text-2xl font-bold">{allBulletins.length}</div>
-                                        <p className="text-xs text-muted-foreground">Manage all bulletins below</p>
-                                    </CardContent>
-                                </Card>
-                                <Link href="/admin/create-post" className="group">
-                                    <Card className="aurora-border h-full flex flex-col items-center justify-center text-center hover:shadow-2xl transition-shadow duration-300 rounded-xl">
-                                        <CardHeader>
-                                            <PlusCircle className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors" />
-                                        </CardHeader>
-                                        <CardContent>
-                                            <CardTitle className="text-lg">Create New Post</CardTitle>
-                                            <CardDescription className="text-xs">Write and publish a new article.</CardDescription>
-                                        </CardContent>
-                                    </Card>
-                                </Link>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 max-w-full mx-auto">
-                                <div className="xl:col-span-2 space-y-8">
-                                    <Card className="glass-card">
-                                        <CardHeader>
-                                            <CardTitle>Manage Posts</CardTitle>
-                                            <CardDescription>Here you can edit or delete existing posts.</CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <Table>
-                                                <TableHeader>
-                                                    <TableRow>
-                                                        <TableHead className="w-[50%]">Title</TableHead>
-                                                        <TableHead>Status</TableHead>
-                                                        <TableHead>Date</TableHead>
-                                                        <TableHead className="text-right">Actions</TableHead>
-                                                    </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
-                                                    {allPosts.map(post => (
-                                                        <TableRow key={post.id}>
-                                                            <TableCell className="font-medium">{post.title}</TableCell>
-                                                            <TableCell>
-                                                                <Badge variant={post.featured ? "default" : "secondary"}>
-                                                                    {post.featured ? "Featured" : "Standard"}
-                                                                </Badge>
-                                                            </TableCell>
-                                                            <TableCell>{new Date(post.publishedAt).toLocaleDateString()}</TableCell>
-                                                            <TableCell className="text-right">
-                                                                <Button asChild variant="ghost" size="icon">
-                                                                    <Link href={`/admin/edit-post/${post.slug}`}><Edit className="h-4 w-4" /></Link>
-                                                                </Button>
-                                                                <Button variant="ghost" size="icon" onClick={() => handleDeletePostClick(post)}>
-                                                                    <Trash className="h-4 w-4 text-red-500" />
-                                                                </Button>
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ))}
-                                                </TableBody>
-                                            </Table>
-                                        </CardContent>
-                                    </Card>
+                    
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 max-w-full mx-auto">
+                        <div className="xl:col-span-2 space-y-8">
+                            <Card className="glass-card">
+                                <CardHeader>
+                                    <CardTitle>Manage Posts</CardTitle>
+                                    <CardDescription>Here you can edit or delete existing posts.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="w-[50%]">Title</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead>Date</TableHead>
+                                                <TableHead className="text-right">Actions</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {allPosts.map(post => (
+                                                <TableRow key={post.id}>
+                                                    <TableCell className="font-medium">{post.title}</TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={post.featured ? "default" : "secondary"}>
+                                                            {post.featured ? "Featured" : "Standard"}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>{new Date(post.publishedAt).toLocaleDateString()}</TableCell>
+                                                    <TableCell className="text-right">
+                                                        <Button asChild variant="ghost" size="icon">
+                                                            <Link href={`/admin/edit-post/${post.slug}`}><Edit className="h-4 w-4" /></Link>
+                                                        </Button>
+                                                        <Button variant="ghost" size="icon" onClick={() => handleDeletePostClick(post)}>
+                                                            <Trash className="h-4 w-4 text-red-500" />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </CardContent>
+                            </Card>
 
-                                    <Card className="glass-card">
-                                        <CardHeader>
-                                            <CardTitle>User Management</CardTitle>
-                                            <CardDescription>View all registered users and manage their points.</CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <Table>
-                                                <TableHeader>
-                                                    <TableRow>
-                                                        <TableHead>User</TableHead>
-                                                        <TableHead>Email</TableHead>
-                                                        <TableHead>Points</TableHead>
-                                                        <TableHead>Status</TableHead>
-                                                        <TableHead className="text-right">Actions</TableHead>
-                                                    </TableRow>
-                                                </TableHeader>
-                                                <TableBody>
-                                                    {allUsers.map(u => {
-                                                        const isPremium = u.premium?.active && u.premium.expires && new Date(u.premium.expires) > new Date();
-                                                        return (
-                                                            <TableRow key={u.id}>
-                                                                <TableCell className="font-medium flex items-center gap-2">
-                                                                    <Avatar className="h-8 w-8">
-                                                                        <AvatarImage src={u.avatar} alt={u.name} />
-                                                                        <AvatarFallback>{getInitials(u.name)}</AvatarFallback>
-                                                                    </Avatar>
-                                                                    {u.name}
-                                                                </TableCell>
-                                                                <TableCell className="text-muted-foreground">{u.email}</TableCell>
-                                                                <TableCell>{(u.points || 0).toLocaleString()}</TableCell>
-                                                                <TableCell>
-                                                                    {isPremium ? (
-                                                                        <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 hover:bg-yellow-500/20">
-                                                                            <Star className="h-3 w-3 mr-1" />
-                                                                            Glare+
-                                                                        </Badge>
-                                                                    ) : (
-                                                                        <Badge variant="secondary">Standard</Badge>
-                                                                    )}
-                                                                </TableCell>
-                                                                <TableCell className="text-right">
-                                                                    <Button variant="outline" size="sm" onClick={() => handleEditPointsClick(u)}>
-                                                                        <Edit className="h-3 w-3 mr-1" /> Edit Points
-                                                                    </Button>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        )
-                                                    })}
-                                                </TableBody>
-                                            </Table>
-                                        </CardContent>
-                                    </Card>
-
-                                    <Card className="glass-card">
-                                        <CardHeader>
-                                            <div className="flex items-center gap-2">
-                                                <Mail className="h-5 w-5 text-primary" />
-                                                <CardTitle>Send Newsletter</CardTitle>
-                                            </div>
-                                            <CardDescription>Compose and send a newsletter to all subscribers.</CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <Form {...newsletterForm}>
-                                                <form onSubmit={newsletterForm.handleSubmit(onNewsletterSubmit)} className="space-y-4">
-                                                    <FormField
-                                                        control={newsletterForm.control}
-                                                        name="title"
-                                                        render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel>Subject</FormLabel>
-                                                                <FormControl>
-                                                                    <Input placeholder="Your amazing newsletter title" {...field} />
-                                                                </FormControl>
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                        )}
-                                                    />
-                                                    <FormField
-                                                        control={newsletterForm.control}
-                                                        name="content"
-                                                        render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel>Body</FormLabel>
-                                                                <FormControl>
-                                                                    <Textarea placeholder="Write your newsletter content here. You can use HTML for formatting." {...field} rows={8} />
-                                                                </FormControl>
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                        )}
-                                                    />
-                                                    <Button type="submit" className="w-full" disabled={newsletterForm.formState.isSubmitting}>
-                                                        {newsletterForm.formState.isSubmitting ? 'Preparing...' : 'Prepare Newsletter in Email Client'}
-                                                    </Button>
-                                                </form>
-                                            </Form>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-
-                                <div className="space-y-8">
-                                    
-                                    <Card className="glass-card">
-                                        <CardHeader>
-                                        <div className="flex items-center gap-2">
-                                            <UserIcon className="h-5 w-5 text-primary" />
-                                            <CardTitle>Edit Author Profile</CardTitle>
-                                        </div>
-                                            <CardDescription>Update your public author information.</CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="grid grid-cols-1 gap-6">
-                                                <Form {...profileForm}>
-                                                    <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
-                                                        <div className="flex flex-col items-center gap-4">
-                                                            <Avatar className="h-24 w-24">
-                                                                <AvatarImage src={previewUrl} alt={user?.name} />
-                                                                <AvatarFallback>{getInitials(user?.name || '')}</AvatarFallback>
+                            <Card className="glass-card">
+                                <CardHeader>
+                                    <CardTitle>User Management</CardTitle>
+                                    <CardDescription>View all registered users and manage their points.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>User</TableHead>
+                                                <TableHead>Email</TableHead>
+                                                <TableHead>Points</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead className="text-right">Actions</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {allUsers.map(u => {
+                                                const isPremium = u.premium?.active && u.premium.expires && new Date(u.premium.expires) > new Date();
+                                                return (
+                                                    <TableRow key={u.id}>
+                                                        <TableCell className="font-medium flex items-center gap-2">
+                                                            <Avatar className="h-8 w-8">
+                                                                <AvatarImage src={u.avatar} alt={u.name} />
+                                                                <AvatarFallback>{getInitials(u.name)}</AvatarFallback>
                                                             </Avatar>
-                                                            <Input 
-                                                                id="avatar-upload"
-                                                                type="file"
-                                                                accept="image/*"
-                                                                onChange={handleAvatarChange}
-                                                                ref={fileInputRef}
-                                                                className="hidden"
-                                                            />
-                                                            <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                                                                <Upload className="mr-2 h-4 w-4" />
-                                                                Change Photo
+                                                            {u.name}
+                                                        </TableCell>
+                                                        <TableCell className="text-muted-foreground">{u.email}</TableCell>
+                                                        <TableCell>{(u.points || 0).toLocaleString()}</TableCell>
+                                                        <TableCell>
+                                                            {isPremium ? (
+                                                                <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 hover:bg-yellow-500/20">
+                                                                    <Star className="h-3 w-3 mr-1" />
+                                                                    Glare+
+                                                                </Badge>
+                                                            ) : (
+                                                                <Badge variant="secondary">Standard</Badge>
+                                                            )}
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            <Button variant="outline" size="sm" onClick={() => handleEditPointsClick(u)}>
+                                                                <Edit className="h-3 w-3 mr-1" /> Edit Points
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                )
+                                            })}
+                                        </TableBody>
+                                    </Table>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="glass-card">
+                                <CardHeader>
+                                    <div className="flex items-center gap-2">
+                                        <Mail className="h-5 w-5 text-primary" />
+                                        <CardTitle>Send Newsletter</CardTitle>
+                                    </div>
+                                    <CardDescription>Compose and send a newsletter to all subscribers.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <Form {...newsletterForm}>
+                                        <form onSubmit={newsletterForm.handleSubmit(onNewsletterSubmit)} className="space-y-4">
+                                            <FormField
+                                                control={newsletterForm.control}
+                                                name="title"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Subject</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="Your amazing newsletter title" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={newsletterForm.control}
+                                                name="content"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Body</FormLabel>
+                                                        <FormControl>
+                                                            <Textarea placeholder="Write your newsletter content here. You can use HTML for formatting." {...field} rows={8} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <Button type="submit" className="w-full" disabled={newsletterForm.formState.isSubmitting}>
+                                                {newsletterForm.formState.isSubmitting ? 'Preparing...' : 'Prepare Newsletter in Email Client'}
+                                            </Button>
+                                        </form>
+                                    </Form>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        <div className="space-y-8">
+                            
+                            <Card className="glass-card">
+                                <CardHeader>
+                                <div className="flex items-center gap-2">
+                                    <UserIcon className="h-5 w-5 text-primary" />
+                                    <CardTitle>Edit Author Profile</CardTitle>
+                                </div>
+                                    <CardDescription>Update your public author information.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-1 gap-6">
+                                        <Form {...profileForm}>
+                                            <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
+                                                <div className="flex flex-col items-center gap-4">
+                                                    <Avatar className="h-24 w-24">
+                                                        <AvatarImage src={previewUrl} alt={user?.name} />
+                                                        <AvatarFallback>{getInitials(user?.name || '')}</AvatarFallback>
+                                                    </Avatar>
+                                                    <Input 
+                                                        id="avatar-upload"
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={handleAvatarChange}
+                                                        ref={fileInputRef}
+                                                        className="hidden"
+                                                    />
+                                                    <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                                                        <Upload className="mr-2 h-4 w-4" />
+                                                        Change Photo
+                                                    </Button>
+                                                </div>
+                                                <FormField
+                                                    control={profileForm.control}
+                                                    name="name"
+                                                    render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Author Name</FormLabel>
+                                                        <FormControl>
+                                                        <Input placeholder="Yash Raj Verma" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                    )}
+                                                />
+                                                <FormField
+                                                    control={profileForm.control}
+                                                    name="bio"
+                                                    render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Author Bio</FormLabel>
+                                                        <FormControl>
+                                                        <Textarea placeholder="A short bio about yourself..." {...field} rows={4} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                    )}
+                                                />
+                                                <FormField
+                                                    control={profileForm.control}
+                                                    name="instagramUrl"
+                                                    render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Instagram URL</FormLabel>
+                                                        <FormControl>
+                                                        <Input placeholder="https://instagram.com/..." {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                    )}
+                                                />
+                                                <FormField
+                                                    control={profileForm.control}
+                                                    name="signature"
+                                                    render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Signature Text</FormLabel>
+                                                        <FormControl>
+                                                        <Input placeholder="Y. R. Verma" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                    )}
+                                                />
+                                            <Button type="submit" className="w-full" disabled={profileForm.formState.isSubmitting}>
+                                                {profileForm.formState.isSubmitting ? 'Saving...' : 'Save Profile'}
+                                            </Button>
+                                            </form>
+                                        </Form>
+                                        <div className="space-y-2">
+                                            <Label>Live Preview</Label>
+                                            <AboutTheAuthor previewData={{
+                                                ...watchedProfile,
+                                                avatar: previewUrl,
+                                                name: watchedProfile.name || '',
+                                                bio: watchedProfile.bio || '',
+                                                signature: watchedProfile.signature || '',
+                                                instagramUrl: watchedProfile.instagramUrl || '',
+                                            }} />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="glass-card">
+                                <CardHeader>
+                                <div className="flex items-center gap-2">
+                                    <Megaphone className="h-5 w-5 text-primary" />
+                                    <CardTitle>Post a Bulletin</CardTitle>
+                                </div>
+                                    <CardDescription>Publish a new daily bulletin.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-1 gap-6">
+                                        <Form {...bulletinForm}>
+                                            <form onSubmit={bulletinForm.handleSubmit(onBulletinSubmit)} className="space-y-4">
+                                            <FormField
+                                                control={bulletinForm.control}
+                                                name="topic"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Topic</FormLabel>
+                                                    <FormControl>
+                                                    <div className="flex gap-2">
+                                                        <Input placeholder="e.g., 'AI in Healthcare'" {...field} />
+                                                        <Button type="button" variant="outline" onClick={handleGenerateBulletin} disabled={isGenerating}>
+                                                            <Bot className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={bulletinForm.control}
+                                                name="title"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Title</FormLabel>
+                                                    <FormControl>
+                                                    <Input placeholder="Daily Market Wrap-Up" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={bulletinForm.control}
+                                                name="content"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Content</FormLabel>
+                                                    <FormControl>
+                                                    <Textarea placeholder="Markets closed mixed today..." {...field} rows={4} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={bulletinForm.control}
+                                                name="coverImage"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Image URL</FormLabel>
+                                                    <FormControl>
+                                                    <Input placeholder="https://picsum.photos/1200/800" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <Button type="submit" className="w-full" disabled={bulletinForm.formState.isSubmitting}>
+                                                {bulletinForm.formState.isSubmitting ? 'Publishing...' : 'Publish Bulletin'}
+                                            </Button>
+                                            </form>
+                                        </Form>
+                                        <div className="space-y-2">
+                                            <Label>Live Preview</Label>
+                                            <BulletinCard bulletin={{
+                                                id: 'preview',
+                                                publishedAt: new Date().toISOString(),
+                                                ...watchedBulletin,
+                                                coverImage: watchedBulletin.coverImage || 'https://picsum.photos/1200/800',
+                                            }} index={0} />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="glass-card">
+                                <CardHeader>
+                                <div className="flex items-center gap-2">
+                                    <BellRing className="h-5 w-5 text-primary" />
+                                    <CardTitle>Send Notification</CardTitle>
+                                </div>
+                                    <CardDescription>Publish a new announcement to all users.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-1 gap-6">
+                                        <Form {...notificationForm}>
+                                            <form onSubmit={notificationForm.handleSubmit(onNotificationSubmit)} className="space-y-4">
+                                            <FormField
+                                                control={notificationForm.control}
+                                                name="title"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Title</FormLabel>
+                                                    <FormControl>
+                                                    <Input placeholder="New Feature Alert!" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={notificationForm.control}
+                                                name="description"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Description</FormLabel>
+                                                    <FormControl>
+                                                    <Textarea placeholder="Check out our new comment system!" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={notificationForm.control}
+                                                name="image"
+                                                render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Image URL (Optional)</FormLabel>
+                                                    <FormControl>
+                                                    <Input placeholder="https://example.com/image.png" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <Button type="submit" className="w-full" disabled={notificationForm.formState.isSubmitting}>
+                                                {notificationForm.formState.isSubmitting ? 'Sending...' : 'Send Notification'}
+                                            </Button>
+                                            </form>
+                                        </Form>
+                                        <div className="space-y-2">
+                                            <Label>Live Preview</Label>
+                                            <div className="p-4 rounded-lg border bg-card text-card-foreground">
+                                                <div className="grid grid-cols-[25px_1fr] items-start">
+                                                    <span className="flex h-2 w-2 translate-y-1 rounded-full bg-primary" />
+                                                    <div className="space-y-1">
+                                                        <p className="text-sm font-medium leading-none">{watchedNotification.title || "Notification Title"}</p>
+                                                        <p className="text-sm text-muted-foreground">{watchedNotification.description || "Notification description will appear here."}</p>
+                                                        {watchedNotification.image && (
+                                                            <div className="mt-2 relative aspect-video rounded-md overflow-hidden border">
+                                                                <img src={watchedNotification.image} alt="Preview" className="object-cover w-full h-full" />
+                                                            </div>
+                                                        )}
+                                                        <p className="text-xs text-muted-foreground/70 pt-1">{new Date().toLocaleString()}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="glass-card">
+                                <CardHeader>
+                                    <CardTitle>Manage Content</CardTitle>
+                                    <CardDescription>Delete existing content.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <Tabs defaultValue="bulletins" className="w-full">
+                                        <TabsList className="grid w-full grid-cols-2">
+                                            <TabsTrigger value="bulletins">Bulletins</TabsTrigger>
+                                            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+                                        </TabsList>
+                                        <TabsContent value="bulletins">
+                                            <div className="space-y-4 pt-4">
+                                                {allBulletins.length > 0 ? allBulletins.map((item, index) => (
+                                                    <div key={item.id}>
+                                                    <div className="flex justify-between items-start gap-4">
+                                                        <div className="space-y-1 flex-1">
+                                                            <p className="font-medium text-sm">{item.title}</p>
+                                                            <p className="text-xs text-muted-foreground">{item.content}</p>
+                                                        </div>
+                                                        <div className="flex items-center">
+                                                            <Button asChild variant="ghost" size="icon">
+                                                                <Link href={`/admin/edit-bulletin/${item.id}`}><Edit className="h-4 w-4" /></Link>
+                                                            </Button>
+                                                            <Button variant="ghost" size="icon" onClick={() => handleDeleteBulletinClick(item)}>
+                                                                <Trash className="h-4 w-4 text-red-500" />
                                                             </Button>
                                                         </div>
-                                                        <FormField
-                                                            control={profileForm.control}
-                                                            name="name"
-                                                            render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel>Author Name</FormLabel>
-                                                                <FormControl>
-                                                                <Input placeholder="Yash Raj Verma" {...field} />
-                                                                </FormControl>
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                            )}
-                                                        />
-                                                        <FormField
-                                                            control={profileForm.control}
-                                                            name="bio"
-                                                            render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel>Author Bio</FormLabel>
-                                                                <FormControl>
-                                                                <Textarea placeholder="A short bio about yourself..." {...field} rows={4} />
-                                                                </FormControl>
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                            )}
-                                                        />
-                                                        <FormField
-                                                            control={profileForm.control}
-                                                            name="instagramUrl"
-                                                            render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel>Instagram URL</FormLabel>
-                                                                <FormControl>
-                                                                <Input placeholder="https://instagram.com/..." {...field} />
-                                                                </FormControl>
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                            )}
-                                                        />
-                                                        <FormField
-                                                            control={profileForm.control}
-                                                            name="signature"
-                                                            render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel>Signature Text</FormLabel>
-                                                                <FormControl>
-                                                                <Input placeholder="Y. R. Verma" {...field} />
-                                                                </FormControl>
-                                                                <FormMessage />
-                                                            </FormItem>
-                                                            )}
-                                                        />
-                                                    <Button type="submit" className="w-full" disabled={profileForm.formState.isSubmitting}>
-                                                        {profileForm.formState.isSubmitting ? 'Saving...' : 'Save Profile'}
-                                                    </Button>
-                                                    </form>
-                                                </Form>
-                                                <div className="space-y-2">
-                                                    <Label>Live Preview</Label>
-                                                    <AboutTheAuthor previewData={{
-                                                        ...watchedProfile,
-                                                        avatar: previewUrl,
-                                                        name: watchedProfile.name || '',
-                                                        bio: watchedProfile.bio || '',
-                                                        signature: watchedProfile.signature || '',
-                                                        instagramUrl: watchedProfile.instagramUrl || '',
-                                                    }} />
-                                                </div>
+                                                    </div>
+                                                    {index < allBulletins.length - 1 && <Separator className="mt-4" />}
+                                                    </div>
+                                                )) : (
+                                                <p className="text-sm text-muted-foreground text-center">No bulletins sent yet.</p>
+                                                )}
                                             </div>
-                                        </CardContent>
-                                    </Card>
-
-                                    <Card className="glass-card">
-                                        <CardHeader>
-                                        <div className="flex items-center gap-2">
-                                            <Megaphone className="h-5 w-5 text-primary" />
-                                            <CardTitle>Post a Bulletin</CardTitle>
-                                        </div>
-                                            <CardDescription>Publish a new daily bulletin.</CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="grid grid-cols-1 gap-6">
-                                                <Form {...bulletinForm}>
-                                                    <form onSubmit={bulletinForm.handleSubmit(onBulletinSubmit)} className="space-y-4">
-                                                    <FormField
-                                                        control={bulletinForm.control}
-                                                        name="topic"
-                                                        render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Topic</FormLabel>
-                                                            <FormControl>
-                                                            <div className="flex gap-2">
-                                                                <Input placeholder="e.g., 'AI in Healthcare'" {...field} />
-                                                                <Button type="button" variant="outline" onClick={handleGenerateBulletin} disabled={isGenerating}>
-                                                                    <Bot className="h-4 w-4" />
-                                                                </Button>
-                                                            </div>
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                        )}
-                                                    />
-                                                    <FormField
-                                                        control={bulletinForm.control}
-                                                        name="title"
-                                                        render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Title</FormLabel>
-                                                            <FormControl>
-                                                            <Input placeholder="Daily Market Wrap-Up" {...field} />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                        )}
-                                                    />
-                                                    <FormField
-                                                        control={bulletinForm.control}
-                                                        name="content"
-                                                        render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Content</FormLabel>
-                                                            <FormControl>
-                                                            <Textarea placeholder="Markets closed mixed today..." {...field} rows={4} />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                        )}
-                                                    />
-                                                    <FormField
-                                                        control={bulletinForm.control}
-                                                        name="coverImage"
-                                                        render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Image URL</FormLabel>
-                                                            <FormControl>
-                                                            <Input placeholder="https://picsum.photos/1200/800" {...field} />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                        )}
-                                                    />
-                                                    <Button type="submit" className="w-full" disabled={bulletinForm.formState.isSubmitting}>
-                                                        {bulletinForm.formState.isSubmitting ? 'Publishing...' : 'Publish Bulletin'}
-                                                    </Button>
-                                                    </form>
-                                                </Form>
-                                                <div className="space-y-2">
-                                                    <Label>Live Preview</Label>
-                                                    <BulletinCard bulletin={{
-                                                        id: 'preview',
-                                                        publishedAt: new Date().toISOString(),
-                                                        ...watchedBulletin,
-                                                        coverImage: watchedBulletin.coverImage || 'https://picsum.photos/1200/800',
-                                                    }} index={0} />
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-
-                                    <Card className="glass-card">
-                                        <CardHeader>
-                                        <div className="flex items-center gap-2">
-                                            <BellRing className="h-5 w-5 text-primary" />
-                                            <CardTitle>Send Notification</CardTitle>
-                                        </div>
-                                            <CardDescription>Publish a new announcement to all users.</CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="grid grid-cols-1 gap-6">
-                                                <Form {...notificationForm}>
-                                                    <form onSubmit={notificationForm.handleSubmit(onNotificationSubmit)} className="space-y-4">
-                                                    <FormField
-                                                        control={notificationForm.control}
-                                                        name="title"
-                                                        render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Title</FormLabel>
-                                                            <FormControl>
-                                                            <Input placeholder="New Feature Alert!" {...field} />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                        )}
-                                                    />
-                                                    <FormField
-                                                        control={notificationForm.control}
-                                                        name="description"
-                                                        render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Description</FormLabel>
-                                                            <FormControl>
-                                                            <Textarea placeholder="Check out our new comment system!" {...field} />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                        )}
-                                                    />
-                                                    <FormField
-                                                        control={notificationForm.control}
-                                                        name="image"
-                                                        render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Image URL (Optional)</FormLabel>
-                                                            <FormControl>
-                                                            <Input placeholder="https://example.com/image.png" {...field} />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                        )}
-                                                    />
-                                                    <Button type="submit" className="w-full" disabled={notificationForm.formState.isSubmitting}>
-                                                        {notificationForm.formState.isSubmitting ? 'Sending...' : 'Send Notification'}
-                                                    </Button>
-                                                    </form>
-                                                </Form>
-                                                <div className="space-y-2">
-                                                    <Label>Live Preview</Label>
-                                                    <div className="p-4 rounded-lg border bg-card text-card-foreground">
-                                                        <div className="grid grid-cols-[25px_1fr] items-start">
-                                                            <span className="flex h-2 w-2 translate-y-1 rounded-full bg-primary" />
-                                                            <div className="space-y-1">
-                                                                <p className="text-sm font-medium leading-none">{watchedNotification.title || "Notification Title"}</p>
-                                                                <p className="text-sm text-muted-foreground">{watchedNotification.description || "Notification description will appear here."}</p>
-                                                                {watchedNotification.image && (
-                                                                    <div className="mt-2 relative aspect-video rounded-md overflow-hidden border">
-                                                                        <img src={watchedNotification.image} alt="Preview" className="object-cover w-full h-full" />
-                                                                    </div>
-                                                                )}
-                                                                <p className="text-xs text-muted-foreground/70 pt-1">{new Date().toLocaleString()}</p>
-                                                            </div>
+                                        </TabsContent>
+                                        <TabsContent value="notifications">
+                                            <div className="space-y-4 pt-4">
+                                                {allNotifications.length > 0 ? allNotifications.map((notif, index) => (
+                                                    <div key={notif.id}>
+                                                    <div className="flex justify-between items-start gap-4">
+                                                        <div className="space-y-1 flex-1">
+                                                            <p className="font-medium text-sm">{notif.title}</p>
+                                                            <p className="text-xs text-muted-foreground">{notif.description}</p>
+                                                            {notif.image && <ImageIcon className="h-4 w-4 inline-block text-muted-foreground" />}
+                                                        </div>
+                                                        <div className="flex items-center">
+                                                             <Button asChild variant="ghost" size="icon">
+                                                                <Link href={`/admin/edit-notification/${notif.id}`}><Edit className="h-4 w-4" /></Link>
+                                                            </Button>
+                                                            <Button variant="ghost" size="icon" onClick={() => handleDeleteNotifClick(notif)}>
+                                                                <Trash className="h-4 w-4 text-red-500" />
+                                                            </Button>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                    {index < allNotifications.length - 1 && <Separator className="mt-4" />}
+                                                    </div>
+                                                )) : (
+                                                <p className="text-sm text-muted-foreground text-center">No notifications sent yet.</p>
+                                                )}
                                             </div>
-                                        </CardContent>
-                                    </Card>
-
-                                    <Card className="glass-card">
-                                        <CardHeader>
-                                            <CardTitle>Manage Content</CardTitle>
-                                            <CardDescription>Delete existing content.</CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <Tabs defaultValue="bulletins" className="w-full">
-                                                <TabsList className="grid w-full grid-cols-2">
-                                                    <TabsTrigger value="bulletins">Bulletins</TabsTrigger>
-                                                    <TabsTrigger value="notifications">Notifications</TabsTrigger>
-                                                </TabsList>
-                                                <TabsContent value="bulletins">
-                                                    <div className="space-y-4 pt-4">
-                                                        {allBulletins.length > 0 ? allBulletins.map((item, index) => (
-                                                            <div key={item.id}>
-                                                            <div className="flex justify-between items-start gap-4">
-                                                                <div className="space-y-1 flex-1">
-                                                                    <p className="font-medium text-sm">{item.title}</p>
-                                                                    <p className="text-xs text-muted-foreground">{item.content}</p>
-                                                                </div>
-                                                                <div className="flex items-center">
-                                                                    <Button asChild variant="ghost" size="icon">
-                                                                        <Link href={`/admin/edit-bulletin/${item.id}`}><Edit className="h-4 w-4" /></Link>
-                                                                    </Button>
-                                                                    <Button variant="ghost" size="icon" onClick={() => handleDeleteBulletinClick(item)}>
-                                                                        <Trash className="h-4 w-4 text-red-500" />
-                                                                    </Button>
-                                                                </div>
-                                                            </div>
-                                                            {index < allBulletins.length - 1 && <Separator className="mt-4" />}
-                                                            </div>
-                                                        )) : (
-                                                        <p className="text-sm text-muted-foreground text-center">No bulletins sent yet.</p>
-                                                        )}
-                                                    </div>
-                                                </TabsContent>
-                                                <TabsContent value="notifications">
-                                                    <div className="space-y-4 pt-4">
-                                                        {allNotifications.length > 0 ? allNotifications.map((notif, index) => (
-                                                            <div key={notif.id}>
-                                                            <div className="flex justify-between items-start gap-4">
-                                                                <div className="space-y-1 flex-1">
-                                                                    <p className="font-medium text-sm">{notif.title}</p>
-                                                                    <p className="text-xs text-muted-foreground">{notif.description}</p>
-                                                                    {notif.image && <ImageIcon className="h-4 w-4 inline-block text-muted-foreground" />}
-                                                                </div>
-                                                                <div className="flex items-center">
-                                                                     <Button asChild variant="ghost" size="icon">
-                                                                        <Link href={`/admin/edit-notification/${notif.id}`}><Edit className="h-4 w-4" /></Link>
-                                                                    </Button>
-                                                                    <Button variant="ghost" size="icon" onClick={() => handleDeleteNotifClick(notif)}>
-                                                                        <Trash className="h-4 w-4 text-red-500" />
-                                                                    </Button>
-                                                                </div>
-                                                            </div>
-                                                            {index < allNotifications.length - 1 && <Separator className="mt-4" />}
-                                                            </div>
-                                                        )) : (
-                                                        <p className="text-sm text-muted-foreground text-center">No notifications sent yet.</p>
-                                                        )}
-                                                    </div>
-                                                </TabsContent>
-                                            </Tabs>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-                            </div>
-                        </TabsContent>
-                    </>
-                 )}
+                                        </TabsContent>
+                                    </Tabs>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+                </TabsContent>
             </Tabs>
 
 
@@ -1085,5 +1043,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
 };
 
 export default AdminClientPage;
+
+    
 
     
