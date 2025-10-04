@@ -16,15 +16,13 @@ interface AnalyticsDashboardProps {
 }
 
 interface PostAnalytic extends Post {
-    views: number;
-    impressions: number;
     commentsCount: number;
 }
 
 const generateChartData = (posts: PostAnalytic[], timeRange: string) => {
-  const data: { [key: string]: { name: string, views: number, likes: number, date: Date } } = {};
+  const data: { [key: string]: { name: string, likes: number, comments: number, date: Date } } = {};
   
-  const initializeDataPoint = (name: string, date: Date) => ({ name, views: 0, likes: 0, date });
+  const initializeDataPoint = (name: string, date: Date) => ({ name, likes: 0, comments: 0, date });
 
   if (timeRange === '1') { // Last 24 hours
     const startDate = subHours(new Date(), 23);
@@ -40,8 +38,8 @@ const generateChartData = (posts: PostAnalytic[], timeRange: string) => {
       if (postDate >= startDate) {
         const formattedDate = format(postDate, 'ha');
         if (data[formattedDate]) {
-          data[formattedDate].views += post.views;
           data[formattedDate].likes += (post.likes || 0);
+          data[formattedDate].comments += post.commentsCount;
         }
       }
     });
@@ -59,8 +57,8 @@ const generateChartData = (posts: PostAnalytic[], timeRange: string) => {
       if (postDate >= startDate) {
         const formattedDate = format(postDate, 'MMM d');
         if (data[formattedDate]) {
-          data[formattedDate].views += post.views;
           data[formattedDate].likes += (post.likes || 0);
+           data[formattedDate].comments += post.commentsCount;
         }
       }
     });
@@ -77,24 +75,21 @@ const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
   useEffect(() => {
     const processAnalytics = async () => {
         setLoading(true);
-        const analyticsData = posts.map(post => {
-            return {
+        
+        const initialAnalyticsData = posts.map(post => ({
             ...post,
-            views: (post.likes || 0) * 5, // Simple estimation: 1 like = 5 views
-            impressions: (post.likes || 0) * 10, // Simple estimation: 1 like = 10 impressions
-            commentsCount: 0, // Will be fetched, but initialize
-            };
-        });
+            commentsCount: 0,
+        }));
 
-        // Fetch comments in parallel
-        const commentPromises = analyticsData.map(post => getComments(post.id));
+        const commentPromises = initialAnalyticsData.map(post => getComments(post.id));
         const commentsPerPost = await Promise.all(commentPromises);
         
-        analyticsData.forEach((post, index) => {
-            post.commentsCount = commentsPerPost[index].length;
-        });
+        const analyticsData = initialAnalyticsData.map((post, index) => ({
+            ...post,
+            commentsCount: commentsPerPost[index].length
+        }));
         
-        setPostAnalytics(analyticsData.sort((a,b) => b.views - a.views));
+        setPostAnalytics(analyticsData.sort((a,b) => (b.likes || 0) - (a.likes || 0)));
         setLoading(false);
     }
     processAnalytics();
@@ -103,8 +98,6 @@ const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
   const chartData = useMemo(() => generateChartData(postAnalytics, timeRange), [postAnalytics, timeRange]);
   
   const totalLikes = postAnalytics.reduce((sum, post) => sum + (post.likes || 0), 0);
-  const totalViews = postAnalytics.reduce((sum, post) => sum + post.views, 0);
-  const totalImpressions = postAnalytics.reduce((sum, post) => sum + post.impressions, 0);
   const totalComments = postAnalytics.reduce((sum, post) => sum + post.commentsCount, 0);
 
 
@@ -118,17 +111,7 @@ const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
 
   return (
     <div className="space-y-8">
-      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="glass-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Pageviews (Est.)</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalViews.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Estimated based on likes.</p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-8 md:grid-cols-2">
         <Card className="glass-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Likes</CardTitle>
@@ -149,23 +132,13 @@ const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
             <p className="text-xs text-muted-foreground">Across all posts.</p>
           </CardContent>
         </Card>
-         <Card className="glass-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Impressions (Est.)</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalImpressions.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Estimated based on likes.</p>
-          </CardContent>
-        </Card>
       </div>
 
       <Card className="glass-card">
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
               <div>
-                <CardTitle>Audience Overview</CardTitle>
+                <CardTitle>Engagement Overview</CardTitle>
                 <CardDescription>A summary of your content's engagement over time.</CardDescription>
               </div>
               <Select value={timeRange} onValueChange={setTimeRange}>
@@ -196,8 +169,8 @@ const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
                     }}
                  />
                 <Legend iconType="circle"/>
-                <Line type="monotone" dataKey="views" name="Pageviews (Est.)" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 2, fill: "hsl(var(--primary))" }} activeDot={{ r: 6 }} />
                 <Line type="monotone" dataKey="likes" name="Likes" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 2, fill: "hsl(var(--destructive))" }} activeDot={{ r: 6 }} />
+                <Line type="monotone" dataKey="comments" name="Comments" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 2, fill: "hsl(var(--primary))" }} activeDot={{ r: 6 }} />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
@@ -215,7 +188,6 @@ const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
                         <TableHead>Post</TableHead>
                         <TableHead className="text-right">Likes</TableHead>
                         <TableHead className="text-right">Comments</TableHead>
-                        <TableHead className="text-right">Pageviews (Est.)</TableHead>
                         <TableHead className="text-right">Read Time</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -229,7 +201,6 @@ const AnalyticsDashboard = ({ posts }: AnalyticsDashboardProps) => {
                            </TableCell>
                            <TableCell className="text-right">{(post.likes || 0).toLocaleString()}</TableCell>
                            <TableCell className="text-right">{post.commentsCount.toLocaleString()}</TableCell>
-                           <TableCell className="text-right">{post.views.toLocaleString()}</TableCell>
                            <TableCell className="text-right text-primary font-semibold">{post.readTime} min</TableCell>
                        </TableRow>
                    ))}

@@ -41,6 +41,7 @@ import { Label } from "@/components/ui/label";
 import { BulletinCard } from "@/app/(pages)/bulletin/page";
 import { generateBulletinContent } from "@/ai/flows/bulletin-flow";
 import { updateUserPoints } from "@/app/actions/gamification-actions";
+import { manageUserSubscription } from "@/app/actions/premium-actions";
 import {
   Dialog,
   DialogContent,
@@ -83,7 +84,8 @@ const newsletterSchema = z.object({
 });
 
 const pointsSchema = z.object({
-    points: z.coerce.number().int("Points must be a whole number."),
+    points: z.coerce.number().int("Points must be a whole number.").optional(),
+    subscriptionDays: z.coerce.number().int("Days must be a whole number.").optional(),
     reason: z.string().min(5, "Please provide a reason."),
 });
 
@@ -119,7 +121,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
 
     const pointsForm = useForm<z.infer<typeof pointsSchema>>({
         resolver: zodResolver(pointsSchema),
-        defaultValues: { points: 0, reason: "" },
+        defaultValues: { reason: "" },
     });
 
     const notificationForm = useForm<z.infer<typeof notificationSchema>>({
@@ -218,7 +220,6 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
         
         const originalPosts = allPosts;
         
-        // Optimistic UI update
         setAllPosts(prev => prev.filter(p => p.id !== postToDelete.id));
         setPostDeleteDialogOpen(false);
 
@@ -229,7 +230,6 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
             }
             toast({ title: "Post Deleted", description: `"${postToDelete.title}" has been deleted.` });
         } catch (error) {
-            // Revert on error
             setAllPosts(originalPosts);
             toast({ title: "Error", description: "Failed to delete post. Your post has been restored.", variant: "destructive" });
         } finally {
@@ -242,7 +242,6 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
         
         const originalNotifications = allNotifications;
 
-        // Optimistic UI update
         setAllNotifications(prev => prev.filter(n => n.id !== notificationToDelete.id));
         setNotifDeleteDialogOpen(false);
         
@@ -253,7 +252,6 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
             }
             toast({ title: "Notification Deleted", description: `"${notificationToDelete.title}" has been deleted.` });
         } catch (error) {
-            // Revert on error
             setAllNotifications(originalNotifications);
             toast({ title: "Error", description: "Failed to delete notification. It has been restored.", variant: "destructive" });
         } finally {
@@ -266,7 +264,6 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
         
         const originalBulletins = allBulletins;
 
-        // Optimistic UI update
         setAllBulletins(prev => prev.filter(b => b.id !== bulletinToDelete.id));
         setBulletinDeleteDialogOpen(false);
         
@@ -277,7 +274,6 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
             }
             toast({ title: "Bulletin Deleted", description: `"${bulletinToDelete.title}" has been deleted.` });
         } catch (error) {
-            // Revert on error
             setAllBulletins(originalBulletins);
             toast({ title: "Error", description: "Failed to delete bulletin. It has been restored.", variant: "destructive" });
         } finally {
@@ -319,7 +315,6 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
             const result = await generateBulletinContent({ topic });
             bulletinForm.setValue("title", result.title);
             bulletinForm.setValue("content", result.content);
-            // @ts-ignore
             bulletinForm.setValue("coverImage", result.coverImage);
         } catch (e) {
             toast({ title: "Error", description: "Failed to generate bulletin content.", variant: "destructive"});
@@ -382,20 +377,45 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
     const onPointsSubmit = async (values: z.infer<typeof pointsSchema>) => {
         if (!user || !userToEditPoints) return;
         
-        const result = await updateUserPoints(user.id, userToEditPoints.id, values.points, values.reason);
+        let success = true;
+        let finalMessage = "";
 
-        if (result.success) {
-            toast({
-                title: "Points Updated!",
-                description: `${userToEditPoints.name}'s points have been updated to ${result.newTotal?.toLocaleString() || 'N/A'}.`
+        if (values.points !== undefined) {
+             const result = await updateUserPoints(user.id, userToEditPoints.id, values.points, values.reason);
+             if (result.success) {
+                 finalMessage += `Points updated to ${result.newTotal?.toLocaleString() || 'N/A'}. `;
+                 setAllUsers(prevUsers => prevUsers.map(u => u.id === userToEditPoints.id ? { ...u, points: result.newTotal } : u));
+             } else {
+                 success = false;
+                 toast({ title: "Error Updating Points", description: result.error, variant: "destructive" });
+             }
+        }
+        
+        if (values.subscriptionDays !== undefined) {
+             const result = await manageUserSubscription(user.id, userToEditPoints.id, values.subscriptionDays);
+             if (result.success) {
+                 finalMessage += `Subscription updated.`;
+                 // Update local state for subscription
+                 const newExpiry = new Date();
+                 newExpiry.setDate(newExpiry.getDate() + values.subscriptionDays);
+                 setAllUsers(prevUsers => prevUsers.map(u => {
+                     if (u.id === userToEditPoints.id) {
+                         return { ...u, premium: { active: values.subscriptionDays! > 0, expires: newExpiry.toISOString() } };
+                     }
+                     return u;
+                 }));
+             } else {
+                 success = false;
+                 toast({ title: "Error Updating Subscription", description: result.error, variant: "destructive" });
+             }
+        }
+
+        if (success) {
+             toast({
+                title: "User Updated!",
+                description: `${userToEditPoints.name}'s profile has been updated. ${finalMessage}`
             });
-            // Update the user in the local state
-            setAllUsers(prevUsers => prevUsers.map(u => 
-                u.id === userToEditPoints.id ? { ...u, points: result.newTotal } : u
-            ));
             setPointsDialogOpen(false);
-        } else {
-            toast({ title: "Error", description: result.error, variant: "destructive" });
         }
     };
 
@@ -511,7 +531,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                             <Card className="glass-card">
                                 <CardHeader>
                                     <CardTitle>User Management</CardTitle>
-                                    <CardDescription>View all registered users and manage their points.</CardDescription>
+                                    <CardDescription>View all registered users and manage their points or subscription status.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <Table>
@@ -550,7 +570,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                                                         </TableCell>
                                                         <TableCell className="text-right">
                                                             <Button variant="outline" size="sm" onClick={() => handleEditPointsClick(u)}>
-                                                                <Edit className="h-3 w-3 mr-1" /> Edit Points
+                                                                <Edit className="h-3 w-3 mr-1" /> Manage
                                                             </Button>
                                                         </TableCell>
                                                     </TableRow>
@@ -995,9 +1015,9 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
              <Dialog open={isPointsDialogOpen} onOpenChange={setPointsDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Edit Points for {userToEditPoints?.name}</DialogTitle>
+                        <DialogTitle>Manage {userToEditPoints?.name}</DialogTitle>
                         <DialogDescription>
-                            Add or remove points from this user. Use a negative number to subtract points.
+                            Manually adjust points or subscription status for this user.
                         </DialogDescription>
                     </DialogHeader>
                     <Form {...pointsForm}>
@@ -1015,6 +1035,20 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                                     </FormItem>
                                 )}
                             />
+                             <FormField
+                                control={pointsForm.control}
+                                name="subscriptionDays"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Glare+ Subscription Days</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="e.g., 30 (add) or 0 (remove)" {...field} />
+                                        </FormControl>
+                                        <p className="text-xs text-muted-foreground mt-1">Enter a positive number to add days, or 0 to revoke the subscription.</p>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                             <FormField
                                 control={pointsForm.control}
                                 name="reason"
@@ -1022,7 +1056,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                                     <FormItem>
                                         <FormLabel>Reason</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="e.g., Manual correction, reward for offline event" {...field} />
+                                            <Input placeholder="e.g., Manual correction, reward" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -1031,7 +1065,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                             <DialogFooter>
                                 <Button type="button" variant="ghost" onClick={() => setPointsDialogOpen(false)}>Cancel</Button>
                                 <Button type="submit" disabled={pointsForm.formState.isSubmitting}>
-                                    {pointsForm.formState.isSubmitting ? "Updating..." : "Update Points"}
+                                    {pointsForm.formState.isSubmitting ? "Updating..." : "Update User"}
                                 </Button>
                             </DialogFooter>
                         </form>

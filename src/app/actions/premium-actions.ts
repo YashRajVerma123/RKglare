@@ -2,7 +2,7 @@
 'use server'
 
 import { db } from '@/lib/firebase-server';
-import { doc, runTransaction, Timestamp } from 'firebase/firestore';
+import { doc, runTransaction, Timestamp, getDoc } from 'firebase/firestore';
 import { Author, authorConverter } from '@/lib/data';
 import { revalidateTag } from 'next/cache';
 
@@ -40,23 +40,19 @@ export async function purchaseSubscription(
                 throw new Error('Not enough points to purchase this subscription.');
             }
 
-            // Calculate new expiration date
             const now = new Date();
             let newExpiryDate: Date;
             
             const isPremium = user.premium?.active === true && user.premium?.expires && new Date(user.premium.expires) > now;
 
             if (isPremium && user.premium!.expires) {
-                // If user is already premium, extend their subscription
                 newExpiryDate = new Date(user.premium!.expires);
                 newExpiryDate.setDate(newExpiryDate.getDate() + option.days);
             } else {
-                // If not premium or subscription expired, start new subscription from today
                 newExpiryDate = new Date();
                 newExpiryDate.setDate(now.getDate() + option.days);
             }
 
-            // Deduct points and update premium status
             transaction.update(userRef, {
                 points: currentPoints - option.points,
                 premium: {
@@ -66,7 +62,6 @@ export async function purchaseSubscription(
             });
         });
 
-        // Revalidate user-related data
         revalidateTag(`author-id:${userId}`);
         revalidateTag('premium_users');
 
@@ -74,6 +69,65 @@ export async function purchaseSubscription(
 
     } catch (error) {
         console.error("Subscription purchase failed:", error);
+        return { success: false, error: (error as Error).message };
+    }
+}
+
+
+export async function manageUserSubscription(
+    adminId: string,
+    targetUserId: string,
+    days: number
+): Promise<{ success: boolean; error?: string }> {
+    const adminRef = doc(db, 'users', adminId);
+    const adminDoc = await getDoc(adminRef);
+    if (!adminDoc.exists() || adminDoc.data().email !== 'yashrajverma916@gmail.com') {
+        return { success: false, error: 'Unauthorized action.' };
+    }
+
+    if (!targetUserId) {
+        return { success: false, error: 'Target user ID is required.' };
+    }
+    
+    const userRef = doc(db, 'users', targetUserId).withConverter(authorConverter);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const userDoc = await transaction.get(userRef);
+            if (!userDoc.exists()) {
+                throw new Error('User not found.');
+            }
+
+            const user = userDoc.data();
+            const now = new Date();
+            let newExpiryDate: Date;
+
+            const isPremium = user.premium?.active === true && user.premium?.expires && new Date(user.premium.expires) > now;
+            
+            if (days > 0) { // Adding days
+                if (isPremium && user.premium!.expires) {
+                    newExpiryDate = new Date(user.premium!.expires);
+                    newExpiryDate.setDate(newExpiryDate.getDate() + days);
+                } else {
+                    newExpiryDate = new Date();
+                    newExpiryDate.setDate(now.getDate() + days);
+                }
+                transaction.update(userRef, {
+                    premium: { active: true, expires: Timestamp.fromDate(newExpiryDate) }
+                });
+            } else { // Removing subscription
+                 transaction.update(userRef, {
+                    premium: { active: false, expires: null }
+                });
+            }
+        });
+        
+        revalidateTag(`author-id:${targetUserId}`);
+        revalidateTag('premium_users');
+        return { success: true };
+
+    } catch (error) {
+        console.error("Subscription management failed:", error);
         return { success: false, error: (error as Error).message };
     }
 }

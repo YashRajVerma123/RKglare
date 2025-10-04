@@ -6,7 +6,6 @@ import { Separator } from '@/components/ui/separator';
 const quickLinks = [
   { href: '/glare-plus', label: 'Glare+' },
   { href: '/about', label: 'About' },
-  { href: '/contact', label: 'Contact Us' },
   { href: '/privacy-policy', label: 'Privacy Policy' },
   { href: '/newsletter', label: 'Newsletter' },
   { href: '/points-system', label: 'Points System' },
