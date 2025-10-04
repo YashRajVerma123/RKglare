@@ -22,7 +22,7 @@ const RecentPostCard = ({ post }: RecentPostCardProps) => {
   return (
     <Link href={`/posts/${post.slug}`} className="group block" prefetch={true}>
       <div className="glass-card relative h-full flex flex-col overflow-hidden transition-all duration-300 hover:border-primary/50 hover:-translate-y-1">
-        <div className="relative w-full aspect-video md:aspect-[2.5/1] overflow-hidden">
+        <div className="relative w-full aspect-[16/9] md:aspect-[2/1] overflow-hidden">
           <Image
             src={post.coverImage}
             alt={post.title}

@@ -29,7 +29,6 @@ const BlogPostCard = ({ post, priority = false }: BlogPostCardProps) => {
             priority={priority}
             data-ai-hint="blog post cover"
           />
-           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
         </div>
         <div className="p-6 flex flex-col flex-grow">
           <div className="flex justify-between items-center text-xs text-muted-foreground mb-4">
