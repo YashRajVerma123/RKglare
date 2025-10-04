@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { Post, getPosts } from '@/lib/data';
 import BlogPostCard from '@/components/blog-post-card';
 import { useEffect, useState } from 'react';
+import RecentPostCard from '@/components/recent-post-card';
 
 const PostsClient = ({ initialPosts }: { initialPosts: Post[] }) => {
   const searchParams = useSearchParams();
@@ -61,6 +62,9 @@ const PostsClient = ({ initialPosts }: { initialPosts: Post[] }) => {
       </div>
     )
   }
+  
+  const latestPost = filteredPosts[0];
+  const otherPosts = filteredPosts.slice(1);
 
   return (
     <div className="container mx-auto px-4 py-16">
@@ -75,10 +79,17 @@ const PostsClient = ({ initialPosts }: { initialPosts: Post[] }) => {
       </section>
 
       {filteredPosts.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredPosts.map((post, index) => (
-            <BlogPostCard key={post.slug} post={post} priority={index < 3} />
-          ))}
+        <div className="space-y-12">
+            {latestPost && !searchQuery && (
+              <div className="mb-12">
+                <RecentPostCard post={latestPost} />
+              </div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {(searchQuery ? filteredPosts : otherPosts).map((post, index) => (
+                <BlogPostCard key={post.slug} post={post} priority={index < 3} />
+            ))}
+            </div>
         </div>
       ) : (
         <div className="text-center glass-card py-16">
