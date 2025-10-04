@@ -1,8 +1,7 @@
-
 'use client';
 import { cn } from "@/lib/utils";
 import React from "react";
-import { Star, Palette, MessageCircle, FileDown, Zap, Award, Users, LifeBuoy } from "lucide-react";
+import { Star, Palette, MessageSquare, FileDown, Zap, Award, Users, LifeBuoy } from "lucide-react";
 
 const features = [
     {
@@ -16,7 +15,7 @@ const features = [
         description: "Personalize your reading experience."
     },
     {
-        icon: <MessageCircle className="h-8 w-8" />,
+        icon: <MessageSquare className="h-8 w-8" />,
         title: "Premium Chat",
         description: "Join a private chat with other supporters."
     },
@@ -106,21 +105,26 @@ const MarqueeColumn = ({
 };
 
 const AnimatedMasonryGrid = () => {
-    const column1 = features.slice(0, 4);
-    const column2 = features.slice(4, 8);
-    const column3 = features.slice(8, 12);
+    const column1 = features.slice(0, 3);
+    const column2 = features.slice(3, 6);
+    const column3 = features.slice(6, 9);
+    const column4 = features.slice(9, 12);
+
 
     return (
         <div className="relative flex h-[500px] w-full items-center justify-center overflow-hidden">
             <div className="flex justify-around gap-4 w-full">
                 <MarqueeColumn>
-                    {column1.map((feature) => <FeatureCard key={feature.title} {...feature} />)}
+                    {column1.map((feature, i) => <FeatureCard key={i} {...feature} />)}
                 </MarqueeColumn>
                 <MarqueeColumn reverse>
-                    {column2.map((feature) => <FeatureCard key={feature.title} {...feature} />)}
+                    {column2.map((feature, i) => <FeatureCard key={i} {...feature} />)}
                 </MarqueeColumn>
                 <MarqueeColumn>
-                    {column3.map((feature) => <FeatureCard key={feature.title} {...feature} />)}
+                    {column3.map((feature, i) => <FeatureCard key={i} {...feature} />)}
+                </MarqueeColumn>
+                 <MarqueeColumn reverse>
+                    {column4.map((feature, i) => <FeatureCard key={i} {...feature} />)}
                 </MarqueeColumn>
             </div>
              <div className="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-b from-background via-transparent to-background"></div>
