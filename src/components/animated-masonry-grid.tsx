@@ -66,34 +66,47 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; titl
   );
 };
 
+const MarqueeColumn = ({
+  children,
+  reverse = false,
+  className,
+  ...props
+}: React.ComponentProps<"div"> & { reverse?: boolean }) => {
+  return (
+    <div
+      {...props}
+      className={cn(
+        "flex flex-col space-y-4",
+        "animate-marquee-vertical",
+        { "[animation-direction:reverse]": reverse },
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+};
+
 const AnimatedMasonryGrid = () => {
     const column1 = features.slice(0, 3);
     const column2 = features.slice(3, 6);
     const column3 = features.slice(6, 9);
 
-    const renderColumn = (columnFeatures: typeof features) => (
-        <div className="flex flex-col space-y-4">
-            {columnFeatures.map((feature, i) => (
-                <FeatureCard key={i} {...feature} />
-            ))}
-        </div>
-    );
-
     return (
         <div className="relative flex h-[500px] w-full items-center justify-center overflow-hidden">
             <div className="flex w-full justify-center gap-4">
-                <div className="w-1/3 animate-marquee-vertical space-y-4">
-                   {renderColumn(column1)}
-                   {renderColumn(column1)}
-                </div>
-                 <div className="w-1/3 animate-marquee-vertical [animation-direction:reverse] space-y-4">
-                    {renderColumn(column2)}
-                    {renderColumn(column2)}
-                </div>
-                 <div className="w-1/3 animate-marquee-vertical space-y-4">
-                    {renderColumn(column3)}
-                    {renderColumn(column3)}
-                </div>
+                <MarqueeColumn>
+                    {column1.map((feature, i) => <FeatureCard key={i} {...feature} />)}
+                    {column1.map((feature, i) => <FeatureCard key={i} {...feature} />)}
+                </MarqueeColumn>
+                <MarqueeColumn reverse className="hidden md:flex">
+                    {column2.map((feature, i) => <FeatureCard key={i} {...feature} />)}
+                    {column2.map((feature, i) => <FeatureCard key={i} {...feature} />)}
+                </MarqueeColumn>
+                <MarqueeColumn>
+                    {column3.map((feature, i) => <FeatureCard key={i} {...feature} />)}
+                    {column3.map((feature, i) => <FeatureCard key={i} {...feature} />)}
+                </MarqueeColumn>
             </div>
             <div className="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-b from-background via-transparent to-background"></div>
         </div>

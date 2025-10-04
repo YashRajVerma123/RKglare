@@ -7,7 +7,6 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { getLevel } from '@/lib/gamification';
 import Link from 'next/link';
-import AnimatedMasonryGrid from '@/components/animated-masonry-grid';
 
 const getInitials = (name: string) => {
     const names = name.split(' ');
@@ -75,10 +74,6 @@ const GlarePlusPage = async () => {
                 </p>
             </section>
             
-            <section className="mb-24">
-                <AnimatedMasonryGrid />
-            </section>
-
             <GlarePlusClient />
 
             <section className="mt-24">
