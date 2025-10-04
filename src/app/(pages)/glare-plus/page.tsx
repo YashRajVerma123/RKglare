@@ -7,50 +7,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { getLevel } from '@/lib/gamification';
 import Link from 'next/link';
-
-const features = [
-    {
-        icon: <Star className="h-6 w-6" />,
-        title: "Exclusive Content",
-        description: "Get 24-hour early access to articles and read premium-only posts."
-    },
-    {
-        icon: <Palette className="h-6 w-6" />,
-        title: "Customize Your UI",
-        description: "Personalize your reading experience with custom themes and fonts."
-    },
-    {
-        icon: <MessageCircle className="h-6 w-6" />,
-        title: "Premium Chat",
-        description: "Join a private chat room with other supporters and the author."
-    },
-    {
-        icon: <FileDown className="h-6 w-6" />,
-        title: "Download Articles",
-        description: "Save any article as a PDF to read offline, anytime, anywhere."
-    },
-    {
-        icon: <Zap className="h-6 w-6" />,
-        title: "Ad-Free Experience",
-        description: "Enjoy a faster, cleaner reading experience with all advertisements removed."
-    },
-    {
-        icon: <Award className="h-6 w-6" />,
-        title: "Supporter Badge",
-        description: "Show off your support with a special Glare+ badge on your profile."
-    },
-    {
-        icon: <Users className="h-6 w-6" />,
-        title: "Featured Supporter",
-        description: "Be showcased on this page as a thank you for your incredible support."
-    },
-     {
-        icon: <LifeBuoy className="h-6 w-6" />,
-        title: "Priority Support",
-        description: "Get faster responses and dedicated help for any issues or questions."
-    }
-];
-
+import AnimatedMasonryGrid from '@/components/animated-masonry-grid';
 
 const getInitials = (name: string) => {
     const names = name.split(' ');
@@ -119,17 +76,7 @@ const GlarePlusPage = async () => {
             </section>
             
             <section className="mb-24">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {features.map((feature, index) => (
-                        <div key={index} className="glass-card text-center p-8 transition-transform transform hover:-translate-y-2">
-                        <div className="inline-block p-4 bg-primary/10 rounded-full mb-4 text-primary">
-                            {feature.icon}
-                        </div>
-                        <h3 className="text-xl font-headline font-semibold mb-2">{feature.title}</h3>
-                        <p className="text-muted-foreground text-sm">{feature.description}</p>
-                        </div>
-                    ))}
-                </div>
+                <AnimatedMasonryGrid />
             </section>
 
             <GlarePlusClient />
