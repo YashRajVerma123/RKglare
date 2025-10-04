@@ -21,43 +21,41 @@ const RecentPostCard = ({ post }: RecentPostCardProps) => {
   
   return (
     <Link href={`/posts/${post.slug}`} className="group block" prefetch={true}>
-      <div className="glass-card relative h-full flex flex-col overflow-hidden transition-all duration-300 hover:border-primary/50 hover:-translate-y-1">
-        <div className="relative w-full aspect-[16/9] md:aspect-[2/1] overflow-hidden">
+      <div className="glass-card h-full flex flex-col md:flex-row items-center gap-6 overflow-hidden transition-all duration-300 hover:border-primary/50 hover:-translate-y-1">
+        <div className="relative w-full md:w-1/3 aspect-[16/9] md:h-full overflow-hidden">
           <Image
             src={post.coverImage}
             alt={post.title}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, 50vw"
+            sizes="(max-width: 768px) 100vw, 33vw"
             data-ai-hint="article thumbnail"
-            priority
           />
-           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 text-white">
-            <div className='flex justify-between items-end'>
-                <div className='max-w-xl'>
-                    <Badge variant="secondary" className="mb-2">{post.tags[0]}</Badge>
-                    <h3 className="font-headline text-lg sm:text-xl lg:text-3xl font-bold leading-tight mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                        {post.title}
-                    </h3>
-                    <p className="text-white/80 text-xs sm:text-sm mb-4 flex-grow line-clamp-2 hidden md:block">{post.description}</p>
-                </div>
-                 <div className="hidden sm:flex items-center gap-3 shrink-0 ml-4">
-                    <Avatar className="h-10 w-10">
-                        <AvatarImage src={post.author.avatar} alt={post.author.name} />
-                        <AvatarFallback>{getInitials(post.author.name)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <p className="text-sm font-semibold line-clamp-1">{post.author.name}</p>
-                        <div className="text-xs text-white/80 flex items-center gap-2">
-                            <span>{new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}</span>
-                            <span className="mx-1">&bull;</span>
-                            <span>{post.readTime} min read</span>
-                        </div>
-                    </div>
+        <div className="p-6 pt-0 md:p-6 flex-1">
+          <div className="flex justify-between items-center text-xs text-muted-foreground mb-2">
+             <Badge variant="secondary">{post.tags[0]}</Badge>
+            <div className="flex items-center gap-1.5">
+                <Calendar className="h-3 w-3" />
+                <span>{new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}</span>
+            </div>
+          </div>
+          <h3 className="font-headline text-xl font-bold leading-snug mb-2 group-hover:text-primary transition-colors">
+            {post.title}
+          </h3>
+          <p className="text-muted-foreground text-sm mb-4 flex-grow line-clamp-2">{post.description}</p>
+          <div className="flex items-center gap-3 text-sm">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={post.author.avatar} alt={post.author.name} />
+              <AvatarFallback>{getInitials(post.author.name)}</AvatarFallback>
+            </Avatar>
+            <div>
+                <p className="font-semibold line-clamp-1">{post.author.name}</p>
+                 <div className="text-xs text-muted-foreground flex items-center gap-2">
+                    <span>{post.readTime} min read</span>
                 </div>
             </div>
+          </div>
         </div>
       </div>
     </Link>
