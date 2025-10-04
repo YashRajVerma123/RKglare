@@ -1,3 +1,4 @@
+
 import { db } from '@/lib/firebase-server'; // <-- IMPORTANT: Use server DB
 import { 
     collection, 
@@ -414,15 +415,9 @@ export const getPosts = unstable_cache(async (
 
 
 export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
-    const postsCollection = collection(db, 'posts').withConverter(postConverter);
-    const q = query(
-        postsCollection,
-        where('featured', '==', true),
-        limit(10) // Fetch more than needed to sort in code
-    );
-    const snapshot = await getDocs(q);
-    // Sort in code instead of query to avoid composite index
-    return snapshot.docs.map(doc => doc.data())
+    const allPosts = await getPosts(false);
+    return allPosts
+        .filter(p => p.featured)
         .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
         .slice(0, 4);
 }, ['featured_posts'], { revalidate: 3600, tags: ['posts', 'featured'] });
