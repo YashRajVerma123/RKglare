@@ -10,6 +10,7 @@ import { getClientFirebaseConfig } from '@/app/actions/config-actions';
 import { initializeClientApp } from '@/lib/firebase-client';
 import { getUserData } from '@/app/actions/user-data-actions';
 import { updateAuthorProfile } from '@/app/actions/user-actions';
+import { quitChallengeAction } from '@/app/actions/challenge-actions';
 
 
 interface AuthContextType {
@@ -33,6 +34,7 @@ interface AuthContextType {
   setBookmarks: React.Dispatch<React.SetStateAction<{ [postId: string]: any }>>;
   refreshUserData: () => void;
   refreshUser: () => Promise<void>; // New function to refresh all user data
+  quitChallenge: () => Promise<{ success: boolean; error?: string }>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -309,6 +311,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
   }, [auth, mainAuthor, user]);
+
+  const quitChallenge = useCallback(async () => {
+    if (!user) return { success: false, error: 'User not authenticated.' };
+
+    const result = await quitChallengeAction(user.id);
+    if (result.success) {
+      setUser(currentUser => currentUser ? { ...currentUser, challenge: undefined } : null);
+    }
+    return result;
+  }, [user]);
   
   const updateFollowingCount = (change: number) => {
       setUser(currentUser => {
@@ -341,7 +353,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAdmin = user?.email === 'yashrajverma916@gmail.com';
 
-  const value = { user, mainAuthor, firebaseUser, auth, isAdmin, signIn, signOut, updateUserProfile, loading, updateFollowingCount, updateFollowerCount, updateMainAuthorFollowerCount, likedPosts, likedComments, bookmarks, setLikedPosts, setLikedComments, setBookmarks, refreshUserData, refreshUser };
+  const value = { user, mainAuthor, firebaseUser, auth, isAdmin, signIn, signOut, updateUserProfile, loading, updateFollowingCount, updateFollowerCount, updateMainAuthorFollowerCount, likedPosts, likedComments, bookmarks, setLikedPosts, setLikedComments, setBookmarks, refreshUserData, refreshUser, quitChallenge };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -16,6 +17,9 @@ import {
   Trophy,
   Star,
   MessageSquare,
+  Zap,
+  X,
+  Loader2,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -30,6 +34,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { useAuth } from '@/hooks/use-auth';
+import { Progress } from '../ui/progress';
+import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../ui/alert-dialog';
 
 const navLinks = [
   { href: '/', label: 'Home', icon: <Home className="h-4 w-4" /> },
@@ -43,6 +50,86 @@ const premiumLinks = [
     { href: '/premium-feed', label: 'Premium Feed', icon: <Star className="h-4 w-4" /> },
     { href: '/premium-chat', label: 'Premium Chat', icon: <MessageSquare className="h-4 w-4" /> },
 ];
+
+const ChallengeTracker = () => {
+    const { user, quitChallenge } = useAuth();
+    const { toast } = useToast();
+    const [isQuitting, setIsQuitting] = useState(false);
+    const [isAlertOpen, setAlertOpen] = useState(false);
+
+    if (!user?.challenge || user.challenge.completed) {
+        return null;
+    }
+
+    const { description, progress, target } = user.challenge;
+
+    const handleQuit = async () => {
+        setIsQuitting(true);
+        const result = await quitChallenge();
+        if (!result.success) {
+            toast({
+                title: 'Error',
+                description: result.error || 'Failed to quit challenge.',
+                variant: 'destructive',
+            });
+        } else {
+             toast({
+                title: 'Challenge Abandoned',
+                description: 'Your daily challenge has been removed.',
+                variant: 'destructive',
+            });
+        }
+        setIsQuitting(false);
+        setAlertOpen(false);
+    }
+
+    return (
+        <>
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className="relative">
+                        <Zap className="h-5 w-5 text-yellow-500" />
+                        <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+                        </span>
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent align="center" className="w-80">
+                    <div className="space-y-4">
+                        <div className="space-y-1">
+                            <h4 className="font-medium leading-none">Daily Challenge</h4>
+                            <p className="text-sm text-muted-foreground">{description}</p>
+                        </div>
+                        <div className="space-y-2">
+                           <Progress value={(progress / target) * 100} className="h-2" />
+                           <p className="text-xs text-muted-foreground text-right">{progress} / {target}</p>
+                        </div>
+                        <Button variant="destructive" size="sm" className="w-full" onClick={() => setAlertOpen(true)} disabled={isQuitting}>
+                            {isQuitting ? <Loader2 className="h-4 w-4 animate-spin"/> : <><X className="mr-2 h-4 w-4" /> Quit Challenge</>}
+                        </Button>
+                    </div>
+                </PopoverContent>
+            </Popover>
+             <AlertDialog open={isAlertOpen} onOpenChange={setAlertOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            If you quit, you will forfeit any progress and will not be able to get a new challenge until your next streak milestone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleQuit} className="bg-destructive hover:bg-destructive/90">
+                            {isQuitting ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Quit'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
+    )
+}
 
 const Header = () => {
   const [isNavOpen, setNavOpen] = useState(false);
@@ -113,7 +200,8 @@ const Header = () => {
                     <NotificationBell />
                 </div>
                 
-                <div className="flex-1 text-center">
+                <div className="flex items-center gap-2">
+                    <ChallengeTracker />
                     <Logo />
                 </div>
 
