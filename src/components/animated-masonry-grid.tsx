@@ -69,7 +69,7 @@ const features = [
 
 const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; title: string; description: string; }) => {
   return (
-    <div className="glass-card text-center p-8 flex flex-col items-center justify-center gap-4 h-56 mb-4">
+    <div className="glass-card text-center p-8 flex flex-col items-center justify-center gap-4 h-56">
         <div className="inline-block p-4 bg-primary/10 rounded-full text-primary">
             {icon}
         </div>
@@ -84,12 +84,12 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; titl
 const MarqueeColumn = ({ children, reverse = false, className }: { children: React.ReactNode[], reverse?: boolean, className?: string }) => {
     return (
         <div className={cn(
-            "flex flex-col shrink-0 justify-around",
+            "flex flex-col shrink-0 justify-around space-y-4",
             "animate-marquee-vertical [animation-play-state:running]",
             reverse && "[animation-direction:reverse]",
             className
         )}>
-            {[...children, ...children].map((child, i) => (
+            {children.map((child, i) => (
                 <React.Fragment key={i}>{child}</React.Fragment>
             ))}
         </div>
@@ -97,24 +97,24 @@ const MarqueeColumn = ({ children, reverse = false, className }: { children: Rea
 };
 
 const AnimatedMasonryGrid = () => {
-    const column1 = features.slice(0, 3);
-    const column2 = features.slice(3, 6);
-    const column3 = features.slice(6, 9);
-    const column4 = features.slice(9, 12);
+    const column1 = [...features.slice(0, 3), ...features.slice(0, 3)];
+    const column2 = [...features.slice(3, 6), ...features.slice(3, 6)];
+    const column3 = [...features.slice(6, 9), ...features.slice(6, 9)];
+    const column4 = [...features.slice(9, 12), ...features.slice(9, 12)];
 
     return (
         <div className="relative flex h-[500px] w-full items-center justify-center overflow-hidden">
-            <div className="grid grid-cols-4 gap-4 w-full">
-                <MarqueeColumn>
+            <div className="flex w-full space-x-4">
+                <MarqueeColumn className="w-1/4">
                     {column1.map((feature, i) => <FeatureCard key={i} {...feature} />)}
                 </MarqueeColumn>
-                <MarqueeColumn reverse>
+                <MarqueeColumn reverse className="w-1/4">
                     {column2.map((feature, i) => <FeatureCard key={i} {...feature} />)}
                 </MarqueeColumn>
-                <MarqueeColumn>
+                <MarqueeColumn className="w-1/4">
                     {column3.map((feature, i) => <FeatureCard key={i} {...feature} />)}
                 </MarqueeColumn>
-                 <MarqueeColumn reverse>
+                 <MarqueeColumn reverse className="w-1/4">
                     {column4.map((feature, i) => <FeatureCard key={i} {...feature} />)}
                 </MarqueeColumn>
             </div>
