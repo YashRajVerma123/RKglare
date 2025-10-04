@@ -18,16 +18,16 @@ const SplashScreen = () => {
       return;
     }
 
-    // Start fading out after a very short delay, allowing the page to render.
+    // Start fading out after a very short delay.
     const fadeOutTimer = setTimeout(() => {
       setIsFadingOut(true);
-    }, 100); // Start fade-out almost immediately
+    }, 100); // Wait 100ms before starting fade.
 
     // Hide component completely after fade-out animation
     const hideTimer = setTimeout(() => {
       setVisible(false);
       sessionStorage.setItem('splashShown', 'true');
-    }, 600); // 100ms wait + 500ms fade duration
+    }, 500); // 100ms wait + 400ms fade duration
 
     return () => {
       clearTimeout(fadeOutTimer);
@@ -43,7 +43,7 @@ const SplashScreen = () => {
     <div
       className={cn(
         'fixed inset-0 z-[100] flex items-center justify-center bg-background',
-        'transition-opacity duration-500 ease-out',
+        'transition-opacity duration-400 ease-out',
         isFadingOut ? 'opacity-0' : 'opacity-100'
       )}
     >
