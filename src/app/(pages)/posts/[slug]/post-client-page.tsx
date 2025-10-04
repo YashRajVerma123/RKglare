@@ -33,7 +33,7 @@ interface PostClientPageProps {
 }
 
 export default function PostClientPage({ post, relatedPosts, initialComments, isPreview = false }: PostClientPageProps) {
-  const { user, bookmarks } = useAuth();
+  const { user, bookmarks, loading: authLoading } = useAuth();
   const contentRef = useRef<HTMLDivElement>(null);
   const { setTheme, resetTheme } = useDynamicTheme();
   const [isReaderOpen, setReaderOpen] = useState(false);
@@ -44,14 +44,35 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
   });
 
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [canViewContent, setCanViewContent] = useState(false);
 
   const isBookmarked = post ? bookmarks[post.id] : false;
-  
-  const isPremium = user?.premium?.active === true;
-  const now = new Date();
-  const isEarlyAccessActive = post.earlyAccess && post.publishedAt && new Date(post.publishedAt).getTime() + (24 * 60 * 60 * 1000) > now.getTime();
-  
-  const canViewContent = isPreview || !post.premiumOnly && !isEarlyAccessActive || (isPremium ?? false);
+
+  useEffect(() => {
+    if (authLoading) return; // Wait for user auth status to be confirmed
+
+    const isPremium = user?.premium?.active === true;
+    const now = new Date();
+    const publishedAt = new Date(post.publishedAt);
+    
+    let canView = true;
+    if (post.premiumOnly && !isPremium) {
+      canView = false;
+    }
+    if (post.earlyAccess && !isPremium) {
+      const hoursSincePublished = (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60);
+      if (hoursSincePublished < 24) {
+        canView = false;
+      }
+    }
+    
+    if (isPreview) {
+        canView = true;
+    }
+
+    setCanViewContent(canView);
+
+  }, [post, user, isPreview, authLoading]);
 
   const fontClass = 'font-content';
 
@@ -114,6 +135,9 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
     return names.length > 1 ? `${names[0][0]}${names[1][0]}` : name.substring(0, 2);
   };
   
+  const now = new Date();
+  const isEarlyAccessActive = post.earlyAccess && post.publishedAt && new Date(post.publishedAt).getTime() + (24 * 60 * 60 * 1000) > now.getTime();
+
   return (
     <>
       {!isPreview && <ReadingProgressBar />}
@@ -191,6 +215,11 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
                 style={{ animationDelay: '0.4s' }}
                 dangerouslySetInnerHTML={{ __html: post.content }}
              />
+          ) : authLoading ? (
+            <div className="text-center glass-card p-12 my-12">
+                <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary mx-auto"></div>
+                <h2 className="text-2xl font-headline font-bold mt-4">Verifying Access...</h2>
+            </div>
           ) : (
              <div className="text-center glass-card p-12 my-12">
                 <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -282,5 +311,3 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
     </>
   );
 };
-
-    

@@ -425,15 +425,17 @@ export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
 }, ['trending_posts'], { revalidate: 3600, tags: ['posts', 'trending'] });
 
 
-export const getPost = (slug: string, currentUser?: Author | null): Promise<Post | undefined> => {
+export const getPost = (slug: string): Promise<Post | undefined> => {
+    // This function now fetches the post regardless of premium status on the server.
+    // The client component will handle the visibility of the content.
     return unstable_cache(
-        async (slug: string) => getPostClient(slug, currentUser),
+        async (slug: string) => getPostClient(slug),
         ['post', slug], // Key depends on slug
         { revalidate: 3600, tags: ['posts', `post:${slug}`] }
     )(slug);
 };
 
-export const getPostClient = async (slug: string, currentUser?: Author | null): Promise<Post | undefined> => {
+export const getPostClient = async (slug: string): Promise<Post | undefined> => {
     if (!slug) {
         return undefined;
     }
@@ -445,25 +447,7 @@ export const getPostClient = async (slug: string, currentUser?: Author | null): 
         return undefined;
     }
     
-    const post = snapshot.docs[0].data();
-
-    // Admin can see everything
-    if (currentUser?.email === 'yashrajverma916@gmail.com') {
-        return post;
-    }
-
-    const isPremium = currentUser?.premium?.active === true;
-    if (post.premiumOnly && !isPremium) return undefined;
-    if (post.earlyAccess && !isPremium) {
-        const now = new Date();
-        const publishedAt = new Date(post.publishedAt);
-        const hoursSincePublished = (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60);
-        if (hoursSincePublished < 24) {
-            return undefined;
-        }
-    }
-
-    return post;
+    return snapshot.docs[0].data();
 };
 
 
