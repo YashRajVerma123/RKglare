@@ -1,3 +1,4 @@
+
 'use client';
 import { cn } from "@/lib/utils";
 import React from "react";
@@ -49,21 +50,6 @@ const features = [
         title: "More Rewards",
         description: "Unlock special challenges and point bonuses."
     },
-     {
-        icon: <Palette className="h-8 w-8" />,
-        title: "New Themes",
-        description: "Access exclusive site themes and fonts."
-    },
-    {
-        icon: <FileDown className="h-8 w-8" />,
-        title: "Offline Access",
-        description: "Read your favorite articles anywhere."
-    },
-    {
-        icon: <Zap className="h-8 w-8" />,
-        title: "No Interruptions",
-        description: "Focus on the content that matters."
-    }
 ];
 
 const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; title: string; description: string; }) => {
@@ -83,7 +69,7 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; titl
 const MarqueeColumn = ({ children, reverse = false, className }: { children: React.ReactNode[], reverse?: boolean, className?: string }) => {
     return (
         <div className={cn(
-            "flex flex-col shrink-0 justify-around space-y-4",
+            "flex flex-col shrink-0 space-y-4",
             "animate-marquee-vertical [animation-play-state:running]",
             reverse && "[animation-direction:reverse]",
             className
@@ -99,22 +85,18 @@ const AnimatedMasonryGrid = () => {
     const column1 = [...features.slice(0, 3), ...features.slice(0, 3)];
     const column2 = [...features.slice(3, 6), ...features.slice(3, 6)];
     const column3 = [...features.slice(6, 9), ...features.slice(6, 9)];
-    const column4 = [...features.slice(9, 12), ...features.slice(9, 12)];
 
     return (
         <div className="relative flex h-[500px] w-full items-center justify-center overflow-hidden">
-            <div className="flex w-full space-x-4">
-                <MarqueeColumn className="w-full md:w-1/4">
+            <div className="flex w-full justify-center space-x-4">
+                <MarqueeColumn className="w-1/3">
                     {column1.map((feature, i) => <FeatureCard key={i} {...feature} />)}
                 </MarqueeColumn>
-                <MarqueeColumn reverse className="w-full md:w-1/4">
+                <MarqueeColumn reverse className="w-1/3">
                     {column2.map((feature, i) => <FeatureCard key={i} {...feature} />)}
                 </MarqueeColumn>
-                <MarqueeColumn className="hidden md:flex w-1/4">
+                <MarqueeColumn className="w-1/3">
                     {column3.map((feature, i) => <FeatureCard key={i} {...feature} />)}
-                </MarqueeColumn>
-                 <MarqueeColumn reverse className="hidden md:flex w-1/4">
-                    {column4.map((feature, i) => <FeatureCard key={i} {...feature} />)}
                 </MarqueeColumn>
             </div>
             <div className="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-b from-background via-transparent to-background"></div>
