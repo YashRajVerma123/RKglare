@@ -270,12 +270,12 @@
     
     /* Marquee Animation */
     .animate-marquee-horizontal {
-      animation: marquee-horizontal 60s linear infinite;
+      animation: marquee-horizontal 54s linear infinite;
       will-change: transform;
     }
     
     .animate-marquee-vertical {
-      animation: marquee-vertical 60s linear infinite;
+      animation: marquee-vertical 54s linear infinite;
       will-change: transform;
     }
     
@@ -453,3 +453,5 @@
     transform: translateY(50px);
   }
 }
+
+    

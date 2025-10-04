@@ -1,3 +1,4 @@
+
 'use client';
 import { cn } from "@/lib/utils";
 import React from "react";
@@ -80,28 +81,18 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; titl
   );
 };
 
-
-const MarqueeColumn = ({
-  children,
-  className,
-  reverse = false,
-  ...props
-}: { children: React.ReactNode; className?: string; reverse?: boolean, [key: string]: any; }) => {
-  return (
-    <div
-      {...props}
-      className={cn(
-        "flex flex-col shrink-0 justify-around space-y-4 [--gap:1rem]",
-        "animate-marquee-vertical",
-        {
-          "[animation-direction:reverse]": reverse,
-        },
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
+const MarqueeColumn = ({ children, reverse = false }: { children: React.ReactNode[], reverse?: boolean }) => {
+    return (
+        <div className={cn(
+            "flex flex-col shrink-0 justify-around gap-4",
+            "animate-marquee-vertical",
+            reverse && "[animation-direction:reverse]"
+        )}>
+            {[...children, ...children].map((child, i) => (
+                <React.Fragment key={i}>{child}</React.Fragment>
+            ))}
+        </div>
+    );
 };
 
 const AnimatedMasonryGrid = () => {
@@ -110,26 +101,27 @@ const AnimatedMasonryGrid = () => {
     const column3 = features.slice(6, 9);
     const column4 = features.slice(9, 12);
 
-
     return (
         <div className="relative flex h-[500px] w-full items-center justify-center overflow-hidden">
-            <div className="flex justify-around gap-4 w-full">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full">
                 <MarqueeColumn>
                     {column1.map((feature, i) => <FeatureCard key={i} {...feature} />)}
                 </MarqueeColumn>
                 <MarqueeColumn reverse>
                     {column2.map((feature, i) => <FeatureCard key={i} {...feature} />)}
                 </MarqueeColumn>
-                <MarqueeColumn>
+                <MarqueeColumn className="hidden md:flex">
                     {column3.map((feature, i) => <FeatureCard key={i} {...feature} />)}
                 </MarqueeColumn>
-                 <MarqueeColumn reverse>
+                 <MarqueeColumn reverse className="hidden lg:flex">
                     {column4.map((feature, i) => <FeatureCard key={i} {...feature} />)}
                 </MarqueeColumn>
             </div>
-             <div className="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-b from-background via-transparent to-background"></div>
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-b from-background via-transparent to-background"></div>
         </div>
     );
 };
 
 export default AnimatedMasonryGrid;
+
+    
