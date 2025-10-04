@@ -1,35 +1,44 @@
 
 'use client'
 import { useSearchParams } from 'next/navigation';
-import { Post } from '@/lib/data';
+import { Post, getPosts } from '@/lib/data';
 import BlogPostCard from '@/components/blog-post-card';
 import { useEffect, useState } from 'react';
 
 const PostsClient = ({ initialPosts }: { initialPosts: Post[] }) => {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('q');
-  const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<Post[]>(initialPosts);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // This effect now primarily handles sorting, as filtering is done server-side
+    // for the initial load. For dynamic client-side filtering (if ever needed),
+    // this would be the place.
     setLoading(true);
     const sortedPosts = [...initialPosts].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-
-    if (searchQuery) {
-        const lowercasedQuery = searchQuery.toLowerCase();
-        const newFilteredPosts = sortedPosts.filter(post => {
-            const titleMatch = post.title.toLowerCase().includes(lowercasedQuery);
-            const descriptionMatch = post.description.toLowerCase().includes(lowercasedQuery);
-            const tagMatch = post.tags.some(tag => tag.toLowerCase().includes(lowercasedQuery));
-            return titleMatch || descriptionMatch || tagMatch;
-        });
-        setFilteredPosts(newFilteredPosts);
-    } else {
-      setFilteredPosts(sortedPosts);
-    }
+    setFilteredPosts(sortedPosts);
     setLoading(false);
-  }, [searchQuery, initialPosts]);
+  }, [initialPosts]);
   
+  useEffect(() => {
+      // When search query changes, we refetch from the server.
+      // This is more efficient than filtering a large list on the client.
+      const fetchFiltered = async () => {
+          setLoading(true);
+          const posts = await getPosts(false, null, searchQuery || undefined);
+          const sortedPosts = posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+          setFilteredPosts(sortedPosts);
+          setLoading(false);
+      }
+
+      // We only re-fetch if the query is not null. Initial load is handled by server props.
+      if (searchQuery !== null) {
+          fetchFiltered();
+      }
+
+  }, [searchQuery]);
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-16">

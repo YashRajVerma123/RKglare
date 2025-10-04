@@ -338,9 +338,12 @@ const filterPremiumContent = (posts: Post[], user?: Author | null): Post[] => {
     });
 };
 
-export const getPosts = async (includeContent: boolean = true, currentUser?: Author | null): Promise<Post[]> => {
-    // This function can be called from client components (e.g., Admin page),
-    // so it should not use unstable_cache.
+export const getPosts = unstable_cache(async (
+    includeContent: boolean = true, 
+    currentUser?: Author | null,
+    searchQuery?: string
+): Promise<Post[]> => {
+    
     const postsCollection = collection(db, 'posts');
     const q = query(postsCollection, orderBy('publishedAt', 'desc'));
     const snapshot = await getDocs(q);
@@ -371,15 +374,27 @@ export const getPosts = async (includeContent: boolean = true, currentUser?: Aut
         }
     };
     
-    const allPosts = snapshot.docs.map(doc => lightPostConverter.fromFirestore(doc, {}));
+    let allPosts = snapshot.docs.map(doc => lightPostConverter.fromFirestore(doc, {}));
     
+    // Filter by search query if provided
+    if (searchQuery) {
+        const lowercasedQuery = searchQuery.toLowerCase();
+        allPosts = allPosts.filter(post => {
+            const titleMatch = post.title.toLowerCase().includes(lowercasedQuery);
+            const descriptionMatch = post.description.toLowerCase().includes(lowercasedQuery);
+            const tagMatch = post.tags.some(tag => tag.toLowerCase().includes(lowercasedQuery));
+            return titleMatch || descriptionMatch || tagMatch;
+        });
+    }
+
     // Admins see all posts, others see filtered content
     if (currentUser?.email === 'yashrajverma916@gmail.com') {
         return allPosts;
     }
 
     return filterPremiumContent(allPosts, currentUser);
-};
+}, ['posts'], { revalidate: 60, tags: ['posts'] });
+
 
 export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
     const allPosts = await getPosts(false);
@@ -502,15 +517,12 @@ export const getComments = async (postId: string): Promise<Comment[]> => {
     return sortComments(comments);
 };
 
-export const getNotifications = async (): Promise<Notification[]> => {
-    // This function is called from the admin panel which needs all notifications.
-    // It's also called from the notification bell which manages read state on the client.
-    // Fetching all is fine here, as the number of notifications is expected to be small.
+export const getNotifications = unstable_cache(async (): Promise<Notification[]> => {
     const notificationsCollection = collection(db, 'notifications').withConverter(notificationConverter);
     const q = query(notificationsCollection, orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => doc.data());
-};
+}, ['notifications'], { revalidate: 60, tags: ['notifications'] });
 
 
 export const getNotification = (id: string): Promise<Notification | null> => {
@@ -532,10 +544,9 @@ export const getNotificationClient = async (id: string): Promise<Notification | 
 
 
 // New Bulletin Functions
-export const getBulletins = async (
+export const getBulletins = unstable_cache(async (
     currentUser?: Author | null
 ): Promise<{ bulletins: Bulletin[]; lastDocId?: string }> => {
-    // This function is now used by the admin panel and needs to fetch ALL bulletins.
     const bulletinsCollection = collection(db, 'bulletins').withConverter(bulletinConverter);
     const q = query(bulletinsCollection, orderBy('publishedAt', 'desc'));
     const snapshot = await getDocs(q);
@@ -543,28 +554,13 @@ export const getBulletins = async (
     const allBulletins = snapshot.docs.map(doc => doc.data());
     const lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
 
-    // No need to filter for the admin panel, but we'll keep the logic
-    // in case this function is reused elsewhere for non-admin users.
-    const isPremium = currentUser?.premium?.active === true;
-    const now = new Date();
-
-    const filteredBulletins = allBulletins.filter(bulletin => {
-        if (!bulletin.premiumOnly && !bulletin.earlyAccess) return true;
-        if (isPremium) return true;
-        if (bulletin.premiumOnly) return false;
-        if (bulletin.earlyAccess) {
-             const publishedAt = new Date(bulletin.publishedAt);
-             const hoursSincePublished = (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60);
-             return hoursSincePublished >= 24;
-        }
-        return false;
-    });
+    const filteredBulletins = filterPremiumContent(allBulletins as any, currentUser) as Bulletin[];
     
     return {
         bulletins: filteredBulletins,
         lastDocId: lastVisibleDoc?.id
     };
-};
+}, ['bulletins_all'], { revalidate: 60, tags: ['bulletins'] });
 
 export const getPaginatedBulletins = async (
     pageSize: number,
@@ -593,20 +589,7 @@ export const getPaginatedBulletins = async (
     const allBulletins = snapshot.docs.map(doc => doc.data());
     const lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
 
-    const isPremium = currentUser?.premium?.active === true;
-    const now = new Date();
-
-    const filteredBulletins = allBulletins.filter(bulletin => {
-        if (!bulletin.premiumOnly && !bulletin.earlyAccess) return true;
-        if (isPremium) return true;
-        if (bulletin.premiumOnly) return false;
-        if (bulletin.earlyAccess) {
-             const publishedAt = new Date(bulletin.publishedAt);
-             const hoursSincePublished = (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60);
-             return hoursSincePublished >= 24;
-        }
-        return false;
-    });
+    const filteredBulletins = filterPremiumContent(allBulletins as any, currentUser) as Bulletin[];
     
     return {
         bulletins: filteredBulletins,
@@ -632,8 +615,7 @@ export const getBulletinClient = async (id: string): Promise<Bulletin | null> =>
     return null;
 };
 
-export const getAuthorByEmail = async (email: string): Promise<Author | null> => {
-    // This is called from a client context, so it should not use unstable_cache.
+export const getAuthorByEmail = unstable_cache(async (email: string): Promise<Author | null> => {
     const usersCollection = collection(db, 'users');
     const q = query(usersCollection, where('email', '==', email), limit(1)).withConverter(authorConverter);
     const snapshot = await getDocs(q);
@@ -642,7 +624,7 @@ export const getAuthorByEmail = async (email: string): Promise<Author | null> =>
         return null;
     }
     return snapshot.docs[0].data();
-};
+}, ['author_by_email'], { revalidate: 3600, tags: ['users'] });
 
 
 export const getAuthorById = (id: string): Promise<Author | null> => {
@@ -669,11 +651,11 @@ export async function isFollowing(followerId: string, authorId: string): Promise
   return docSnap.exists();
 }
 
-export const getAuthors = async (): Promise<Author[]> => {
+export const getAuthors = unstable_cache(async (): Promise<Author[]> => {
     const usersCollection = collection(db, 'users').withConverter(authorConverter);
     const snapshot = await getDocs(usersCollection);
     return snapshot.docs.map(doc => doc.data());
-};
+}, ['all_users'], { revalidate: 3600, tags: ['users'] });
 
 export const getPremiumUsers = async (): Promise<Author[]> => {
      return unstable_cache(async () => {
