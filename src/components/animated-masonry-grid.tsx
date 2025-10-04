@@ -66,38 +66,34 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; titl
   );
 };
 
-const MarqueeColumn = ({ children, reverse = false, className }: { children: React.ReactNode[], reverse?: boolean, className?: string }) => {
-    return (
-        <div className={cn(
-            "flex flex-col shrink-0 space-y-4",
-            "animate-marquee-vertical [animation-play-state:running]",
-            reverse && "[animation-direction:reverse]",
-            className
-        )}>
-            {children.map((child, i) => (
-                <React.Fragment key={i}>{child}</React.Fragment>
+const AnimatedMasonryGrid = () => {
+    const column1 = features.slice(0, 3);
+    const column2 = features.slice(3, 6);
+    const column3 = features.slice(6, 9);
+
+    const renderColumn = (columnFeatures: typeof features) => (
+        <div className="flex flex-col space-y-4">
+            {columnFeatures.map((feature, i) => (
+                <FeatureCard key={i} {...feature} />
             ))}
         </div>
     );
-};
-
-const AnimatedMasonryGrid = () => {
-    const column1 = [...features.slice(0, 3), ...features.slice(0, 3)];
-    const column2 = [...features.slice(3, 6), ...features.slice(3, 6)];
-    const column3 = [...features.slice(6, 9), ...features.slice(6, 9)];
 
     return (
         <div className="relative flex h-[500px] w-full items-center justify-center overflow-hidden">
-            <div className="flex w-full justify-center space-x-4">
-                <MarqueeColumn className="w-1/3">
-                    {column1.map((feature, i) => <FeatureCard key={i} {...feature} />)}
-                </MarqueeColumn>
-                <MarqueeColumn reverse className="w-1/3">
-                    {column2.map((feature, i) => <FeatureCard key={i} {...feature} />)}
-                </MarqueeColumn>
-                <MarqueeColumn className="w-1/3">
-                    {column3.map((feature, i) => <FeatureCard key={i} {...feature} />)}
-                </MarqueeColumn>
+            <div className="flex w-full justify-center gap-4">
+                <div className="w-1/3 animate-marquee-vertical space-y-4">
+                   {renderColumn(column1)}
+                   {renderColumn(column1)}
+                </div>
+                 <div className="w-1/3 animate-marquee-vertical [animation-direction:reverse] space-y-4">
+                    {renderColumn(column2)}
+                    {renderColumn(column2)}
+                </div>
+                 <div className="w-1/3 animate-marquee-vertical space-y-4">
+                    {renderColumn(column3)}
+                    {renderColumn(column3)}
+                </div>
             </div>
             <div className="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-b from-background via-transparent to-background"></div>
         </div>

@@ -268,15 +268,8 @@
        background: linear-gradient(to right, transparent, hsl(var(--primary)/0.5), transparent);
     }
     
-    /* Marquee Animation */
-    .animate-marquee-horizontal {
-      animation: marquee-horizontal 54s linear infinite;
-      will-change: transform;
-    }
-    
     .animate-marquee-vertical {
-      animation: marquee-vertical 54s linear infinite;
-      will-change: transform;
+      animation: marquee-vertical 40s linear infinite;
     }
     
     .parallax > * {
@@ -428,21 +421,13 @@
 
 /* Marquee */
 @keyframes marquee-horizontal {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-100%);
-  }
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
 }
 
 @keyframes marquee-vertical {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-100%);
-  }
+  from { transform: translateY(0); }
+  to { transform: translateY(-50%); }
 }
 
 @keyframes parallax-scroll {
@@ -453,5 +438,3 @@
     transform: translateY(50px);
   }
 }
-
-    
