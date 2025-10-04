@@ -397,12 +397,17 @@ export const getPosts = unstable_cache(async (
 
 
 export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
-    const allPosts = await getPosts(false);
-    // Note: This needs to be called without a user to cache correctly,
-    // so filtering will happen on the client-side for featured posts.
-    return allPosts
-        .filter(p => p.featured)
-        .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    const postsCollection = collection(db, 'posts').withConverter(postConverter);
+    const q = query(
+        postsCollection,
+        where('featured', '==', true),
+        limit(10) // Fetch more than needed to sort in code
+    );
+    const snapshot = await getDocs(q);
+    // Sort in code instead of query to avoid composite index
+    return snapshot.docs.map(doc => doc.data())
+        .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+        .slice(0, 4);
 }, ['featured_posts'], { revalidate: 3600, tags: ['posts', 'featured'] });
 
 
@@ -450,7 +455,7 @@ export const getPost = (slug: string): Promise<Post | undefined> => {
     )(slug);
 };
 
-export const getPostClient = async (slug: string): Promise<Post | undefined> => {
+export const getPostClient = async (slug: string, user?: Author | null): Promise<Post | undefined> => {
     if (!slug) {
         return undefined;
     }
@@ -462,7 +467,29 @@ export const getPostClient = async (slug: string): Promise<Post | undefined> => 
         return undefined;
     }
     
-    return snapshot.docs[0].data();
+    const post = snapshot.docs[0].data();
+
+    // Admins see everything
+    if (user?.email === 'yashrajverma916@gmail.com') {
+        return post;
+    }
+
+    const isPremium = user?.premium?.active === true;
+    const now = new Date();
+
+    if (post.premiumOnly && !isPremium) {
+        return undefined; // Or return a modified post object indicating restricted access
+    }
+
+    if (post.earlyAccess && !isPremium) {
+        const publishedAt = new Date(post.publishedAt);
+        const hoursSincePublished = (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60);
+        if (hoursSincePublished < 24) {
+            return undefined; // Or return a modified post object
+        }
+    }
+    
+    return post;
 };
 
 
