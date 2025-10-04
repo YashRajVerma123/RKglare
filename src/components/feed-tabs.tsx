@@ -50,7 +50,7 @@ const FeedTabs = ({ recentPosts }: FeedTabsProps) => {
                 </TabsList>
             </div>
             <TabsContent value="recent">
-                <div className="grid grid-cols-1 gap-8">
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {recentPosts.map((post) => (
                         <RecentPostCard key={post.slug} post={post} />
                     ))}
@@ -72,7 +72,7 @@ const FeedTabs = ({ recentPosts }: FeedTabsProps) => {
                     </div>
                 ) : user ? (
                     followingPosts.length > 0 ? (
-                        <div className="grid grid-cols-1 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {followingPosts.map((post) => (
                                 <RecentPostCard key={post.slug} post={post} />
                             ))}
