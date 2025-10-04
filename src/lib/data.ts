@@ -1,4 +1,3 @@
-
 import { db } from '@/lib/firebase-server'; // <-- IMPORTANT: Use server DB
 import { 
     collection, 
@@ -298,6 +297,24 @@ export const messageConverter = {
         };
     }
 };
+
+export type SupportChatMessage = {
+  id: string;
+  userId: string;
+  text: string;
+  sender: 'user' | 'admin';
+  createdAt: string; // ISO String
+  readByAdmin: boolean;
+};
+
+export type SupportChatThread = {
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  lastMessage: string;
+  lastMessageAt: string; // ISO String
+  hasUnread: boolean;
+}
 
 const sortComments = (comments: Comment[]): Comment[] => {
     return [...comments].sort((a,b) => {

@@ -1,4 +1,3 @@
-
 // src/app/layout.tsx
 import type { Metadata } from "next";
 import { cn } from "@/lib/utils";
@@ -13,6 +12,7 @@ import Script from "next/script";
 import { ClientProviders } from "@/components/client-providers";
 import { Analytics } from "@vercel/analytics/react";
 import { spaceGrotesk, dancingScript, workSans, nunito, libreBaskerville } from "./fonts";
+import SupportChatWidget from "@/components/support-chat-widget";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://theglare.vercel.app'),
@@ -109,6 +109,7 @@ export default function RootLayout({
             </div>
           </div>
           <div id="post-actions-container"></div>
+          <SupportChatWidget />
         </ClientProviders>
       </body>
     </html>
