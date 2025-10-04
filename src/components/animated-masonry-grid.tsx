@@ -1,4 +1,3 @@
-
 'use client';
 import { cn } from "@/lib/utils";
 import React from "react";
@@ -105,16 +104,16 @@ const AnimatedMasonryGrid = () => {
     return (
         <div className="relative flex h-[500px] w-full items-center justify-center overflow-hidden">
             <div className="flex w-full space-x-4">
-                <MarqueeColumn className="w-1/4">
+                <MarqueeColumn className="w-full md:w-1/4">
                     {column1.map((feature, i) => <FeatureCard key={i} {...feature} />)}
                 </MarqueeColumn>
-                <MarqueeColumn reverse className="w-1/4">
+                <MarqueeColumn reverse className="w-full md:w-1/4">
                     {column2.map((feature, i) => <FeatureCard key={i} {...feature} />)}
                 </MarqueeColumn>
-                <MarqueeColumn className="w-1/4">
+                <MarqueeColumn className="hidden md:flex w-1/4">
                     {column3.map((feature, i) => <FeatureCard key={i} {...feature} />)}
                 </MarqueeColumn>
-                 <MarqueeColumn reverse className="w-1/4">
+                 <MarqueeColumn reverse className="hidden md:flex w-1/4">
                     {column4.map((feature, i) => <FeatureCard key={i} {...feature} />)}
                 </MarqueeColumn>
             </div>
