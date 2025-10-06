@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Upload, Eye, Pencil, Bot } from 'lucide-react';
+import { ArrowLeft, Upload, Eye, Pencil, Bot, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { getNextDiaryChapterNumber } from '@/lib/data';
 import { addDiaryEntryAction } from '@/app/actions/diary-actions';
