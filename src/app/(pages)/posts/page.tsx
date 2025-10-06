@@ -1,7 +1,7 @@
 
 import { Suspense } from 'react';
 import PostsClient from './posts-client';
-import { getPosts } from '@/lib/data';
+import { getPostsServer } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Instruct Next.js to revalidate this page every hour
@@ -13,7 +13,7 @@ interface PostsPageProps {
 
 const PostsPage = async ({ searchParams }: PostsPageProps) => {
   // Fetch initial posts based on search query on the server
-  const posts = await getPosts(false, null, searchParams.q);
+  const posts = await getPostsServer(false, null, searchParams.q);
 
   return (
     <Suspense fallback={

@@ -1,7 +1,7 @@
 
 'use client'
 import { useSearchParams } from 'next/navigation';
-import { Post, getPosts } from '@/lib/data';
+import { Post, getPostsClient } from '@/lib/data';
 import BlogPostCard from '@/components/blog-post-card';
 import { useEffect, useState } from 'react';
 import RecentPostCard from '@/components/recent-post-card';
@@ -27,7 +27,7 @@ const PostsClient = ({ initialPosts }: { initialPosts: Post[] }) => {
       // This is more efficient than filtering a large list on the client.
       const fetchFiltered = async () => {
           setLoading(true);
-          const posts = await getPosts(false, null, searchQuery || undefined);
+          const posts = await getPostsClient(false, null, searchQuery || undefined);
           const sortedPosts = posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
           setFilteredPosts(sortedPosts);
           setLoading(false);

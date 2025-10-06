@@ -33,7 +33,7 @@ interface PostClientPageProps {
 }
 
 export default function PostClientPage({ post, relatedPosts, initialComments, isPreview = false }: PostClientPageProps) {
-  const { user, bookmarks, loading: authLoading } = useAuth();
+  const { user, bookmarks, loading: authLoading, signIn } = useAuth();
   const contentRef = useRef<HTMLDivElement>(null);
   const { setTheme, resetTheme } = useDynamicTheme();
   const [isReaderOpen, setReaderOpen] = useState(false);
@@ -44,35 +44,44 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
   });
 
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [canViewContent, setCanViewContent] = useState(false);
+  
+  // New access control logic
+  const isPublic = !post.premiumOnly && !post.earlyAccess;
+  const [canViewContent, setCanViewContent] = useState(isPublic);
 
   const isBookmarked = post ? bookmarks[post.id] : false;
 
   useEffect(() => {
-    if (authLoading) return; // Wait for user auth status to be confirmed
+    if (isPreview || isPublic) {
+      setCanViewContent(true);
+      return;
+    }
+    
+    // This logic now only runs for premium/early-access content
+    if (authLoading) {
+      setCanViewContent(false); // Show loading state only for protected content
+      return;
+    }
 
     const isPremium = user?.premium?.active === true;
     const now = new Date();
     const publishedAt = new Date(post.publishedAt);
     
-    let canView = true;
-    if (post.premiumOnly && !isPremium) {
-      canView = false;
+    let canView = false;
+    if (post.premiumOnly && isPremium) {
+      canView = true;
     }
-    if (post.earlyAccess && !isPremium) {
+    if (post.earlyAccess) {
       const hoursSincePublished = (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60);
-      if (hoursSincePublished < 24) {
-        canView = false;
+      if (isPremium || hoursSincePublished >= 24) {
+        canView = true;
       }
     }
     
-    if (isPreview) {
-        canView = true;
-    }
-
     setCanViewContent(canView);
 
-  }, [post, user, isPreview, authLoading]);
+  }, [post, user, isPreview, authLoading, isPublic]);
+
 
   const fontClass = 'font-content';
 
@@ -227,11 +236,19 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
                 </div>
                 <h2 className="text-2xl font-headline font-bold">This is a Glare+ Exclusive</h2>
                 <p className="text-muted-foreground mt-2 mb-6">
-                    {post.earlyAccess ? "Get instant access to this article and more by becoming a Glare+ supporter." : "To continue reading, please subscribe to Glare+."}
+                    {user ? 
+                        (post.earlyAccess ? "Get instant access by subscribing to Glare+." : "To continue reading, please subscribe.")
+                        : "Sign in to see if you have access, or subscribe to Glare+."}
                 </p>
-                <Button asChild>
-                    <Link href="/glare-plus">Explore Glare+</Link>
-                </Button>
+                 {user ? (
+                    <Button asChild>
+                        <Link href="/glare-plus">Explore Glare+</Link>
+                    </Button>
+                ) : (
+                    <Button onClick={signIn}>
+                        Sign In
+                    </Button>
+                )}
             </div>
           )}
           
