@@ -17,13 +17,7 @@ import { ArrowLeft, Upload, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { updateDiaryEntryAction } from '@/app/actions/diary-actions';
 import Image from 'next/image';
-
-const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
-});
+import { compressImage } from '@/lib/utils';
 
 const formSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
@@ -97,9 +91,13 @@ export default function EditDiaryEntryPage({ params }: PageProps) {
           toast({ title: "Icon Too Large", description: "Please upload an icon smaller than 5MB.", variant: "destructive" });
           return;
       }
-      const base64 = await toBase64(file);
-      setIconPreview(base64);
-      form.setValue('icon', base64, { shouldDirty: true, shouldValidate: true });
+      try {
+        const compressedBase64 = await compressImage(file);
+        setIconPreview(compressedBase64);
+        form.setValue('icon', compressedBase64, { shouldDirty: true, shouldValidate: true });
+      } catch (error) {
+        toast({ title: "Error Compressing Image", description: "Could not process the image. Please try another.", variant: "destructive" });
+      }
     }
   };
 

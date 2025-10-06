@@ -52,13 +52,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { deleteDiaryEntryAction } from "@/app/actions/diary-actions";
-
-const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
-});
+import { compressImage } from "@/lib/utils";
 
 const notificationSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
@@ -356,11 +350,16 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
         }
     }
 
-    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-            setNewAvatarFile(file);
-            setPreviewUrl(URL.createObjectURL(file));
+            try {
+                const compressedBase64 = await compressImage(file, 0.75, 256);
+                setNewAvatarFile(file);
+                setPreviewUrl(compressedBase64);
+            } catch (error) {
+                toast({ title: "Error Compressing Image", description: "Could not process the image. Please try another.", variant: "destructive" });
+            }
         }
     }
 
@@ -368,8 +367,8 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
         if (!user) return;
         try {
              let newAvatarUrl = user.avatar;
-            if (newAvatarFile) {
-                newAvatarUrl = await toBase64(newAvatarFile);
+            if (newAvatarFile && previewUrl.startsWith('data:')) {
+                newAvatarUrl = previewUrl;
             }
 
             const updates = {

@@ -2,7 +2,6 @@
 
 import { getDiaryEntry } from '@/lib/data';
 import { notFound } from 'next/navigation';
-import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 
 type PageProps = {
@@ -32,7 +31,7 @@ const DiaryEntryPage = async ({ params }: PageProps) => {
           </div>
         </header>
 
-        <div className="prose dark:prose-invert prose-lg max-w-none font-content animate-fade-in-up" style={{animationDelay: '0.3s'}} dangerouslySetInnerHTML={{ __html: entry.content }}>
+        <div className="prose dark:prose-invert prose-lg max-w-none font-reader animate-fade-in-up" style={{animationDelay: '0.3s'}} dangerouslySetInnerHTML={{ __html: entry.content }}>
         </div>
       </div>
     </div>

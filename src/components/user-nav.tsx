@@ -45,14 +45,7 @@ import { mainFonts, specialFonts } from '@/app/fonts';
 import { HexColorPicker } from 'react-colorful';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import Image from 'next/image';
-
-// Helper to convert file to Base64
-const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
-});
+import { compressImage } from '@/lib/utils';
 
 const profileFormSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -205,10 +198,10 @@ const UserNav = () => {
       let newBannerUrl = user.bannerImage;
 
       if (newAvatarFile) {
-        newAvatarUrl = await toBase64(newAvatarFile);
+        newAvatarUrl = await compressImage(newAvatarFile, 0.75, 512);
       }
       if (newBannerFile) {
-        newBannerUrl = await toBase64(newBannerFile);
+        newBannerUrl = await compressImage(newBannerFile, 0.75, 1200);
       }
       
       const updateData = {
@@ -686,5 +679,3 @@ const UserNav = () => {
 };
 
 export default UserNav;
-
-    

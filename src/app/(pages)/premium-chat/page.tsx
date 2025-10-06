@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/dialog"
 import ProfileCard from '@/components/profile-card';
 import { getAuthorProfileAction } from '@/app/actions/user-actions';
+import { compressImage } from '@/lib/utils';
 
 const getInitials = (name: string) => {
     if (!name) return '';
@@ -52,13 +53,6 @@ const getInitials = (name: string) => {
 };
 
 const EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
-
-const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
-});
 
 const featureHighlights = [
     {
@@ -172,7 +166,7 @@ const PremiumChatPage = () => {
         setIsSending(true);
 
         const text = newMessage;
-        const image = imageFile;
+        const localImageFile = imageFile;
 
         // Reset form state immediately for better UX
         setNewMessage('');
@@ -181,13 +175,19 @@ const PremiumChatPage = () => {
         setReplyingTo(null);
 
         let imageBase64: string | undefined = undefined;
-        if (image) {
-            if (image.size > 5 * 1024 * 1024) { // 5MB limit
+        if (localImageFile) {
+            if (localImageFile.size > 5 * 1024 * 1024) { // 5MB limit
                 toast({ title: "File too large", description: "Please upload an image smaller than 5MB.", variant: "destructive" });
                 setIsSending(false);
                 return;
             }
-            imageBase64 = await toBase64(image);
+            try {
+                imageBase64 = await compressImage(localImageFile);
+            } catch (error) {
+                toast({ title: "Error Compressing Image", description: "Could not process the image. Please try another.", variant: "destructive" });
+                setIsSending(false);
+                return;
+            }
         }
 
         const replyContext = replyingTo ? {
@@ -513,9 +513,3 @@ const PremiumChatPage = () => {
 };
 
 export default PremiumChatPage;
-
-    
-
-    
-
-    

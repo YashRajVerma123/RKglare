@@ -23,13 +23,7 @@ import PostClientPage from '../../posts/[slug]/post-client-page';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { generatePostContent } from '@/ai/flows/post-flow';
 import { Separator } from '@/components/ui/separator';
-
-const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
-});
+import { compressImage } from '@/lib/utils';
 
 const formSchema = z.object({
   title: z.string().min(10, 'Title must be at least 10 characters.'),
@@ -102,9 +96,13 @@ export default function CreatePostPage() {
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const base64 = await toBase64(file);
-      setImagePreview(base64);
-      form.setValue('coverImage', base64);
+      try {
+        const compressedBase64 = await compressImage(file);
+        setImagePreview(compressedBase64);
+        form.setValue('coverImage', compressedBase64);
+      } catch (error) {
+        toast({ title: "Error Compressing Image", description: "Could not process the image. Please try another.", variant: "destructive" });
+      }
     }
   };
 
@@ -122,9 +120,7 @@ export default function CreatePostPage() {
         form.setValue("description", result.description);
         form.setValue("content", result.content);
         form.setValue("tags", result.tags.join(', '));
-        // @ts-ignore
         form.setValue("coverImage", result.coverImage);
-        // @ts-ignore
         setImagePreview(result.coverImage);
         toast({ title: "Content Generated!", description: "The AI has generated the post content for you." });
     } catch (e) {

@@ -14,17 +14,11 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Upload, Eye, Pencil, Bot, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Upload, ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { getNextDiaryChapterNumber } from '@/lib/data';
 import { addDiaryEntryAction } from '@/app/actions/diary-actions';
-
-const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
-});
+import { compressImage } from '@/lib/utils';
 
 const formSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.'),
@@ -77,9 +71,13 @@ export default function CreateDiaryEntryPage() {
           toast({ title: "Icon Too Large", description: "Please upload an icon smaller than 5MB.", variant: "destructive" });
           return;
       }
-      const base64 = await toBase64(file);
-      setIconPreview(base64);
-      form.setValue('icon', base64);
+      try {
+        const compressedBase64 = await compressImage(file);
+        setIconPreview(compressedBase64);
+        form.setValue('icon', compressedBase64);
+      } catch (error) {
+        toast({ title: "Error Compressing Image", description: "Could not process the image. Please try another.", variant: "destructive" });
+      }
     }
   };
 
