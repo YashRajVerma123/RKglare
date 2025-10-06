@@ -268,10 +268,6 @@
        background: linear-gradient(to right, transparent, hsl(var(--primary)/0.5), transparent);
     }
     
-    .animate-marquee-vertical {
-      animation: marquee-vertical 40s linear infinite;
-    }
-    
     .parallax > * {
       animation: parallax-scroll linear;
       animation-timeline: scroll(root);
@@ -420,16 +416,6 @@
 }
 
 /* Marquee */
-@keyframes marquee-horizontal {
-  from { transform: translateX(0); }
-  to { transform: translateX(-100%); }
-}
-
-@keyframes marquee-vertical {
-  from { transform: translateY(0); }
-  to { transform: translateY(-50%); }
-}
-
 @keyframes parallax-scroll {
   from {
     transform: translateY(-50px);

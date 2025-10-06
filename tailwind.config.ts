@@ -43,7 +43,7 @@ export default {
         body: ['var(--font-work-sans)', 'sans-serif'],
         headline: ['var(--font-space-grotesk)', 'sans-serif'],
         signature: ['var(--font-dancing-script)', 'cursive'],
-        content: ['var(--font-work-sans)', 'sans-serif'],
+        content: ['var(--font-libre-baskerville)', 'serif'],
         title: ['var(--font-nunito)', 'sans-serif'],
         reader: ['var(--font-libre-baskerville)', 'serif'],
       },
@@ -127,6 +127,14 @@ export default {
                 transform: 'translateY(0)'
             }
         },
+        'marquee-horizontal': {
+          from: { transform: 'translateX(0)' },
+          to: { transform: 'translateX(-100%)' },
+        },
+        'marquee-vertical': {
+            from: { transform: 'translateY(0)' },
+            to: { transform: 'translateY(-50%)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -134,6 +142,8 @@ export default {
         'pulse-dot': 'pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         spin: 'spin 1s linear infinite',
         'fade-in-up': 'fade-in-up 0.5s ease-out',
+        'marquee-horizontal': 'marquee-horizontal 30s linear infinite',
+        'marquee-vertical': 'marquee-vertical 40s linear infinite',
       },
     },
   },
