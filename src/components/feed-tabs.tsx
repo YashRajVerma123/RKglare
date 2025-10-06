@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Post, getPosts } from '@/lib/data';
+import { Post, getPostsClient } from '@/lib/data';
 import RecentPostCard from './recent-post-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Button } from './ui/button';
@@ -27,7 +27,7 @@ const FeedTabs = ({ recentPosts }: FeedTabsProps) => {
         const followingAuthorIds = followingAuthors.map(a => a.id);
         
         if (followingAuthorIds.length > 0) {
-            const allPosts = await getPosts();
+            const allPosts = await getPostsClient();
             const filtered = allPosts
                 .filter(p => followingAuthorIds.includes(p.author.id))
                 .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())

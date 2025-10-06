@@ -1,4 +1,5 @@
 
+
 'use client';
 import { CreditCard, LogOut, User as UserIcon, Upload, Moon, Sun, Loader2, PanelRightOpen, Settings, UserPlus,LogIn, RefreshCw, Type, X, AtSign, Image as ImageIcon, Palette } from 'lucide-react';
 import {
@@ -38,7 +39,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { getLevel, getProgressToNextLevel } from '@/lib/gamification';
 import { Progress } from './ui/progress';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import { getAuthors } from '@/lib/data';
+import { getAuthorsClient } from '@/lib/data';
 import { Trophy } from 'lucide-react';
 import { mainFonts, specialFonts } from '@/app/fonts';
 import { HexColorPicker } from 'react-colorful';
@@ -129,7 +130,7 @@ const UserNav = () => {
   useEffect(() => {
     if (user) {
         const fetchRank = async () => {
-            const allUsers = await getAuthors();
+            const allUsers = await getAuthorsClient();
             const sortedUsers = allUsers.sort((a, b) => (b.points || 0) - (a.points || 0));
             const userRank = sortedUsers.findIndex(u => u.id === user.id);
             setRank(userRank !== -1 ? userRank + 1 : null);
@@ -144,7 +145,7 @@ const UserNav = () => {
     
     // Also re-fetch rank
     if (user) {
-        const allUsers = await getAuthors();
+        const allUsers = await getAuthorsClient();
         const sortedUsers = allUsers.sort((a, b) => (b.points || 0) - (a.points || 0));
         const userRank = sortedUsers.findIndex(u => u.id === user.id);
         setRank(userRank !== -1 ? userRank + 1 : null);

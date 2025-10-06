@@ -1,14 +1,14 @@
 
 
-import { getPosts, getNotifications, getBulletins, getAuthors, getDiaryEntries } from "@/lib/data";
+import { getPostsServer, getNotifications, getBulletins, getAuthorsClient, getDiaryEntries } from "@/lib/data";
 import AdminClientPage from "./admin-client";
 
 const AdminPage = async () => {
     // Fetch all data on the server, but get lightweight posts
-    const postsData = getPosts(false);
+    const postsData = getPostsServer(false);
     const notificationsData = getNotifications();
     const bulletinsData = getBulletins(); // Fetch all bulletins
-    const usersData = getAuthors();
+    const usersData = getAuthorsClient();
     const diaryData = getDiaryEntries();
 
     const [posts, notifications, bulletinsResponse, users, diaryEntries] = await Promise.all([

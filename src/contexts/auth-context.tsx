@@ -1,10 +1,11 @@
 
+
 'use client';
 
 import { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, User as FirebaseUser, Auth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { db } from '@/lib/firebase-server';
-import { Author, UserStreak, DailyChallenge, getAuthorByEmail } from '@/lib/data';
+import { Author, UserStreak, DailyChallenge, getAuthorByEmailClient } from '@/lib/data';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { getClientFirebaseConfig } from '@/app/actions/config-actions';
 import { initializeClientApp } from '@/lib/firebase-client';
@@ -174,7 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
   
   const fetchMainAuthor = useCallback(async () => {
-    const author = await getAuthorByEmail("yashrajverma916@gmail.com");
+    const author = await getAuthorByEmailClient("yashrajverma916@gmail.com");
     setMainAuthor(author);
   }, []);
 

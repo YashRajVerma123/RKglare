@@ -366,7 +366,7 @@ const filterPremiumContent = (posts: Post[], user?: Author | null): Post[] => {
     });
 };
 
-export const getPosts = unstable_cache(async (
+export const getPostsServer = unstable_cache(async (
     includeContent: boolean = true, 
     currentUser?: Author | null,
     searchQuery?: string
@@ -424,8 +424,63 @@ export const getPosts = unstable_cache(async (
 }, ['posts'], { revalidate: 60, tags: ['posts'] });
 
 
+export async function getPostsClient(
+  includeContent: boolean = true,
+  currentUser?: Author | null,
+  searchQuery?: string
+): Promise<Post[]> {
+  const postsCollection = collection(db, 'posts');
+  const q = query(postsCollection, orderBy('publishedAt', 'desc'));
+  const snapshot = await getDocs(q);
+
+  const converter = {
+    fromFirestore: (snapshot: any, options: any): Post => {
+      const data = snapshot.data(options);
+      return {
+        id: snapshot.id,
+        slug: data.slug,
+        title: data.title,
+        description: data.description,
+        content: includeContent ? data.content : '',
+        coverImage: data.coverImage,
+        author: data.author,
+        publishedAt: safeToISOString(data.publishedAt)!,
+        tags: data.tags,
+        readTime: data.readTime,
+        featured: data.featured,
+        trending: data.trending,
+        trendingPosition: data.trendingPosition,
+        trendingUntil: safeToISOString(data.trendingUntil),
+        likes: data.likes || 0,
+        summary: data.summary,
+        premiumOnly: data.premiumOnly || false,
+        earlyAccess: data.earlyAccess || false,
+      };
+    },
+  };
+
+  let allPosts = snapshot.docs.map((doc) => converter.fromFirestore(doc, {}));
+
+  if (searchQuery) {
+    const lowercasedQuery = searchQuery.toLowerCase();
+    allPosts = allPosts.filter((post) => {
+      const titleMatch = post.title.toLowerCase().includes(lowercasedQuery);
+      const descriptionMatch = post.description.toLowerCase().includes(lowercasedQuery);
+      const tagMatch =
+        post.tags && post.tags.some((tag) => tag.toLowerCase().includes(lowercasedQuery));
+      return titleMatch || descriptionMatch || tagMatch;
+    });
+  }
+
+  if (currentUser?.email === 'yashrajverma916@gmail.com') {
+    return allPosts;
+  }
+
+  return filterPremiumContent(allPosts, currentUser);
+}
+
 export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
-    const allPosts = await getPosts(false);
+    const allPosts = await getPostsServer(false);
     return allPosts
         .filter(p => p.featured)
         .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
@@ -434,7 +489,7 @@ export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
 
 
 export const getRecentPosts = unstable_cache(async (count: number): Promise<Post[]> => {
-    const allPosts = await getPosts(false);
+    const allPosts = await getPostsServer(false);
     return allPosts
         .filter(p => !p.featured)
         .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
@@ -518,7 +573,7 @@ export const getPostClient = async (slug: string, user?: Author | null): Promise
 export const getRelatedPosts = unstable_cache(async (currentPost: Post, currentUser?: Author | null): Promise<Post[]> => {
     if (!currentPost) return [];
     
-    const allPosts = await getPosts(false, currentUser); // Fetch lightweight posts respecting permissions
+    const allPosts = await getPostsServer(false, currentUser); // Fetch lightweight posts respecting permissions
     const otherPosts = allPosts.filter(p => p.id !== currentPost.id);
 
     if (!currentPost.tags || currentPost.tags.length === 0) {
@@ -672,7 +727,7 @@ export const getBulletinClient = async (id: string): Promise<Bulletin | null> =>
     return null;
 };
 
-export const getAuthorByEmail = unstable_cache(async (email: string): Promise<Author | null> => {
+export const getAuthorByEmailServer = unstable_cache(async (email: string): Promise<Author | null> => {
     const usersCollection = collection(db, 'users');
     const q = query(usersCollection, where('email', '==', email), limit(1)).withConverter(authorConverter);
     const snapshot = await getDocs(q);
@@ -682,6 +737,17 @@ export const getAuthorByEmail = unstable_cache(async (email: string): Promise<Au
     }
     return snapshot.docs[0].data();
 }, ['author_by_email'], { revalidate: 3600, tags: ['users'] });
+
+export const getAuthorByEmailClient = async (email: string): Promise<Author | null> => {
+    const usersCollection = collection(db, 'users');
+    const q = query(usersCollection, where('email', '==', email), limit(1)).withConverter(authorConverter);
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+        return null;
+    }
+    return snapshot.docs[0].data();
+};
 
 
 export const getAuthorById = (id: string): Promise<Author | null> => {
@@ -708,11 +774,17 @@ export async function isFollowing(followerId: string, authorId: string): Promise
   return docSnap.exists();
 }
 
-export const getAuthors = unstable_cache(async (): Promise<Author[]> => {
+export const getAuthorsServer = unstable_cache(async (): Promise<Author[]> => {
     const usersCollection = collection(db, 'users').withConverter(authorConverter);
     const snapshot = await getDocs(usersCollection);
     return snapshot.docs.map(doc => doc.data());
 }, ['all_users'], { revalidate: 3600, tags: ['users'] });
+
+export const getAuthorsClient = async (): Promise<Author[]> => {
+    const usersCollection = collection(db, 'users').withConverter(authorConverter);
+    const snapshot = await getDocs(usersCollection);
+    return snapshot.docs.map(doc => doc.data());
+}
 
 export const getPremiumUsers = async (): Promise<Author[]> => {
      return unstable_cache(async () => {

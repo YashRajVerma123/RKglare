@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Search, Loader2 } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
-import { Post, getPosts } from '@/lib/data';
+import { Post, getPostsClient } from '@/lib/data';
 import Link from 'next/link';
 import { Button } from './ui/button';
 import {
@@ -26,7 +26,7 @@ const SearchBar = () => {
 
   // Pre-fetch all post data when the component mounts
   useEffect(() => {
-    getPosts(false).then(posts => setAllPosts(posts));
+    getPostsClient(false).then(posts => setAllPosts(posts));
   }, []);
 
   const performSearch = useCallback((searchQuery: string) => {
