@@ -19,6 +19,7 @@ import {
   Zap,
   X,
   Loader2,
+  BookHeart,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -40,6 +41,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 const navLinks = [
   { href: '/', label: 'Home', icon: <Home className="h-4 w-4" /> },
   { href: '/posts', label: 'Posts', icon: <Newspaper className="h-4 w-4" /> },
+  { href: '/diary', label: 'Diary', icon: <BookHeart className="h-4 w-4" /> },
   { href: '/bulletin', label: 'Bulletin', icon: <PanelRightOpen className="h-4 w-4" /> },
   { href: '/leaderboard', label: 'Leaderboard', icon: <Trophy className="h-4 w-4" /> },
   { href: '/bookmarks', label: 'Bookmarks', icon: <Bookmark className="h-4 w-4" /> },
