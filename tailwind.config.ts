@@ -1,4 +1,3 @@
-
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -43,7 +42,7 @@ export default {
         body: ['var(--font-work-sans)', 'sans-serif'],
         headline: ['var(--font-space-grotesk)', 'sans-serif'],
         signature: ['var(--font-dancing-script)', 'cursive'],
-        content: ['var(--font-libre-baskerville)', 'serif'],
+        content: ['var(--font-work-sans)', 'sans-serif'],
         title: ['var(--font-nunito)', 'sans-serif'],
         reader: ['var(--font-libre-baskerville)', 'serif'],
       },

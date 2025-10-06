@@ -158,7 +158,7 @@ const Header = () => {
                             <Menu className="h-6 w-6" />
                         </Button>
                         </PopoverTrigger>
-                        <PopoverContent align="start" className="w-48 p-1 font-content">
+                        <PopoverContent align="start" className="w-48 p-1 font-body">
                         <div className="p-1">
                           {navLinks.map((link) => (
                               <Link
