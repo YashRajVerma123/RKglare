@@ -1,4 +1,4 @@
-import { Book, Feather, Leaf, Moon, Folder, PlayCircle } from 'lucide-react';
+import { Book, Feather, Folder, PlayCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export const diaryEntries = [
@@ -44,6 +44,37 @@ export const diaryEntries = [
   },
 ];
 
+
+const DiaryEntryCard = ({ entry, index }: { entry: typeof diaryEntries[0]; index: number }) => {
+    const isReversed = index % 2 !== 0;
+
+    return (
+        <div className="group grid grid-cols-1 md:grid-cols-2 gap-8 items-center relative">
+             <div className="absolute left-1/2 -translate-x-1/2 h-full w-px bg-border/50 hidden md:block"></div>
+             <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 h-4 w-4 rounded-full bg-primary border-4 border-background hidden md:block"></div>
+
+            <div className={isReversed ? 'md:order-2' : ''}>
+                <Link href={`/diary/${entry.chapter}`} className="block">
+                    <div className="glass-card p-6 rounded-xl transition-all duration-300 hover:border-primary/50 hover:-translate-y-1">
+                        <div className="flex items-center gap-4">
+                             <div className="flex-shrink-0 h-16 w-16 flex items-center justify-center bg-primary/5 rounded-lg">
+                                {entry.icon}
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm text-muted-foreground">{entry.date}</p>
+                                <h3 className="text-xl font-headline font-bold mb-1 group-hover:text-primary transition-colors">{entry.title}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </Link>
+            </div>
+            {/* Empty div for spacing on the other side of the timeline */}
+            <div className={`hidden md:block ${isReversed ? 'md:order-1' : ''}`}></div>
+        </div>
+    )
+}
+
+
 const DiaryPage = () => {
   return (
     <div className="container mx-auto px-4 py-16">
@@ -56,27 +87,9 @@ const DiaryPage = () => {
         </p>
       </section>
 
-      <div className="max-w-2xl mx-auto space-y-4">
-        {diaryEntries.map((entry) => (
-          <Link
-            href={`/diary/${entry.chapter}`}
-            key={entry.chapter}
-            className="group block"
-          >
-            <div className="glass-card p-4 flex items-center gap-6 hover:border-primary/50 transition-all duration-300 hover:-translate-y-0.5">
-              <div className="flex-shrink-0 h-20 w-20 flex items-center justify-center bg-primary/5 rounded-lg">
-                {entry.icon}
-              </div>
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold group-hover:text-primary transition-colors">{entry.title}</h2>
-                <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                    {entry.countType === 'entries' && <Folder className="h-3 w-3" />}
-                    {entry.countType === 'video' && <PlayCircle className="h-3 w-3" />}
-                    <span>{String(entry.count).padStart(2, '0')}</span>
-                </div>
-              </div>
-            </div>
-          </Link>
+      <div className="max-w-4xl mx-auto space-y-12">
+        {diaryEntries.map((entry, index) => (
+          <DiaryEntryCard key={entry.chapter} entry={entry} index={index} />
         ))}
       </div>
     </div>
