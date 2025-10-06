@@ -1,8 +1,9 @@
 
+
 import 'dotenv/config'
 import { db } from '../lib/firebase';
 import { collection, getDocs, writeBatch, doc } from 'firebase/firestore';
-import { initialPostsData, initialNotificationsData, initialBulletinsData } from '../lib/data-store';
+import { initialPostsData, initialNotificationsData, initialBulletinsData, initialDiaryEntriesData } from '../lib/data-store';
 
 
 const seedCollection = async (collectionPath: string, data: any[], checkField: string) => {
@@ -19,7 +20,7 @@ const seedCollection = async (collectionPath: string, data: any[], checkField: s
     const batch = writeBatch(db);
     data.forEach(itemData => {
         // Use a specific field for the document ID if it makes sense (like a slug for posts)
-        const docId = itemData[checkField] ? itemData[checkField].toLowerCase().replace(/\s+/g, '-') : undefined;
+        const docId = itemData[checkField] ? itemData[checkField].toString().toLowerCase().replace(/\s+/g, '-') : undefined;
         const docRef = docId ? doc(db, collectionPath, docId) : doc(collectionRef);
         
         // Convert date strings to Firestore Timestamps
@@ -57,6 +58,7 @@ const seedDatabase = async () => {
         await seedCollection('posts', initialPostsData, 'slug');
         await seedCollection('notifications', initialNotificationsData, 'title');
         await seedCollection('bulletins', initialBulletinsData, 'title');
+        await seedCollection('diary', initialDiaryEntriesData, 'chapter');
         console.log("Database seeding finished.");
     } catch (error) {
         console.error("Error seeding database:", error);

@@ -1,5 +1,6 @@
 
-import { getPosts, getNotifications, getBulletins, getAuthors } from "@/lib/data";
+
+import { getPosts, getNotifications, getBulletins, getAuthors, getDiaryEntries } from "@/lib/data";
 import AdminClientPage from "./admin-client";
 
 const AdminPage = async () => {
@@ -8,12 +9,14 @@ const AdminPage = async () => {
     const notificationsData = getNotifications();
     const bulletinsData = getBulletins(); // Fetch all bulletins
     const usersData = getAuthors();
+    const diaryData = getDiaryEntries();
 
-    const [posts, notifications, bulletinsResponse, users] = await Promise.all([
+    const [posts, notifications, bulletinsResponse, users, diaryEntries] = await Promise.all([
         postsData,
         notificationsData,
         bulletinsData,
         usersData,
+        diaryData
     ]);
 
     const sortedPosts = posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
@@ -24,10 +27,9 @@ const AdminPage = async () => {
             initialNotifications={notifications}
             initialBulletins={bulletinsResponse.bulletins}
             initialUsers={users}
+            initialDiaryEntries={diaryEntries}
         />
     );
 };
 
 export default AdminPage;
-
-    

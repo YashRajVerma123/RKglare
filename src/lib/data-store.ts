@@ -1,6 +1,7 @@
 
+
 // This file now only contains the initial raw data for seeding the database.
-import { Post, Comment, Author, Notification, Bulletin } from './data';
+import { Post, Comment, Author, Notification, Bulletin, DiaryEntry } from './data';
 
 const yashRaj: Author = { id: 'yash-raj', name: 'Yash Raj', avatar: 'https://i.pravatar.cc/150?u=yash-raj', email: 'yashrajverma916@gmail.com'};
 const janeDoe: Author = { id: 'jane-doe', name: 'Jane Doe', avatar: 'https://i.pravatar.cc/150?u=jane-doe', email: 'jane.doe@example.com'};
@@ -144,6 +145,30 @@ export const initialBulletinsData: Omit<Bulletin, 'id'>[] = [
         coverImage: 'https://picsum.photos/1200/800?random=10',
         publishedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
     },
+];
+
+export const initialDiaryEntriesData: Omit<DiaryEntry, 'id'>[] = [
+  {
+    chapter: 1,
+    title: 'The Quiet Beginning',
+    date: 'July 2024',
+    icon: 'https://i.ibb.co/VvzVbV3/feather.png',
+    content: "<h3>The First Page</h3><p>Every story has a beginning, but not all are marked by a grand declaration. Some start with a silent promise, a quiet turn of a page in a new, empty book. This is one such beginning. A space carved out of the digital noise, a sanctuary for thoughts that are too fragile for the open air. It's a promise to myself to listen more closely to the whispers of my own heart.</p>",
+  },
+  {
+    chapter: 2,
+    title: 'Seeds of Change',
+    date: 'August 2024',
+    icon: 'https://i.ibb.co/C0t3fM6/sprout.png',
+    content: "<h3>Planting an Idea</h3><p>Today, I planted a small seed, both in a pot on my windowsill and in the fertile soil of my mind. The seed of a new idea, a new direction. It feels small and uncertain, yet it holds the blueprint for a forest. I find myself watering it with quiet curiosity and a strange, unearned hope. There's a profound beauty in nurturing potential, in believing in growth even when the first shoot has yet to break the surface.</p>",
+  },
+  {
+    chapter: 3,
+    title: 'Whispers of the Night Sky',
+    date: 'September 2024',
+    icon: 'https://i.ibb.co/YcmkL1g/moon.png',
+    content: "<h3>A Silent Confidante</h3><p>The world outside sleeps, but my mind is a bustling city of thoughts. The night has a unique way of stripping away the day's noise, leaving only the essential truths. It's in these quiet, ink-black hours that I confront my deepest fears and my most audacious dreams. The moon, my silent confidante, listens without judgment, its pale light a comforting presence. This is a time for reflection, for untangling the 'why' from the 'what'.</p>",
+  },
 ];
 
 export const simulatedAiNews = [

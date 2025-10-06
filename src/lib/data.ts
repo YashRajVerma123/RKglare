@@ -1,4 +1,5 @@
 
+
 import { db } from '@/lib/firebase-server'; // <-- IMPORTANT: Use server DB
 import { 
     collection, 
@@ -70,6 +71,15 @@ export type Post = {
   summary?: string;
   premiumOnly?: boolean;
   earlyAccess?: boolean;
+};
+
+export type DiaryEntry = {
+    id: string;
+    chapter: number;
+    title: string;
+    date: string;
+    icon: string; // URL to the icon image
+    content: string;
 };
 
 const safeToISOString = (date: any): string | null => {
@@ -749,4 +759,73 @@ export type DailyChallenge = {
   points: number;
   completed: boolean;
   assignedAt: string; // ISO string
+};
+
+const diaryEntryConverter = {
+    fromFirestore: (snapshot: any, options: any): DiaryEntry => {
+        const data = snapshot.data(options);
+        return {
+            id: snapshot.id,
+            chapter: data.chapter,
+            title: data.title,
+            date: data.date,
+            icon: data.icon,
+            content: data.content,
+        };
+    },
+    toFirestore: (entry: Omit<DiaryEntry, 'id'>) => {
+        return entry;
+    }
+};
+
+export const getDiaryEntries = unstable_cache(async (): Promise<DiaryEntry[]> => {
+    const diaryCollection = collection(db, 'diary').withConverter(diaryEntryConverter);
+    const q = query(diaryCollection, orderBy('chapter', 'asc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data());
+}, ['diary_entries'], { revalidate: 60, tags: ['diary'] });
+
+export const getDiaryEntry = (chapter: number): Promise<DiaryEntry | undefined> => {
+    return unstable_cache(
+        async (chapter: number) => {
+            const diaryCollection = collection(db, 'diary');
+            const q = query(diaryCollection, where('chapter', '==', chapter), limit(1)).withConverter(diaryEntryConverter);
+            const snapshot = await getDocs(q);
+            
+            if (snapshot.empty) {
+                return undefined;
+            }
+            return snapshot.docs[0].data();
+        },
+        ['diary_entry', chapter],
+        { revalidate: 3600, tags: ['diary', `diary-chapter:${chapter}`] }
+    )(chapter);
+};
+
+export async function getNextDiaryChapterNumber(): Promise<number> {
+    const diaryCollection = collection(db, 'diary');
+    const q = query(diaryCollection, orderBy('chapter', 'desc'), limit(1));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+        return 1;
+    }
+    const lastEntry = snapshot.docs[0].data();
+    return (lastEntry.chapter || 0) + 1;
+}
+
+// Client-side versions of data fetching functions that do not use unstable_cache
+export const getDiaryEntriesClient = async (): Promise<DiaryEntry[]> => {
+    const diaryCollection = collection(db, 'diary').withConverter(diaryEntryConverter);
+    const q = query(diaryCollection, orderBy('chapter', 'asc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data());
+};
+
+export const getDiaryEntryClient = async (id: string): Promise<DiaryEntry | null> => {
+    const entryRef = doc(db, 'diary', id).withConverter(diaryEntryConverter);
+    const snapshot = await getDoc(entryRef);
+    if (snapshot.exists()) {
+        return snapshot.data();
+    }
+    return null;
 };

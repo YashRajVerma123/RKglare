@@ -1,11 +1,12 @@
 
+
 'use client';
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Edit, PlusCircle, Trash, Users, BellRing, Image as ImageIcon, Megaphone, User as UserIcon, Upload, LineChart, Mail, Loader2, Bot, Star } from "lucide-react";
-import { Post, Notification, Bulletin, Author } from "@/lib/data";
+import { BarChart, Edit, PlusCircle, Trash, Users, BellRing, Image as ImageIcon, Megaphone, User as UserIcon, Upload, LineChart, Mail, Loader2, Bot, Star, BookOpen } from "lucide-react";
+import { Post, Notification, Bulletin, Author, DiaryEntry } from "@/lib/data";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -49,7 +50,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
+import { deleteDiaryEntryAction } from "@/app/actions/diary-actions";
 
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -94,9 +96,10 @@ interface AdminClientPageProps {
     initialNotifications: Notification[];
     initialBulletins: Bulletin[];
     initialUsers: Author[];
+    initialDiaryEntries: DiaryEntry[];
 }
 
-const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins, initialUsers }: AdminClientPageProps) => {
+const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins, initialUsers, initialDiaryEntries }: AdminClientPageProps) => {
     const { user, isAdmin, loading: authLoading, updateUserProfile } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
@@ -104,13 +107,16 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
     const [allNotifications, setAllNotifications] = useState<Notification[]>(initialNotifications);
     const [allBulletins, setAllBulletins] = useState<Bulletin[]>(initialBulletins);
     const [allUsers, setAllUsers] = useState<Author[]>(initialUsers);
+    const [allDiaryEntries, setAllDiaryEntries] = useState<DiaryEntry[]>(initialDiaryEntries);
     
     const [isPostDeleteDialogOpen, setPostDeleteDialogOpen] = useState(false);
     const [isNotifDeleteDialogOpen, setNotifDeleteDialogOpen] = useState(false);
     const [isBulletinDeleteDialogOpen, setBulletinDeleteDialogOpen] = useState(false);
+    const [isDiaryDeleteDialogOpen, setDiaryDeleteDialogOpen] = useState(false);
     const [postToDelete, setPostToDelete] = useState<Post | null>(null);
     const [notificationToDelete, setNotificationToDelete] = useState<Notification | null>(null);
     const [bulletinToDelete, setBulletinToDelete] = useState<Bulletin | null>(null);
+    const [diaryToDelete, setDiaryToDelete] = useState<DiaryEntry | null>(null);
     const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState(user?.avatar || '');
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -215,6 +221,11 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
         setBulletinDeleteDialogOpen(true);
     };
 
+    const handleDeleteDiaryClick = (entry: DiaryEntry) => {
+        setDiaryToDelete(entry);
+        setDiaryDeleteDialogOpen(true);
+    };
+
     const handleDeletePostConfirm = async () => {
         if (!postToDelete) return;
         
@@ -278,6 +289,28 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
             toast({ title: "Error", description: "Failed to delete bulletin. It has been restored.", variant: "destructive" });
         } finally {
             setBulletinToDelete(null);
+        }
+    };
+
+    const handleDeleteDiaryConfirm = async () => {
+        if (!diaryToDelete) return;
+        
+        const originalEntries = allDiaryEntries;
+
+        setAllDiaryEntries(prev => prev.filter(b => b.id !== diaryToDelete.id));
+        setDiaryDeleteDialogOpen(false);
+        
+        try {
+            const result = await deleteDiaryEntryAction(diaryToDelete.id);
+            if (result.error) {
+                throw new Error(result.error);
+            }
+            toast({ title: "Diary Entry Deleted", description: `"${diaryToDelete.title}" has been deleted.` });
+        } catch (error) {
+            setAllDiaryEntries(originalEntries);
+            toast({ title: "Error", description: "Failed to delete diary entry. It has been restored.", variant: "destructive" });
+        } finally {
+            setDiaryToDelete(null);
         }
     };
 
@@ -435,6 +468,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                     <TabsList>
                         <TabsTrigger value="analytics"><LineChart className="mr-2 h-4 w-4"/>Analytics</TabsTrigger>
                         <TabsTrigger value="management"><BarChart className="mr-2 h-4 w-4"/>Management</TabsTrigger>
+                        <TabsTrigger value="diary"><BookOpen className="mr-2 h-4 w-4"/>Diary</TabsTrigger>
                     </TabsList>
                 </div>
                 
@@ -964,6 +998,50 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                         </div>
                     </div>
                 </TabsContent>
+                <TabsContent value="diary">
+                    <Card className="glass-card">
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <div>
+                                <CardTitle>Manage Diary</CardTitle>
+                                <CardDescription>Create, edit, or delete your personal diary entries.</CardDescription>
+                            </div>
+                            <Button asChild>
+                                <Link href="/admin/create-diary-entry">
+                                    <PlusCircle className="mr-2 h-4 w-4" /> Create New Entry
+                                </Link>
+                            </Button>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Chapter</TableHead>
+                                        <TableHead className="w-[50%]">Title</TableHead>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {allDiaryEntries.map(entry => (
+                                        <TableRow key={entry.id}>
+                                            <TableCell className="font-medium">#{entry.chapter}</TableCell>
+                                            <TableCell>{entry.title}</TableCell>
+                                            <TableCell>{entry.date}</TableCell>
+                                            <TableCell className="text-right">
+                                                <Button asChild variant="ghost" size="icon">
+                                                    <Link href={`/admin/edit-diary-entry/${entry.id}`}><Edit className="h-4 w-4" /></Link>
+                                                </Button>
+                                                <Button variant="ghost" size="icon" onClick={() => handleDeleteDiaryClick(entry)}>
+                                                    <Trash className="h-4 w-4 text-red-500" />
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
             </Tabs>
 
 
@@ -1009,6 +1087,21 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={handleDeleteBulletinConfirm} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+             <AlertDialog open={isDiaryDeleteDialogOpen} onOpenChange={setDiaryDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the diary entry
+                            <span className="font-bold"> &quot;{diaryToDelete?.title}&quot;</span>.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteDiaryConfirm} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
@@ -1077,7 +1170,3 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
 };
 
 export default AdminClientPage;
-
-    
-
-    
