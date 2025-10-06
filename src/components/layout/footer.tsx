@@ -9,6 +9,7 @@ const quickLinks = [
   { href: '/privacy-policy', label: 'Privacy Policy' },
   { href: '/newsletter', label: 'Newsletter' },
   { href: '/points-system', label: 'Points System' },
+  { href: '/leaderboard', label: 'Leaderboard' },
   { href: '/sitemap', label: 'Sitemap' },
 ];
 
