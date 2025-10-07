@@ -168,7 +168,7 @@ export default function EditDiaryEntryPage({ params }: PageProps) {
                               <div className="flex items-center gap-4">
                                   {iconPreview ? (
                                       <div className="relative h-16 w-16 rounded-lg overflow-hidden border bg-muted">
-                                          <Image src={iconPreview} alt="Icon preview" layout="fill" objectFit="cover" />
+                                          <Image src={iconPreview} alt="Icon preview" fill objectFit="cover" />
                                       </div>
                                   ) : (
                                      <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
