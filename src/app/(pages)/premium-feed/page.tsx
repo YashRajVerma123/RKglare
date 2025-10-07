@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { getPostsServer, Post } from '@/lib/data';
+import { getPosts, Post } from '@/lib/data';
 import BlogPostCard from '@/components/blog-post-card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -20,7 +20,7 @@ const PremiumFeedPage = () => {
         if (!authLoading && isPremium) {
             const fetchPremiumPosts = async () => {
                 setLoadingPosts(true);
-                const allPosts = await getPostsServer(false, user); // Pass user to get correct permissions
+                const allPosts = await getPosts(false, user); // Pass user to get correct permissions
                 const now = new Date();
 
                 const premiumPosts = allPosts.filter(post => {
