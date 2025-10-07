@@ -1,11 +1,11 @@
 
 
-import { getPostsServer, getNotifications, getBulletins, getAuthorsClient, getDiaryEntries } from "@/lib/data";
+import { getPosts, getNotifications, getBulletins, getAuthorsClient, getDiaryEntries } from "@/lib/data";
 import AdminClientPage from "./admin-client";
 
 const AdminPage = async () => {
     // Fetch all data on the server, but get lightweight posts
-    const postsData = getPostsServer(false);
+    const postsData = getPosts(false);
     const notificationsData = getNotifications();
     const bulletinsData = getBulletins(); // Fetch all bulletins
     const usersData = getAuthorsClient();

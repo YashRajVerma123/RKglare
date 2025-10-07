@@ -1,4 +1,3 @@
-
 import { db } from '@/lib/firebase-server'; // <-- IMPORTANT: Use server DB
 import { 
     collection, 
@@ -758,6 +757,17 @@ export async function getNextDiaryChapterNumber(): Promise<number> {
 }
 
 // Client-side versions of data fetching functions that do not use unstable_cache
+export const getPosts = async (
+  includeContent: boolean = true,
+  currentUser?: Author | null
+): Promise<Post[]> => {
+  const postsCollection = collection(db, 'posts');
+  const q = query(postsCollection, orderBy('publishedAt', 'desc'));
+  const snapshot = await getDocs(q.withConverter(postConverter));
+  const allPosts = snapshot.docs.map(doc => doc.data());
+  return filterPremiumContent(allPosts, currentUser);
+};
+
 export const getDiaryEntriesClient = async (): Promise<DiaryEntry[]> => {
     const diaryCollection = collection(db, 'diary').withConverter(diaryEntryConverter);
     const q = query(diaryCollection, orderBy('chapter', 'asc'));

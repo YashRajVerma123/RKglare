@@ -1,4 +1,3 @@
-
 // THIS FILE IS FOR SERVER-SIDE USE ONLY
 import { initializeApp, getApps, getApp, FirebaseOptions } from "firebase/app";
 import { getFirestore, collection, getDocs, query, orderBy, where, limit } from "firebase/firestore";
@@ -67,7 +66,7 @@ export const getPostsServer = unstable_cache(async (
 
 
 export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
-    const allPosts = await getPostsServer(false);
+    const allPosts = await getPostsServer(false, null);
     return allPosts
         .filter(p => p.featured)
         .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
@@ -76,7 +75,7 @@ export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
 
 
 export const getRecentPosts = unstable_cache(async (count: number): Promise<Post[]> => {
-    const allPosts = await getPostsServer(false);
+    const allPosts = await getPostsServer(false, null);
     return allPosts
         .filter(p => !p.featured)
         .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
