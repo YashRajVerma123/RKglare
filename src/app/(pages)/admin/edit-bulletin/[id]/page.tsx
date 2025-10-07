@@ -24,11 +24,7 @@ const formSchema = z.object({
   coverImage: z.string().url('Please enter a valid image URL.'),
 });
 
-type PageProps = {
-  params: { id: string };
-};
-
-export default function EditBulletinPage({ params }: PageProps) {
+export default function EditBulletinPage({ params }: { params: { id: string } }) {
   const { id } = params;
   const { toast } = useToast();
   const router = useRouter();

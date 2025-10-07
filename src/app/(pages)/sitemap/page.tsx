@@ -1,5 +1,5 @@
 
-import { getPosts } from '@/lib/data';
+import { getPostsServer } from '@/lib/data';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
@@ -19,7 +19,7 @@ const staticPages = [
 
 const SitemapPage = async () => {
     // Fetch all public posts (lightweight version)
-    const posts = await getPosts(false);
+    const posts = await getPostsServer(false);
 
     // Sort static pages alphabetically
     const sortedStaticPages = [...staticPages].sort((a, b) => a.title.localeCompare(b.title));
