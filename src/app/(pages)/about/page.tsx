@@ -3,6 +3,12 @@ import { Award, FileText, Globe, Users } from "lucide-react";
 import { Newspaper, Rss, ShieldCheck } from "lucide-react";
 import Counter from "@/components/counter";
 import ParallaxContainer from "@/components/parallax-container";
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'About Glare',
+  description: 'Learn about Glare\'s mission to cut through the noise and deliver clarity. Discover our core principles of in-depth analysis, current reporting, and unbiased journalism.',
+};
 
 const features = [
   {
@@ -85,5 +91,3 @@ const AboutPage = () => {
 };
 
 export default AboutPage;
-
-    

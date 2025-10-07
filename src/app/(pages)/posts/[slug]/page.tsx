@@ -30,14 +30,24 @@ export async function generateMetadata({ params }: PostPageProps, parent: Resolv
     }
   }
 
+  const siteUrl = 'https://theglare.vercel.app';
+  const fullUrl = `${siteUrl}/posts/${post.slug}`;
+
   return {
     title: post.title,
     description: post.description,
+    keywords: post.tags.join(', '),
+    alternates: {
+      canonical: fullUrl,
+    },
     openGraph: {
       title: post.title,
       description: post.description,
+      url: fullUrl,
+      siteName: 'Glare',
       type: 'article',
-      url: `https://theglare.vercel.app/posts/${post.slug}`,
+      publishedTime: post.publishedAt,
+      authors: [post.author.name],
       images: [
         {
           url: post.coverImage,
@@ -52,6 +62,7 @@ export async function generateMetadata({ params }: PostPageProps, parent: Resolv
       title: post.title,
       description: post.description,
       images: [post.coverImage],
+      creator: '@yashrajverma', // Assuming a general site twitter handle
     },
   }
 }

@@ -1,9 +1,10 @@
-import { getPosts } from '@/lib/data';
+
+import { getPostsServer } from '@/lib/data';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://theglare.vercel.app';
 
 export async function GET() {
-  const posts = await getPosts(false); // Fetch lightweight posts
+  const posts = await getPostsServer(false); // Fetch lightweight posts
 
   const postEntries = posts.map(({ slug, publishedAt }) => ({
     url: `${SITE_URL}/posts/${slug}`,
