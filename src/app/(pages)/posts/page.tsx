@@ -3,6 +3,12 @@ import { Suspense } from 'react';
 import PostsClient from './posts-client';
 import { getPostsServer } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'All Articles',
+  description: 'Explore a comprehensive collection of stories, analyses, and insights from Glare. Stay informed on technology, AI, space, and breaking news.',
+};
 
 // Instruct Next.js to revalidate this page every hour
 export const revalidate = 3600;
