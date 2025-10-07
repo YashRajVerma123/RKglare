@@ -1,3 +1,4 @@
+
 // src/app/layout.tsx
 import type { Metadata } from "next";
 import { cn } from "@/lib/utils";
@@ -5,7 +6,6 @@ import "./globals.css";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/toaster";
-import PageLoader from "@/components/page-loader";
 import { Suspense } from "react";
 import SplashScreen from "@/components/splash-screen";
 import Script from "next/script";
@@ -16,7 +16,7 @@ import { spaceGrotesk, dancingScript, workSans, nunito, libreBaskerville } from 
 export const metadata: Metadata = {
   metadataBase: new URL('https://theglare.vercel.app'),
   title: {
-    default: "Glare",
+    default: "Glare | Sharp, Focused Journalism for the Modern Reader",
     template: "%s | Glare",
   },
   description: "Your essential destination for making sense of today. We provide current affairs news for the modern reader.",
@@ -97,9 +97,6 @@ export default function RootLayout({
           </div>
           <Toaster />
           <SplashScreen />
-          <Suspense fallback={null}>
-            <PageLoader />
-          </Suspense>
           <div className="relative z-10 flex flex-col min-h-screen page-transition">
             <Header />
             <div className="flex-grow pt-20">
