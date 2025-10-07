@@ -34,10 +34,7 @@ const EditorsPickCard = ({ post, layout = 'medium', priority = false }: EditorsP
         {/* Overlay and Text Content */}
         <div className={cn(
             "absolute inset-0 flex flex-col justify-end transition-all duration-500 ease-in-out",
-            // On devices that support hover, the content is hidden by default and translates up on group-hover
-            "[@media(hover:hover)]:translate-y-full [@media(hover:hover)]:group-hover:translate-y-0",
-             // On touch devices, the content is always visible
-            "[@media(hover:none)]:translate-y-0"
+            "md:translate-y-full md:group-hover:translate-y-0"
         )}>
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent opacity-100"></div>
             <div className="relative p-4 text-white">
