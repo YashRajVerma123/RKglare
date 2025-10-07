@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { Post, getPostsClient } from '@/lib/data';
 import BlogPostCard from '@/components/blog-post-card';
 import { useEffect, useState } from 'react';
-import RecentPostCard from '@/components/recent-post-card';
+import HoverDetailsCard from '@/components/hover-details-card';
 
 const PostsClient = ({ initialPosts }: { initialPosts: Post[] }) => {
   const searchParams = useSearchParams();
@@ -82,7 +82,7 @@ const PostsClient = ({ initialPosts }: { initialPosts: Post[] }) => {
         <div className="space-y-12">
             {latestPost && !searchQuery && (
               <div className="mb-12">
-                <RecentPostCard post={latestPost} />
+                <HoverDetailsCard post={latestPost} priority />
               </div>
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
