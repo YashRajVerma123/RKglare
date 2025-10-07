@@ -1,5 +1,4 @@
 
-
 'use client';
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
@@ -547,9 +546,6 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                                                     </TableCell>
                                                     <TableCell>{new Date(post.publishedAt).toLocaleDateString()}</TableCell>
                                                     <TableCell className="text-right">
-                                                        <Button asChild variant="ghost" size="icon">
-                                                            <Link href={`/admin/edit-post/${post.slug}`}><Edit className="h-4 w-4" /></Link>
-                                                        </Button>
                                                         <Button variant="ghost" size="icon" onClick={() => handleDeletePostClick(post)}>
                                                             <Trash className="h-4 w-4 text-red-500" />
                                                         </Button>
@@ -1160,5 +1156,3 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
 };
 
 export default AdminClientPage;
-
-    
