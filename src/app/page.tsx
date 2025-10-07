@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ArrowRight, BrainCircuit, Cpu, Dna, Rocket, SatelliteDish, Star } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { getFeaturedPosts, getRecentPosts, getTrendingPosts } from '@/lib/data';
+import { getFeaturedPosts, getRecentPosts, getTrendingPosts } from '@/lib/firebase-server';
 import FeedTabs from '@/components/feed-tabs';
 import AboutTheAuthor from '@/components/about-the-author';
 import PopularPostCard from '@/components/popular-post-card';

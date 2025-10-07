@@ -1,7 +1,7 @@
 
 import { Suspense } from 'react';
 import PostsClient from './posts-client';
-import { getPostsServer } from '@/lib/data';
+import { getPostsServer } from '@/lib/firebase-server';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Instruct Next.js to revalidate this page every hour

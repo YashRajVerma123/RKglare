@@ -1,5 +1,4 @@
 
-
 import { db } from '@/lib/firebase-server'; // <-- IMPORTANT: Use server DB
 import { 
     collection, 
@@ -103,7 +102,7 @@ const safeToISOString = (date: any): string | null => {
 
 
 // Firestore data converters
-const postConverter = {
+export const postConverter = {
     fromFirestore: (snapshot: any, options: any): Post => {
         const data = snapshot.data(options);
 
@@ -366,64 +365,6 @@ const filterPremiumContent = (posts: Post[], user?: Author | null): Post[] => {
     });
 };
 
-export const getPostsServer = unstable_cache(async (
-    includeContent: boolean = true, 
-    currentUser?: Author | null,
-    searchQuery?: string
-): Promise<Post[]> => {
-    
-    const postsCollection = collection(db, 'posts');
-    const q = query(postsCollection, orderBy('publishedAt', 'desc'));
-    const snapshot = await getDocs(q);
-
-    const lightPostConverter = {
-        fromFirestore: (snapshot: any, options: any): Post => {
-            const data = snapshot.data(options);
-            return {
-                id: snapshot.id,
-                slug: data.slug,
-                title: data.title,
-                description: data.description,
-                content: includeContent ? data.content : '',
-                coverImage: data.coverImage,
-                author: data.author,
-                publishedAt: safeToISOString(data.publishedAt)!,
-                tags: data.tags,
-                readTime: data.readTime,
-                featured: data.featured,
-                trending: data.trending,
-                trendingPosition: data.trendingPosition,
-                trendingUntil: safeToISOString(data.trendingUntil),
-                likes: data.likes || 0,
-                summary: data.summary,
-                premiumOnly: data.premiumOnly || false,
-                earlyAccess: data.earlyAccess || false,
-            };
-        }
-    };
-    
-    let allPosts = snapshot.docs.map(doc => lightPostConverter.fromFirestore(doc, {}));
-    
-    // Filter by search query if provided
-    if (searchQuery) {
-        const lowercasedQuery = searchQuery.toLowerCase();
-        allPosts = allPosts.filter(post => {
-            const titleMatch = post.title.toLowerCase().includes(lowercasedQuery);
-            const descriptionMatch = post.description.toLowerCase().includes(lowercasedQuery);
-            const tagMatch = post.tags.some(tag => tag.toLowerCase().includes(lowercasedQuery));
-            return titleMatch || descriptionMatch || tagMatch;
-        });
-    }
-
-    // Admins see all posts, others see filtered content
-    if (currentUser?.email === 'yashrajverma916@gmail.com') {
-        return allPosts;
-    }
-
-    return filterPremiumContent(allPosts, currentUser);
-}, ['posts'], { revalidate: 60, tags: ['posts'] });
-
-
 export async function getPostsClient(
   includeContent: boolean = true,
   currentUser?: Author | null,
@@ -431,35 +372,9 @@ export async function getPostsClient(
 ): Promise<Post[]> {
   const postsCollection = collection(db, 'posts');
   const q = query(postsCollection, orderBy('publishedAt', 'desc'));
-  const snapshot = await getDocs(q);
+  const snapshot = await getDocs(q.withConverter(postConverter));
 
-  const converter = {
-    fromFirestore: (snapshot: any, options: any): Post => {
-      const data = snapshot.data(options);
-      return {
-        id: snapshot.id,
-        slug: data.slug,
-        title: data.title,
-        description: data.description,
-        content: includeContent ? data.content : '',
-        coverImage: data.coverImage,
-        author: data.author,
-        publishedAt: safeToISOString(data.publishedAt)!,
-        tags: data.tags,
-        readTime: data.readTime,
-        featured: data.featured,
-        trending: data.trending,
-        trendingPosition: data.trendingPosition,
-        trendingUntil: safeToISOString(data.trendingUntil),
-        likes: data.likes || 0,
-        summary: data.summary,
-        premiumOnly: data.premiumOnly || false,
-        earlyAccess: data.earlyAccess || false,
-      };
-    },
-  };
-
-  let allPosts = snapshot.docs.map((doc) => converter.fromFirestore(doc, {}));
+  let allPosts = snapshot.docs.map((doc) => doc.data());
 
   if (searchQuery) {
     const lowercasedQuery = searchQuery.toLowerCase();
@@ -478,49 +393,6 @@ export async function getPostsClient(
 
   return filterPremiumContent(allPosts, currentUser);
 }
-
-export const getFeaturedPosts = unstable_cache(async (): Promise<Post[]> => {
-    const allPosts = await getPostsServer(false);
-    return allPosts
-        .filter(p => p.featured)
-        .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
-        .slice(0, 4);
-}, ['featured_posts'], { revalidate: 3600, tags: ['posts', 'featured'] });
-
-
-export const getRecentPosts = unstable_cache(async (count: number): Promise<Post[]> => {
-    const allPosts = await getPostsServer(false);
-    return allPosts
-        .filter(p => !p.featured)
-        .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
-        .slice(0, count);
-}, ['recent_posts'], { revalidate: 3600, tags: ['posts'] });
-
-
-export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
-    const postsCollection = collection(db, 'posts').withConverter(postConverter);
-    
-    const q = query(
-        postsCollection, 
-        where('trending', '==', true),
-        where('trendingPosition', '!=', null),
-        orderBy('trendingPosition', 'asc')
-    );
-    const snapshot = await getDocs(q);
-    
-    const now = new Date();
-    const posts = snapshot.docs.map(doc => doc.data()).filter(post => {
-        if (!post.trendingUntil) return false;
-        try {
-            return new Date(post.trendingUntil) > now;
-        } catch (e) {
-            return false;
-        }
-    });
-
-    return posts.slice(0, 10);
-}, ['trending_posts'], { revalidate: 3600, tags: ['posts', 'trending'] });
-
 
 export const getPost = (slug: string): Promise<Post | undefined> => {
     // This function now fetches the post regardless of premium status on the server.
@@ -573,7 +445,7 @@ export const getPostClient = async (slug: string, user?: Author | null): Promise
 export const getRelatedPosts = unstable_cache(async (currentPost: Post, currentUser?: Author | null): Promise<Post[]> => {
     if (!currentPost) return [];
     
-    const allPosts = await getPostsServer(false, currentUser); // Fetch lightweight posts respecting permissions
+    const allPosts = await getPostsClient(false, currentUser); // Fetch lightweight posts respecting permissions
     const otherPosts = allPosts.filter(p => p.id !== currentPost.id);
 
     if (!currentPost.tags || currentPost.tags.length === 0) {
