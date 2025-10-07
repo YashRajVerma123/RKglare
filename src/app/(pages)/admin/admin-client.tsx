@@ -996,7 +996,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                         <CardHeader className="flex flex-row items-center justify-between">
                             <div>
                                 <CardTitle>Manage Diary</CardTitle>
-                                <CardDescription>Create, edit, or delete your personal diary entries.</CardDescription>
+                                <CardDescription>Create or delete your personal diary entries.</CardDescription>
                             </div>
                             <Button asChild>
                                 <Link href="/admin/create-diary-entry">
@@ -1021,9 +1021,6 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                                             <TableCell>{entry.title}</TableCell>
                                             <TableCell>{entry.date}</TableCell>
                                             <TableCell className="text-right">
-                                                <Button asChild variant="ghost" size="icon">
-                                                    <Link href={`/admin/edit-diary-entry/${entry.id}`}><Edit className="h-4 w-4" /></Link>
-                                                </Button>
                                                 <Button variant="ghost" size="icon" onClick={() => handleDeleteDiaryClick(entry)}>
                                                     <Trash className="h-4 w-4 text-red-500" />
                                                 </Button>

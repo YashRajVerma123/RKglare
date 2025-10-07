@@ -1,5 +1,5 @@
 
-import { getPostsServer } from '@/lib/data';
+import { getPostsServer } from '@/lib/firebase-server';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 

@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { revalidateTag, revalidatePath } from 'next/cache';
-import { doc, addDoc, collection, deleteDoc, updateDoc, writeBatch, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { doc, addDoc, collection, deleteDoc, writeBatch, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase-server';
 
 const formSchema = z.object({
@@ -38,28 +38,6 @@ export async function addDiaryEntryAction(values: z.infer<typeof formSchema>): P
         return { success: false, error: 'A server error occurred while adding the entry.' }
     }
 }
-
-export async function updateDiaryEntryAction(entryId: string, values: z.infer<typeof formSchema>): Promise<{ success: boolean, error?: string }> {
-    if (!entryId) {
-        return { success: false, error: 'Diary entry ID is required.' };
-    }
-    try {
-        await updateDoc(doc(db, 'diary', entryId), values);
-
-        revalidateTag('diary');
-        revalidatePath('/diary');
-        revalidatePath('/admin');
-        
-        // Revalidate the specific chapter page if possible (we don't have chapter number here, so we revalidate all diary pages)
-        revalidatePath('/diary/[chapter]', 'page');
-
-        return { success: true };
-    } catch (e) {
-        console.error("Error updating diary entry:", e);
-        return { success: false, error: "A server error occurred while updating the entry." };
-    }
-}
-
 
 export async function deleteDiaryEntryAction(entryId: string): Promise<{ success: boolean, error?: string }> {
     if (!entryId) {

@@ -1,5 +1,5 @@
 
-import { getPostsServer } from '@/lib/data';
+import { getPostsServer } from '@/lib/firebase-server';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://theglare.vercel.app';
 
