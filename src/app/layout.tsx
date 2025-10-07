@@ -96,7 +96,9 @@ export default function RootLayout({
             <div className="bg-ball w-[22vw] h-[22vw] bg-fuchsia-500/30 dark:bg-fuchsia-500/10 bottom-[-10%] right-[-10%]"></div>
           </div>
           <Toaster />
-          <SplashScreen />
+          <Suspense fallback={null}>
+            <SplashScreen />
+          </Suspense>
           <div className="relative z-10 flex flex-col min-h-screen page-transition">
             <Header />
             <div className="flex-grow pt-20">
