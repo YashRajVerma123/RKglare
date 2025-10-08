@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { X, Minus, Music, Maximize2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { useRef } from 'react';
+import { cn } from '@/lib/utils';
 
 const MusicPlayer = () => {
   const { isOpen, isMinimized, closePlayer, toggleMinimize } = useMusicPlayer();
@@ -21,7 +22,7 @@ const MusicPlayer = () => {
             drag
             dragConstraints={constraintsRef}
             dragMomentum={false}
-            className="absolute top-1/2 left-1/2 w-[350px] h-[480px] pointer-events-auto glass-card rounded-xl shadow-2xl"
+            className="absolute top-1/2 left-1/2 w-[350px] pointer-events-auto glass-card rounded-xl shadow-2xl"
             initial={{ opacity: 0, scale: 0.9, x: '-50%', y: '-50%' }}
             animate={{ opacity: 1, scale: 1, height: isMinimized ? 56 : 480, x: '-50%', y: '-50%' }}
             exit={{ opacity: 0, scale: 0.9 }}
@@ -42,20 +43,18 @@ const MusicPlayer = () => {
             </div>
         </div>
         
-        {!isMinimized && (
-            <div className="w-full h-[calc(100%-56px)] rounded-b-xl overflow-hidden">
-                <iframe
-                    style={{ borderRadius: '0 0 12px 12px' }}
-                    width="100%"
-                    height="100%"
-                    src="https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1"
-                    title="YouTube video player"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                ></iframe>
-            </div>
-        )}
+        <div className={cn("w-full h-[calc(100%-56px)] rounded-b-xl overflow-hidden", isMinimized && "hidden")}>
+            <iframe
+                style={{ borderRadius: '0 0 12px 12px' }}
+                width="100%"
+                height="100%"
+                src="https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1"
+                title="YouTube video player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+            ></iframe>
+        </div>
         </motion.div>
     </motion.div>
   );
