@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -20,6 +21,7 @@ import {
   X,
   Loader2,
   BookHeart,
+  Music,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -37,6 +39,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Progress } from '../ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../ui/alert-dialog';
+import { useMusicPlayer } from '@/contexts/music-player-context';
 
 const navLinks = [
   { href: '/', label: 'Home', icon: <Home className="h-4 w-4" /> },
@@ -135,6 +138,7 @@ const Header = () => {
   const [isNavOpen, setNavOpen] = useState(false);
   const pathname = usePathname();
   const { user } = useAuth();
+  const { openPlayer } = useMusicPlayer();
   const isPremium = user?.premium?.active;
 
 
@@ -192,6 +196,10 @@ const Header = () => {
                                             <span>{link.label}</span>
                                         </Link>
                                     ))}
+                                    <div onClick={openPlayer} className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm font-medium transition-colors hover:bg-accent cursor-pointer text-foreground/80">
+                                      <Music className="h-4 w-4" />
+                                      <span>Music</span>
+                                    </div>
                                 </div>
                             </>
                          )}
