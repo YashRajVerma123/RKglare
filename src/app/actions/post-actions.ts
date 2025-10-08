@@ -143,8 +143,3 @@ export async function deletePost(postId: string): Promise<{ success: boolean, er
     return { success: false, error: "A server error occurred while deleting the post." };
   }
 }
-<<<<<<< HEAD
-=======
-
-    
->>>>>>> 1531906a49df14b9e1344220031277afad7a8f21
