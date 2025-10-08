@@ -786,5 +786,3 @@ export const getDiaryEntryClient = async (id: string): Promise<DiaryEntry | null
     }
     return null;
 };
-
-    
