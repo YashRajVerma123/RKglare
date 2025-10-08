@@ -23,21 +23,19 @@ const MusicPlayer = () => {
         dragConstraints={constraintsRef}
         dragMomentum={false}
         className={cn(
-          "pointer-events-auto glass-card shadow-2xl absolute top-1/2 left-1/2 rounded-xl"
+          "pointer-events-auto glass-card shadow-2xl absolute top-1/2 left-1/2 rounded-xl",
+           isMinimized && "pointer-events-none"
         )}
         initial={{ opacity: 0, scale: 0.9, x: '-50%', y: '-50%' }}
-        animate={{ 
-            opacity: 1, 
-            scale: 1, 
-            height: 480, 
-            width: 350, 
-            x: isMinimized ? '-200%' : '-50%', // Move off-screen when minimized
-            y: '-50%'
+        animate={{
+          opacity: isMinimized ? 0 : 1,
+          x: isMinimized ? '-500%' : '-50%',
+          y: '-50%',
         }}
         exit={{ opacity: 0, scale: 0.9, y: '-50%' }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30, duration: 0.3 }}
       >
-        <div className="flex items-center justify-between pl-4 pr-1 bg-muted/30 rounded-t-xl cursor-grab active:cursor-grabbing">
+        <div className="flex items-center justify-between pl-4 pr-1 bg-muted/30 rounded-t-xl cursor-grab active:cursor-grabbing h-12">
            <div className="flex items-center gap-2">
                 <Music className="h-5 w-5" />
                 <h3 className="font-semibold text-sm">Lofi Girl</h3>
@@ -51,7 +49,7 @@ const MusicPlayer = () => {
             </Button>
           </div>
         </div>
-        <div className={cn("w-full h-[calc(100%-48px)] rounded-b-xl overflow-hidden")}>
+        <div className="w-[350px] h-[432px] rounded-b-xl overflow-hidden">
           <iframe
             style={{ borderRadius: '0 0 12px 12px' }}
             width="100%"
