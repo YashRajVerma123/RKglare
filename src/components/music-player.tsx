@@ -46,13 +46,13 @@ const MusicPlayer = () => {
             <div className="w-full h-[calc(100%-56px)] rounded-b-xl overflow-hidden">
                 <iframe
                     style={{ borderRadius: '0 0 12px 12px' }}
-                    src="https://open.spotify.com/embed/playlist/1lAjxlhSOhpIOanuq0iry9?utm_source=generator&theme=0"
                     width="100%"
                     height="100%"
+                    src="https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1"
+                    title="YouTube video player"
                     frameBorder="0"
-                    allowFullScreen={false}
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
                 ></iframe>
             </div>
         )}
