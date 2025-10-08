@@ -47,6 +47,7 @@ const navLinks = [
   { href: '/diary', label: 'Diary', icon: <BookHeart className="h-4 w-4" /> },
   { href: '/bulletin', label: 'Bulletin', icon: <PanelRightOpen className="h-4 w-4" /> },
   { href: '/bookmarks', label: 'Bookmarks', icon: <Bookmark className="h-4 w-4" /> },
+  { href: '/music', label: 'Music', icon: <Music className="h-4 w-4" /> },
 ];
 
 const premiumLinks = [
@@ -164,7 +165,20 @@ const Header = () => {
                         </PopoverTrigger>
                         <PopoverContent align="start" className="w-48 p-1 font-body">
                         <div className="p-1">
-                          {navLinks.map((link) => (
+                          {navLinks.map((link) => {
+                              if (link.href === '/music') {
+                                return (
+                                    <div
+                                        key={link.href}
+                                        onClick={openPlayer}
+                                        className='flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm font-medium transition-colors hover:bg-accent cursor-pointer text-foreground/80'
+                                    >
+                                        {link.icon}
+                                        <span>{link.label}</span>
+                                    </div>
+                                )
+                              }
+                              return (
                               <Link
                                 key={link.href}
                                 href={link.href}
@@ -176,7 +190,8 @@ const Header = () => {
                                 {link.icon}
                                 <span>{link.label}</span>
                                 </Link>
-                          ))}
+                              )
+                          })}
                         </div>
                          {isPremium && (
                             <>
@@ -196,10 +211,6 @@ const Header = () => {
                                             <span>{link.label}</span>
                                         </Link>
                                     ))}
-                                    <div onClick={openPlayer} className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm font-medium transition-colors hover:bg-accent cursor-pointer text-foreground/80">
-                                      <Music className="h-4 w-4" />
-                                      <span>Music</span>
-                                    </div>
                                 </div>
                             </>
                          )}
