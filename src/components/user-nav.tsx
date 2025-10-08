@@ -417,6 +417,10 @@ const UserNav = () => {
                   </MenuItem>
                 </>
               )}
+               <MenuItem onSelect={openPlayer}>
+                  <Music className="mr-2 h-4 w-4" />
+                  <span>Music</span>
+              </MenuItem>
               {isAdmin && (
                  <Link href="/admin" className="block">
                     <MenuItem>
@@ -453,6 +457,10 @@ const UserNav = () => {
                         onCheckedChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                     />
                 </div>
+                 <MenuItem onSelect={openPlayer}>
+                  <Music className="mr-2 h-4 w-4" />
+                  <span>Music</span>
+              </MenuItem>
                 <MenuItem onSelect={() => setSignInOpen(true)}>
                   <LogIn className="mr-2 h-4 w-4" />
                   <span>Sign In</span>

@@ -12,12 +12,9 @@ const MusicPlayer = () => {
   const { isOpen, isMinimized, closePlayer, toggleMinimize } = useMusicPlayer();
   const constraintsRef = useRef(null);
 
-  if (!isOpen || isMinimized) {
-    return null;
-  }
-
   return (
     <motion.div ref={constraintsRef} className="fixed inset-0 pointer-events-none z-[55]">
+      {isOpen && !isMinimized && (
       <motion.div
         drag
         dragConstraints={constraintsRef}
@@ -42,8 +39,7 @@ const MusicPlayer = () => {
             </Button>
           </div>
         </div>
-
-        <div className="w-full h-[calc(100%-48px)] rounded-b-xl overflow-hidden">
+        <div className={cn("w-full h-[calc(100%-48px)] rounded-b-xl overflow-hidden")}>
           <iframe
             style={{ borderRadius: '0 0 12px 12px' }}
             width="100%"
@@ -56,10 +52,19 @@ const MusicPlayer = () => {
           ></iframe>
         </div>
       </motion.div>
+       )}
+        {isOpen && isMinimized && (
+            <div className='hidden'>
+                <iframe
+                    src="https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1"
+                    title="Hidden YouTube video player"
+                    frameBorder="0"
+                    allow="autoplay;"
+                ></iframe>
+            </div>
+        )}
     </motion.div>
   );
 };
 
 export default MusicPlayer;
-
-    

@@ -139,21 +139,13 @@ const Header = () => {
   const [isNavOpen, setNavOpen] = useState(false);
   const pathname = usePathname();
   const { user } = useAuth();
-  const { openPlayer, isMinimized, toggleMinimize } = useMusicPlayer();
+  const { isMinimized, toggleMinimize } = useMusicPlayer();
   const isPremium = user?.premium?.active;
 
 
   useEffect(() => {
     setNavOpen(false);
   }, [pathname]);
-
-  const handleMusicClick = () => {
-      if (isMinimized) {
-          toggleMinimize(); // This will make the player re-appear
-      } else {
-          openPlayer();
-      }
-  }
 
   return (
     <header
@@ -215,13 +207,15 @@ const Header = () => {
                 
                 <div className="flex items-center gap-2">
                     <ChallengeTracker />
+                     {isMinimized && (
+                        <Button variant="ghost" size="icon" onClick={toggleMinimize}>
+                            <Music className="h-5 w-5 text-primary animate-pulse" />
+                        </Button>
+                    )}
                     <Logo />
                 </div>
 
                 <div className="flex items-center">
-                    <Button variant="ghost" size="icon" onClick={handleMusicClick}>
-                        <Music className={cn("h-5 w-5", isMinimized && "text-primary animate-pulse")} />
-                    </Button>
                     <SearchBar />
                     <UserNav />
                 </div>
@@ -233,5 +227,3 @@ const Header = () => {
 };
 
 export default Header;
-
-    
