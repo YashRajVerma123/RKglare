@@ -1,7 +1,7 @@
 
 
 'use client';
-import { CreditCard, LogOut, User as UserIcon, Upload, Moon, Sun, Loader2, PanelRightOpen, Settings, UserPlus,LogIn, RefreshCw, Type, X, AtSign, Image as ImageIcon, Palette } from 'lucide-react';
+import { CreditCard, LogOut, User as UserIcon, Upload, Moon, Sun, Loader2, PanelRightOpen, Settings, UserPlus,LogIn, RefreshCw, Type, X, AtSign, Image as ImageIcon, Palette, Music } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -46,6 +46,7 @@ import { HexColorPicker } from 'react-colorful';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import Image from 'next/image';
 import { compressImage } from '@/lib/utils';
+import { useMusicPlayer } from '@/contexts/music-player-context';
 
 const profileFormSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -67,6 +68,7 @@ const getInitials = (name: string) => {
 // This is the main component for the header.
 const UserNav = () => {
   const { user, signIn, signOut, loading, updateUserProfile, isAdmin, refreshUser } = useAuth();
+  const { openPlayer } = useMusicPlayer();
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [isSignInOpen, setSignInOpen] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
@@ -407,10 +409,16 @@ const UserNav = () => {
                   <span>Profile</span>
               </MenuItem>
                {isPremium && (
-                <MenuItem onSelect={() => setCustomizeUIOpen(true)}>
-                    <Palette className="mr-2 h-4 w-4" />
-                    <span>Customize UI</span>
-                </MenuItem>
+                <>
+                  <MenuItem onSelect={() => setCustomizeUIOpen(true)}>
+                      <Palette className="mr-2 h-4 w-4" />
+                      <span>Customize UI</span>
+                  </MenuItem>
+                  <MenuItem onSelect={openPlayer}>
+                      <Music className="mr-2 h-4 w-4" />
+                      <span>Music</span>
+                  </MenuItem>
+                </>
               )}
               {isAdmin && (
                  <Link href="/admin" className="block">
