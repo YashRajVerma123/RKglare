@@ -38,7 +38,7 @@ import AnalyticsDashboard from "@/components/analytics-dashboard";
 import AboutTheAuthor from "@/components/about-the-author";
 import { generateNewsletterMailto } from "@/app/actions/newsletter-actions";
 import { Label } from "@/components/ui/label";
-import { BulletinCard } from "@/app/(pages)/bulletin/page";
+import BulletinCard from "@/components/bulletin-card";
 import { generateBulletinContent } from "@/ai/flows/bulletin-flow";
 import { updateUserPoints } from "@/app/actions/gamification-actions";
 import { manageUserSubscription } from "@/app/actions/premium-actions";
