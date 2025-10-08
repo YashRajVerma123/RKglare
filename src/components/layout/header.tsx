@@ -139,7 +139,7 @@ const Header = () => {
   const [isNavOpen, setNavOpen] = useState(false);
   const pathname = usePathname();
   const { user } = useAuth();
-  const { isMinimized, toggleMinimize } = useMusicPlayer();
+  const { isOpen: isMusicPlayerOpen } = useMusicPlayer();
   const isPremium = user?.premium?.active;
 
 
@@ -207,11 +207,6 @@ const Header = () => {
                 
                 <div className="flex items-center gap-2">
                     <ChallengeTracker />
-                     {isMinimized && (
-                        <Button variant="ghost" size="icon" onClick={toggleMinimize}>
-                            <Music className="h-5 w-5 text-primary animate-pulse" />
-                        </Button>
-                    )}
                     <Logo />
                 </div>
 

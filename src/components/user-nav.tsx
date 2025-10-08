@@ -47,6 +47,7 @@ import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import Image from 'next/image';
 import { compressImage } from '@/lib/utils';
 import { useMusicPlayer } from '@/contexts/music-player-context';
+import { cn } from '@/lib/utils';
 
 const profileFormSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -68,7 +69,7 @@ const getInitials = (name: string) => {
 // This is the main component for the header.
 const UserNav = () => {
   const { user, signIn, signOut, loading, updateUserProfile, isAdmin, refreshUser } = useAuth();
-  const { openPlayer } = useMusicPlayer();
+  const { openPlayer, isMinimized } = useMusicPlayer();
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [isSignInOpen, setSignInOpen] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
@@ -312,10 +313,10 @@ const UserNav = () => {
       return <div className="h-9 w-9" />;
   }
   
-  const MenuItem = ({ children, onSelect }: { children: React.ReactNode, onSelect?: () => void }) => (
+  const MenuItem = ({ children, onSelect, className }: { children: React.ReactNode, onSelect?: () => void, className?: string }) => (
     <div
       onClick={onSelect}
-      className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:bg-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+      className={cn("relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:bg-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50", className)}
     >
       {children}
     </div>
@@ -417,7 +418,7 @@ const UserNav = () => {
                   </MenuItem>
                 </>
               )}
-               <MenuItem onSelect={openPlayer}>
+               <MenuItem onSelect={openPlayer} className={cn(isMinimized && 'text-primary')}>
                   <Music className="mr-2 h-4 w-4" />
                   <span>Music</span>
               </MenuItem>
@@ -457,7 +458,7 @@ const UserNav = () => {
                         onCheckedChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                     />
                 </div>
-                 <MenuItem onSelect={openPlayer}>
+                 <MenuItem onSelect={openPlayer} className={cn(isMinimized && 'text-primary')}>
                   <Music className="mr-2 h-4 w-4" />
                   <span>Music</span>
               </MenuItem>
@@ -692,5 +693,3 @@ const UserNav = () => {
 };
 
 export default UserNav;
-
-    
