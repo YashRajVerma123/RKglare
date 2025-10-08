@@ -23,8 +23,7 @@ const MusicPlayer = () => {
         dragConstraints={constraintsRef}
         dragMomentum={false}
         className={cn(
-          "pointer-events-auto glass-card shadow-2xl absolute top-1/2 left-1/2 rounded-xl",
-           isMinimized && "pointer-events-none"
+          "pointer-events-auto glass-card shadow-2xl absolute top-1/2 left-1/2 rounded-xl"
         )}
         initial={{ opacity: 0, scale: 0.9, x: '-50%', y: '-50%' }}
         animate={{
@@ -33,7 +32,7 @@ const MusicPlayer = () => {
           y: '-50%',
         }}
         exit={{ opacity: 0, scale: 0.9, y: '-50%' }}
-        transition={{ type: 'spring', stiffness: 260, damping: 30, duration: 0.4 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 30, duration: 0.6 }}
       >
         <div className="flex items-center justify-between pl-4 pr-1 bg-muted/30 rounded-t-xl cursor-grab active:cursor-grabbing h-12">
            <div className="flex items-center gap-2">
