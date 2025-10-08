@@ -408,15 +408,15 @@ const UserNav = () => {
                   <UserIcon className="mr-2 h-4 w-4" />
                   <span>Profile</span>
               </MenuItem>
+              <MenuItem onSelect={openPlayer}>
+                  <Music className="mr-2 h-4 w-4" />
+                  <span>Music</span>
+              </MenuItem>
                {isPremium && (
                 <>
                   <MenuItem onSelect={() => setCustomizeUIOpen(true)}>
                       <Palette className="mr-2 h-4 w-4" />
                       <span>Customize UI</span>
-                  </MenuItem>
-                  <MenuItem onSelect={openPlayer}>
-                      <Music className="mr-2 h-4 w-4" />
-                      <span>Music</span>
                   </MenuItem>
                 </>
               )}
@@ -447,6 +447,10 @@ const UserNav = () => {
              <>
                 <div className="p-2 text-sm font-semibold">Settings</div>
                 <div className="my-1 h-px bg-muted" />
+                 <MenuItem onSelect={openPlayer}>
+                    <Music className="mr-2 h-4 w-4" />
+                    <span>Music</span>
+                </MenuItem>
                 <div className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
                     <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                     <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
