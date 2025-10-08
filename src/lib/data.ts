@@ -572,8 +572,14 @@ export const getPaginatedBulletins = async (
     const q = query(bulletinsCollection, ...constraints);
     const snapshot = await getDocs(q);
     
-    const allBulletins = snapshot.docs.map(doc => doc.data());
+    const rawBulletins = snapshot.docs.map(doc => doc.data());
     const lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
+
+    // Manually ensure publishedAt is a string
+    const allBulletins = rawBulletins.map(b => ({
+        ...b,
+        publishedAt: safeToISOString(b.publishedAt)!,
+    }));
 
     const filteredBulletins = filterPremiumContent(allBulletins as any, currentUser) as Bulletin[];
     
