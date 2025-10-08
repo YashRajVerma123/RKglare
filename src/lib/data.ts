@@ -1,3 +1,4 @@
+
 import { db } from '@/lib/firebase-server'; // <-- IMPORTANT: Use server DB
 import { 
     collection, 
@@ -426,14 +427,16 @@ export const getPostClient = async (slug: string, user?: Author | null): Promise
     const now = new Date();
 
     if (post.premiumOnly && !isPremium) {
-        return undefined; // Or return a modified post object indicating restricted access
+        // Return post but client will gate content
+        return post; 
     }
 
     if (post.earlyAccess && !isPremium) {
         const publishedAt = new Date(post.publishedAt);
         const hoursSincePublished = (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60);
         if (hoursSincePublished < 24) {
-            return undefined; // Or return a modified post object
+            // Return post but client will gate content
+            return post;
         }
     }
     
@@ -783,3 +786,5 @@ export const getDiaryEntryClient = async (id: string): Promise<DiaryEntry | null
     }
     return null;
 };
+
+    

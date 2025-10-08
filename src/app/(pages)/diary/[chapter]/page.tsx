@@ -9,7 +9,8 @@ type PageProps = {
   params: { chapter: string };
 };
 
-const DiaryEntryPage = async ({ params }: PageProps) => {
+// This is the correct type definition for the props of a Next.js page component.
+const DiaryEntryPage = async ({ params }: { params: { chapter: string } }) => {
   const chapter = parseInt(params.chapter, 10);
   const entry = await getDiaryEntry(chapter);
 
@@ -21,3 +22,5 @@ const DiaryEntryPage = async ({ params }: PageProps) => {
 };
 
 export default DiaryEntryPage;
+
+    

@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { revalidateTag, revalidatePath } from 'next/cache';
-import { doc, addDoc, collection, deleteDoc, writeBatch, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { doc, addDoc, collection, deleteDoc, writeBatch, query, orderBy, limit, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-server';
 
 const formSchema = z.object({
@@ -57,3 +57,26 @@ export async function deleteDiaryEntryAction(entryId: string): Promise<{ success
         return { success: false, error: "A server error occurred while deleting the entry." };
     }
 }
+
+
+export async function updateDiaryEntryAction(entryId: string, values: z.infer<typeof formSchema>): Promise<{ success: boolean, error?: string }> {
+    if (!entryId) {
+        return { success: false, error: 'Diary entry ID is required.' };
+    }
+    try {
+        const entryRef = doc(db, 'diary', entryId);
+        await updateDoc(entryRef, values);
+        
+        revalidateTag('diary');
+        revalidatePath('/diary');
+        revalidatePath('/admin');
+        revalidatePath(`/diary/edit-diary-entry/${entryId}`);
+
+        return { success: true };
+    } catch (e) {
+        console.error("Error updating diary entry: ", e);
+        return { success: false, error: "A server error occurred while updating the entry." };
+    }
+}
+
+    

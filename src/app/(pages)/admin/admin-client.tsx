@@ -523,7 +523,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                             <Card className="glass-card">
                                 <CardHeader>
                                     <CardTitle>Manage Posts</CardTitle>
-                                    <CardDescription>Here you can delete existing posts.</CardDescription>
+                                    <CardDescription>Here you can edit or delete existing posts.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <Table>
@@ -546,6 +546,9 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                                                     </TableCell>
                                                     <TableCell>{new Date(post.publishedAt).toLocaleDateString()}</TableCell>
                                                     <TableCell className="text-right">
+                                                        <Button asChild variant="ghost" size="icon">
+                                                            <Link href={`/admin/edit-post/${post.slug}`}><Edit className="h-4 w-4" /></Link>
+                                                        </Button>
                                                         <Button variant="ghost" size="icon" onClick={() => handleDeletePostClick(post)}>
                                                             <Trash className="h-4 w-4 text-red-500" />
                                                         </Button>
@@ -928,7 +931,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                             <Card className="glass-card">
                                 <CardHeader>
                                     <CardTitle>Manage Content</CardTitle>
-                                    <CardDescription>Delete existing content.</CardDescription>
+                                    <CardDescription>Edit or delete existing content.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <Tabs defaultValue="bulletins" className="w-full">
@@ -946,6 +949,9 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                                                             <p className="text-xs text-muted-foreground">{item.content}</p>
                                                         </div>
                                                         <div className="flex items-center">
+                                                            <Button asChild variant="ghost" size="icon">
+                                                                <Link href={`/admin/edit-bulletin/${item.id}`}><Edit className="h-4 w-4" /></Link>
+                                                            </Button>
                                                             <Button variant="ghost" size="icon" onClick={() => handleDeleteBulletinClick(item)}>
                                                                 <Trash className="h-4 w-4 text-red-500" />
                                                             </Button>
@@ -969,6 +975,9 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                                                             {notif.image && <ImageIcon className="h-4 w-4 inline-block text-muted-foreground" />}
                                                         </div>
                                                         <div className="flex items-center">
+                                                            <Button asChild variant="ghost" size="icon">
+                                                                <Link href={`/admin/edit-notification/${notif.id}`}><Edit className="h-4 w-4" /></Link>
+                                                            </Button>
                                                             <Button variant="ghost" size="icon" onClick={() => handleDeleteNotifClick(notif)}>
                                                                 <Trash className="h-4 w-4 text-red-500" />
                                                             </Button>
@@ -992,7 +1001,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                         <CardHeader className="flex flex-row items-center justify-between">
                             <div>
                                 <CardTitle>Manage Diary</CardTitle>
-                                <CardDescription>Create or delete your personal diary entries.</CardDescription>
+                                <CardDescription>Create, edit, or delete your personal diary entries.</CardDescription>
                             </div>
                             <Button asChild>
                                 <Link href="/admin/create-diary-entry">
@@ -1017,6 +1026,9 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
                                             <TableCell>{entry.title}</TableCell>
                                             <TableCell>{entry.date}</TableCell>
                                             <TableCell className="text-right">
+                                                <Button asChild variant="ghost" size="icon">
+                                                    <Link href={`/admin/edit-diary-entry/${entry.id}`}><Edit className="h-4 w-4" /></Link>
+                                                </Button>
                                                 <Button variant="ghost" size="icon" onClick={() => handleDeleteDiaryClick(entry)}>
                                                     <Trash className="h-4 w-4 text-red-500" />
                                                 </Button>
@@ -1156,3 +1168,5 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
 };
 
 export default AdminClientPage;
+
+    

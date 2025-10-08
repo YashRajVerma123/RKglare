@@ -122,6 +122,58 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
     return newSlug;
 }
 
+export async function updatePost(postId: string, values: z.infer<typeof formSchema>): Promise<string> {
+    if (!postId) {
+        throw new Error('Post ID is required to update.');
+    }
+    const postRef = doc(db, 'posts', postId);
+    const newSlug = values.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+
+    await runTransaction(db, async (transaction) => {
+        const postDoc = await transaction.get(postRef);
+        if (!postDoc.exists()) {
+            throw new Error("Post not found");
+        }
+
+        const tagsArray = values.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+
+        const updateData: Partial<Post> = {
+            slug: newSlug,
+            title: values.title,
+            description: values.description,
+            content: values.content,
+            coverImage: values.coverImage,
+            tags: tagsArray,
+            featured: values.featured,
+            trending: values.trending,
+            trendingPosition: values.trending ? (values.trendingPosition ?? null) : null,
+            readTime: values.readTime,
+            summary: values.summary,
+            premiumOnly: values.premiumOnly,
+            earlyAccess: values.earlyAccess,
+        };
+        
+        if (updateData.trending && updateData.trendingPosition) {
+            const sevenDaysFromNow = new Date();
+            sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+            updateData.trendingUntil = sevenDaysFromNow.toISOString();
+        } else {
+            updateData.trendingUntil = null;
+        }
+
+        transaction.update(postRef, updateData);
+    });
+
+    revalidateTag('posts');
+    revalidateTag(`post:${newSlug}`);
+    revalidatePath('/');
+    revalidatePath('/posts');
+    revalidatePath(`/posts/${newSlug}`);
+
+    return newSlug;
+}
+
+
 export async function deletePost(postId: string): Promise<{ success: boolean, error?: string }> {
   if (!postId) {
     return { success: false, error: 'Post ID is required.' };
@@ -143,3 +195,5 @@ export async function deletePost(postId: string): Promise<{ success: boolean, er
     return { success: false, error: "A server error occurred while deleting the post." };
   }
 }
+
+    

@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { revalidateTag, revalidatePath } from 'next/cache';
-import { doc, getDoc, addDoc, collection, deleteDoc, Timestamp } from 'firebase/firestore';
+import { doc, getDoc, addDoc, collection, deleteDoc, Timestamp, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-server';
 import { Bulletin } from '@/lib/data';
 
@@ -46,3 +46,25 @@ export async function deleteBulletinAction(bulletinId: string): Promise<{ succes
         return { success: false, error: "A server error occurred while deleting the bulletin." };
     }
 }
+
+export async function updateBulletinAction(bulletinId: string, values: z.infer<typeof bulletinSchema>): Promise<{ success: boolean, error?: string }> {
+    if (!bulletinId) {
+        return { success: false, error: 'Bulletin ID is required.' };
+    }
+
+    try {
+        const bulletinRef = doc(db, 'bulletins', bulletinId);
+        await updateDoc(bulletinRef, values);
+        
+        revalidateTag('bulletins');
+        revalidatePath('/bulletin');
+        revalidatePath(`/admin/edit-bulletin/${bulletinId}`);
+
+        return { success: true };
+    } catch (e) {
+        console.error("Error updating bulletin: ", e);
+        return { success: false, error: "A server error occurred while updating the bulletin." };
+    }
+}
+
+    
