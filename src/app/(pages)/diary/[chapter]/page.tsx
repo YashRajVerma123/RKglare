@@ -1,5 +1,4 @@
 
-
 import { getDiaryEntry } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
@@ -18,5 +17,3 @@ const DiaryEntryPage = async ({ params }: { params: { chapter: string } }) => {
 };
 
 export default DiaryEntryPage;
-
-    
