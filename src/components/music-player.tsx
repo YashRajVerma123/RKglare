@@ -33,7 +33,7 @@ const MusicPlayer = () => {
           y: '-50%',
         }}
         exit={{ opacity: 0, scale: 0.9, y: '-50%' }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30, duration: 0.3 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 30, duration: 0.4 }}
       >
         <div className="flex items-center justify-between pl-4 pr-1 bg-muted/30 rounded-t-xl cursor-grab active:cursor-grabbing h-12">
            <div className="flex items-center gap-2">
