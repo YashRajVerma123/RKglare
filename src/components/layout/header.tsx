@@ -8,12 +8,8 @@ import {
   Bookmark,
   Home,
   Newspaper,
-  Info,
-  Send,
   PanelRightOpen,
-  Mail,
   Bell,
-  Settings,
   Trophy,
   Star,
   MessageSquare,
@@ -22,6 +18,11 @@ import {
   Loader2,
   BookHeart,
   Music,
+  LogIn,
+  User as UserIcon,
+  LogOut,
+  Palette,
+  RefreshCw,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -47,7 +48,6 @@ const navLinks = [
   { href: '/diary', label: 'Diary', icon: <BookHeart className="h-4 w-4" /> },
   { href: '/bulletin', label: 'Bulletin', icon: <PanelRightOpen className="h-4 w-4" /> },
   { href: '/bookmarks', label: 'Bookmarks', icon: <Bookmark className="h-4 w-4" /> },
-  { href: '/music', label: 'Music', icon: <Music className="h-4 w-4" /> },
 ];
 
 const premiumLinks = [
@@ -139,13 +139,21 @@ const Header = () => {
   const [isNavOpen, setNavOpen] = useState(false);
   const pathname = usePathname();
   const { user } = useAuth();
-  const { openPlayer } = useMusicPlayer();
+  const { openPlayer, isMinimized, toggleMinimize } = useMusicPlayer();
   const isPremium = user?.premium?.active;
 
 
   useEffect(() => {
     setNavOpen(false);
   }, [pathname]);
+
+  const handleMusicClick = () => {
+      if (isMinimized) {
+          toggleMinimize(); // This will make the player re-appear
+      } else {
+          openPlayer();
+      }
+  }
 
   return (
     <header
@@ -165,20 +173,7 @@ const Header = () => {
                         </PopoverTrigger>
                         <PopoverContent align="start" className="w-48 p-1 font-body">
                         <div className="p-1">
-                          {navLinks.map((link) => {
-                              if (link.href === '/music') {
-                                return (
-                                    <div
-                                        key={link.href}
-                                        onClick={openPlayer}
-                                        className='flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm font-medium transition-colors hover:bg-accent cursor-pointer text-foreground/80'
-                                    >
-                                        {link.icon}
-                                        <span>{link.label}</span>
-                                    </div>
-                                )
-                              }
-                              return (
+                          {navLinks.map((link) => (
                               <Link
                                 key={link.href}
                                 href={link.href}
@@ -190,8 +185,7 @@ const Header = () => {
                                 {link.icon}
                                 <span>{link.label}</span>
                                 </Link>
-                              )
-                          })}
+                          ))}
                         </div>
                          {isPremium && (
                             <>
@@ -225,6 +219,9 @@ const Header = () => {
                 </div>
 
                 <div className="flex items-center">
+                    <Button variant="ghost" size="icon" onClick={handleMusicClick}>
+                        <Music className={cn("h-5 w-5", isMinimized && "text-primary animate-pulse")} />
+                    </Button>
                     <SearchBar />
                     <UserNav />
                 </div>
@@ -236,3 +233,5 @@ const Header = () => {
 };
 
 export default Header;
+
+    
