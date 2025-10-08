@@ -69,7 +69,7 @@ const getInitials = (name: string) => {
 // This is the main component for the header.
 const UserNav = () => {
   const { user, signIn, signOut, loading, updateUserProfile, isAdmin, refreshUser } = useAuth();
-  const { openPlayer, isMinimized } = useMusicPlayer();
+  const { togglePlayer, isMinimized: isMusicPlayerMinimized } = useMusicPlayer();
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [isSignInOpen, setSignInOpen] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
@@ -418,7 +418,7 @@ const UserNav = () => {
                   </MenuItem>
                 </>
               )}
-               <MenuItem onSelect={openPlayer} className={cn(isMinimized && 'text-primary')}>
+               <MenuItem onSelect={togglePlayer} className={cn(isMusicPlayerMinimized && 'text-primary')}>
                   <Music className="mr-2 h-4 w-4" />
                   <span>Music</span>
               </MenuItem>
@@ -458,7 +458,7 @@ const UserNav = () => {
                         onCheckedChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                     />
                 </div>
-                 <MenuItem onSelect={openPlayer} className={cn(isMinimized && 'text-primary')}>
+                 <MenuItem onSelect={togglePlayer} className={cn(isMusicPlayerMinimized && 'text-primary')}>
                   <Music className="mr-2 h-4 w-4" />
                   <span>Music</span>
               </MenuItem>

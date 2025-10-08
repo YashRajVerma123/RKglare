@@ -9,6 +9,7 @@ interface MusicPlayerContextType {
   openPlayer: () => void;
   closePlayer: () => void;
   toggleMinimize: () => void;
+  togglePlayer: () => void;
 }
 
 const MusicPlayerContext = createContext<MusicPlayerContextType | undefined>(undefined);
@@ -29,11 +30,33 @@ export const MusicPlayerProvider = ({ children }: { children: ReactNode }) => {
     setIsOpen(true);
     setIsMinimized(false);
   };
+
   const closePlayer = () => setIsOpen(false);
-  const toggleMinimize = () => setIsMinimized(!isMinimized);
+
+  const toggleMinimize = () => {
+      if (isOpen) {
+        setIsMinimized(!isMinimized);
+      }
+  };
+  
+  const togglePlayer = () => {
+      if (isOpen) {
+          if (isMinimized) {
+              // If it's open but minimized, un-minimize it
+              setIsMinimized(false);
+          } else {
+              // If it's open and not minimized, close it
+              setIsOpen(false);
+          }
+      } else {
+          // If it's closed, open it
+          setIsOpen(true);
+          setIsMinimized(false);
+      }
+  };
 
   return (
-    <MusicPlayerContext.Provider value={{ isOpen, isMinimized, openPlayer, closePlayer, toggleMinimize }}>
+    <MusicPlayerContext.Provider value={{ isOpen, isMinimized, openPlayer, closePlayer, toggleMinimize, togglePlayer }}>
       {children}
     </MusicPlayerContext.Provider>
   );

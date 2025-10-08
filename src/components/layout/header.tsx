@@ -139,7 +139,7 @@ const Header = () => {
   const [isNavOpen, setNavOpen] = useState(false);
   const pathname = usePathname();
   const { user } = useAuth();
-  const { isOpen: isMusicPlayerOpen } = useMusicPlayer();
+  const { isOpen: isMusicPlayerOpen, isMinimized: isMusicPlayerMinimized, togglePlayer } = useMusicPlayer();
   const isPremium = user?.premium?.active;
 
 
