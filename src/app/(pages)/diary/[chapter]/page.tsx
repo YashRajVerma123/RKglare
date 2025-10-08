@@ -5,10 +5,6 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import DiaryEntryClient from './diary-entry-client';
 
-type PageProps = {
-  params: { chapter: string };
-};
-
 // This is the correct type definition for the props of a Next.js page component.
 const DiaryEntryPage = async ({ params }: { params: { chapter: string } }) => {
   const chapter = parseInt(params.chapter, 10);
