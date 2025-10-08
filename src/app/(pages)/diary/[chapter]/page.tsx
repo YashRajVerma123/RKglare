@@ -4,13 +4,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import DiaryEntryClient from './diary-entry-client';
 
-type PageProps = {
-  params: {
-    chapter: string;
-  };
-};
-
-const DiaryEntryPage = async ({ params }: PageProps) => {
+const DiaryEntryPage = async ({ params }: { params: { chapter: string } }) => {
   const chapter = parseInt(params.chapter, 10);
   const entry = await getDiaryEntry(chapter);
 
