@@ -29,10 +29,9 @@ const MusicPlayer = () => {
         animate={{
           opacity: isMinimized ? 0 : 1,
           x: isMinimized ? '-500%' : '-50%',
-          y: '-50%',
         }}
-        exit={{ opacity: 0, scale: 0.9, y: '-50%' }}
-        transition={{ type: 'spring', stiffness: 260, damping: 30, duration: 0.6 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        transition={{ type: 'spring', stiffness: 150, damping: 25 }}
       >
         <div className="flex items-center justify-between pl-4 pr-1 bg-muted/30 rounded-t-xl cursor-grab active:cursor-grabbing h-12">
            <div className="flex items-center gap-2">
