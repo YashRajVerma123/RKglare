@@ -41,10 +41,10 @@ function PageLoaderContent() {
         const targetUrl = new URL(anchor.href);
 
         if (currentUrl.pathname !== targetUrl.pathname || currentUrl.search !== targetUrl.search) {
-          // Only show loader if navigation takes more than 250ms
+          // Only show loader if navigation takes more than 150ms
           loadingTimerRef.current = setTimeout(() => {
             setIsNavigating(true);
-          }, 250);
+          }, 150);
         }
       }
     };

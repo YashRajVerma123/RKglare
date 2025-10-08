@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { revalidateTag, revalidatePath } from 'next/cache';
-import { doc, addDoc, collection, deleteDoc, updateDoc, writeBatch, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { doc, addDoc, collection, deleteDoc, writeBatch, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase-server';
 
 const formSchema = z.object({

@@ -21,13 +21,13 @@ const SplashScreen = () => {
     // Start fading out after a very short delay.
     const fadeOutTimer = setTimeout(() => {
       setIsFadingOut(true);
-    }, 100); // Wait 100ms before starting fade.
+    }, 50); // Reduced wait before starting fade.
 
     // Hide component completely after fade-out animation
     const hideTimer = setTimeout(() => {
       setVisible(false);
       sessionStorage.setItem('splashShown', 'true');
-    }, 500); // 100ms wait + 400ms fade duration
+    }, 450); // 50ms wait + 400ms fade duration
 
     return () => {
       clearTimeout(fadeOutTimer);

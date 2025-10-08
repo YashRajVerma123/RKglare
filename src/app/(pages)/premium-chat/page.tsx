@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Send, Loader2, Star, Trash2, Smile, MessageSquareReply, Pencil, X, MoreHorizontal, Paperclip, Users, MessageSquare } from 'lucide-react';
+import { Send, Loader2, Star, Trash2, Smile, MessageSquareReply, Pencil, X, MoreHorizontal, Paperclip, Users, MessageSquare, Maximize, Minimize } from 'lucide-react';
 import { collection, query, orderBy, onSnapshot, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase-client';
 import { ChatMessage, messageConverter, Author } from '@/lib/data';
@@ -103,6 +103,9 @@ const PremiumChatPage = () => {
     const [isProfileCardOpen, setProfileCardOpen] = useState(false);
     const [selectedProfileUser, setSelectedProfileUser] = useState<Author | null>(null);
     const [isProfileLoading, setIsProfileLoading] = useState(false);
+
+    const [isMaximized, setIsMaximized] = useState(false);
+
 
     const handleAvatarClick = async (authorId: string) => {
         setIsProfileLoading(true);
@@ -281,15 +284,23 @@ const PremiumChatPage = () => {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="h-[calc(70vh+40px)] flex flex-col bg-secondary/40 glass-card">
+        <div className={cn("container mx-auto px-4 py-8", isMaximized && "p-0")}>
+            <div className={cn(
+                "h-[calc(70vh+40px)] flex flex-col bg-secondary/40 glass-card",
+                isMaximized && "fixed inset-0 z-50 h-screen w-screen rounded-none"
+            )}>
                 <header className="p-4 border-b border-border/10 flex items-center justify-between">
                      <h1 className="text-xl font-headline font-bold tracking-tight">
                         Premium Chat
                     </h1>
                      <div className="flex items-center">
-                        <span className="flex h-2 w-2 rounded-full bg-green-500 mr-2"></span>
-                        <p className="text-sm text-muted-foreground">1 member online</p>
+                        <div className="hidden sm:flex items-center mr-4">
+                            <span className="flex h-2 w-2 rounded-full bg-green-500 mr-2"></span>
+                            <p className="text-sm text-muted-foreground">1 member online</p>
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={() => setIsMaximized(!isMaximized)}>
+                            {isMaximized ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+                        </Button>
                     </div>
                 </header>
                 <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-2 bg-background">
@@ -462,7 +473,7 @@ const PremiumChatPage = () => {
                 </div>
             </div>
 
-            <section className="mt-24 mb-12">
+            <section className={cn("mt-24 mb-12", isMaximized && "hidden")}>
                 <div className="text-center mb-12">
                     <h2 className="text-3xl md:text-4xl font-headline font-bold">Your Exclusive Chat Experience</h2>
                     <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">As a Glare+ supporter, you get access to a private, feature-rich chat environment.</p>
@@ -513,3 +524,5 @@ const PremiumChatPage = () => {
 };
 
 export default PremiumChatPage;
+
+    

@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { revalidateTag } from 'next/cache';
-import { doc, getDoc, addDoc, collection, deleteDoc, Timestamp, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, addDoc, collection, deleteDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase-server';
 import { Notification } from '@/lib/data';
 
@@ -43,3 +43,10 @@ export async function deleteNotificationAction(notificationId: string): Promise<
         return { success: false, error: "A server error occurred while deleting the notification." };
     }
 }
+<<<<<<< HEAD
+=======
+
+    
+
+    
+>>>>>>> 1531906a49df14b9e1344220031277afad7a8f21

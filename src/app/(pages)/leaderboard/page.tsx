@@ -14,7 +14,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Metadata } from 'next';
 
+export const metadata: Metadata = {
+  title: 'Top Readers Leaderboard',
+  description: 'See who the most engaged and dedicated members of the Glare community are. Earn points, climb the ranks, and get recognized.',
+};
 
 async function getTopUsers(count: number = 50): Promise<Author[]> {
     const usersCollection = collection(db, 'users').withConverter(authorConverter);
