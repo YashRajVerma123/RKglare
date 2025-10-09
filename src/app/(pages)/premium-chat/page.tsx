@@ -136,7 +136,14 @@ const PremiumChatPage = () => {
         const q = query(messagesCollection, orderBy('createdAt', 'desc'), limit(50));
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const newMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).reverse();
+            const newMessages = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    ...data,
+                    id: doc.id,
+                    createdAt: data.createdAt || new Date().toISOString() // Ensure createdAt is always a string
+                };
+            }).reverse();
             
             const shouldScroll = messagesEndRef.current ? 
                 (messagesEndRef.current.getBoundingClientRect().bottom - window.innerHeight) < 300 : true;
