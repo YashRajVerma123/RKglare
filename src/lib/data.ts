@@ -221,7 +221,7 @@ const commentConverter = {
     toFirestore: (comment: Omit<Comment, 'id'>) => {
         return {
             ...comment,
-            createdAt: Timestamp.fromDate(new Date(comment.createdAt)),
+            createdAt: new Date(comment.createdAt),
         };
     }
 };
@@ -493,9 +493,9 @@ export const getComments = async (postId: string): Promise<Comment[]> => {
     const q = query(commentsCollection, orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
     
-    let comments = snapshot.docs.map(doc => doc.data());
+    let comments = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
     
-    return sortComments(comments);
+    return sortComments(comments as Comment[]);
 };
 
 export const getNotifications = unstable_cache(async (): Promise<Notification[]> => {
@@ -682,7 +682,7 @@ export const getAuthorsServer = unstable_cache(async (): Promise<Author[]> => {
 export const getAuthorsClient = async (): Promise<Author[]> => {
     const usersCollection = collection(db, 'users').withConverter(authorConverter);
     const snapshot = await getDocs(usersCollection);
-    return snapshot.docs.map(doc => doc.data());
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Author));
 }
 
 export const getPremiumUsers = async (): Promise<Author[]> => {
