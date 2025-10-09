@@ -84,23 +84,16 @@ export type DiaryEntry = {
 
 export const safeToISOString = (date: any): string | null => {
     if (!date) return null;
-    // Check if it's a Firestore Timestamp by checking for the toDate method
-    if (typeof date.toDate === 'function') {
+    if (typeof date.toDate === 'function') { // Firestore Timestamp
         return date.toDate().toISOString();
     }
-    // Check if it's already a string (and hopefully an ISO string)
     if (typeof date === 'string') {
-        // Basic check to see if it looks like an ISO string
-        if (date.includes('T') && date.includes('Z')) {
-            return date;
-        }
+        return date;
     }
-    // Try to parse other formats, like a Date object or a string that's not ISO
     try {
         return new Date(date).toISOString();
     } catch (e) {
-        console.error("Could not convert date to ISO string:", date);
-        return null; // Return null if conversion fails
+        return null;
     }
 }
 
@@ -384,7 +377,7 @@ export async function getPostsClient(
   const q = query(postsCollection, orderBy('publishedAt', 'desc'));
   const snapshot = await getDocs(q.withConverter(postConverter));
 
-  let allPosts = snapshot.docs.map((doc) => doc.data());
+  let allPosts = snapshot.docs.map((doc) => ({...doc.data(), id: doc.id}));
 
   if (searchQuery) {
     const lowercasedQuery = searchQuery.toLowerCase();
