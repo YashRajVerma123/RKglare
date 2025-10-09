@@ -51,16 +51,50 @@ export async function updateAuthorProfile(authorId: string, values: Partial<z.in
   return { success: true };
 }
 
+const safeToISOString = (date: any): string | null => {
+    if (!date) return null;
+    if (typeof date.toDate === 'function') { // Firestore Timestamp
+        return date.toDate().toISOString();
+    }
+    if (typeof date === 'string') {
+        return date;
+    }
+    try {
+        return new Date(date).toISOString();
+    } catch (e) {
+        return null;
+    }
+}
 
 export async function getAuthorProfileAction(authorId: string): Promise<{ success: boolean, author?: Author | null, error?: string }> {
     if (!authorId) {
         return { success: false, error: "Author ID is required." };
     }
     try {
-        const authorRef = doc(db, 'users', authorId).withConverter(authorConverter);
-        const docSnap = await getDoc(authorRef);
+        const authorRef = doc(db, 'users', authorId);
+        const docSnap = await getDoc(authorRef.withConverter(authorConverter));
+
         if (docSnap.exists()) {
-            return { success: true, author: docSnap.data() };
+            const authorData = docSnap.data();
+
+            // Manually ensure all nested date objects are serialized to strings
+            const serializableAuthor: Author = {
+                ...authorData,
+                premium: authorData.premium ? {
+                    ...authorData.premium,
+                    expires: safeToISOString(authorData.premium.expires),
+                } : { active: false, expires: null },
+                streak: authorData.streak ? {
+                    ...authorData.streak,
+                    lastLoginDate: safeToISOString(authorData.streak.lastLoginDate) || '',
+                } : undefined,
+                challenge: authorData.challenge ? {
+                    ...authorData.challenge,
+                    assignedAt: safeToISOString(authorData.challenge.assignedAt) || '',
+                } : undefined,
+            };
+
+            return { success: true, author: serializableAuthor };
         } else {
             return { success: false, error: "User not found." };
         }

@@ -136,7 +136,7 @@ const PremiumChatPage = () => {
         const q = query(messagesCollection, orderBy('createdAt', 'desc'), limit(50));
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const newMessages = snapshot.docs.map(doc => doc.data()).reverse();
+            const newMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).reverse();
             
             const shouldScroll = messagesEndRef.current ? 
                 (messagesEndRef.current.getBoundingClientRect().bottom - window.innerHeight) < 300 : true;
@@ -362,7 +362,7 @@ const PremiumChatPage = () => {
                                     </DropdownMenu>
                                 </div>
                             
-                            <Avatar className="h-8 w-8 cursor-pointer" onClick={() => handleAvatarClick(msg.author.id)}>
+                            <Avatar className="h-8 w-8 cursor-pointer" onClick={()={() => handleAvatarClick(msg.author.id)}>
                                 <AvatarImage src={msg.author.avatar} />
                                 <AvatarFallback>{getInitials(msg.author.name)}</AvatarFallback>
                             </Avatar>
@@ -481,7 +481,7 @@ const PremiumChatPage = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                     {featureHighlights.map((feature, index) => (
                         <div key={index} className="glass-card text-center p-8 transition-transform transform hover:-translate-y-2">
-                        <div className="inline-block p-4 bg-primary/10 rounded-full mb-4">
+                        <div className="inline-block p-4 bg-primary/10 rounded-full text-primary">
                             {feature.icon}
                         </div>
                         <h3 className="text-xl font-headline font-semibold mb-2">{feature.title}</h3>
