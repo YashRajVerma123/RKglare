@@ -31,6 +31,14 @@ const AdminPage = async () => {
         premium: user.premium ? {
             ...user.premium,
             expires: user.premium.expires ? new Date(user.premium.expires).toISOString() : null,
+        } : { active: false, expires: null },
+        streak: user.streak ? {
+            ...user.streak,
+            lastLoginDate: user.streak.lastLoginDate ? new Date(user.streak.lastLoginDate).toISOString() : '',
+        } : undefined,
+        challenge: user.challenge ? {
+            ...user.challenge,
+            assignedAt: user.challenge.assignedAt ? new Date(user.challenge.assignedAt).toISOString() : '',
         } : undefined,
     }));
     
