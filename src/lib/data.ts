@@ -1,4 +1,5 @@
 
+
 import { db } from '@/lib/firebase-server'; // <-- IMPORTANT: Use server DB
 import { 
     collection, 
@@ -251,8 +252,14 @@ export const authorConverter = {
             followers: data.followers || 0,
             following: data.following || 0,
             points: data.points || 0,
-            streak: data.streak,
-            challenge: data.challenge,
+            streak: data.streak ? {
+                ...data.streak,
+                lastLoginDate: safeToISOString(data.streak.lastLoginDate),
+            } : undefined,
+            challenge: data.challenge ? {
+                ...data.challenge,
+                assignedAt: safeToISOString(data.challenge.assignedAt),
+            } : undefined,
             primaryColor: data.primaryColor,
             font: data.font,
             premium: data.premium ? { ...data.premium, expires: safeToISOString(data.premium.expires) } : { active: false, expires: null },
@@ -798,3 +805,4 @@ export const getDiaryEntryClient = async (id: string): Promise<DiaryEntry | null
 };
 
     
+

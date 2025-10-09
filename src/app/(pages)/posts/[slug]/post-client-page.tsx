@@ -85,17 +85,24 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
 
   const fontClass = 'font-content';
 
-  const onSelect = useCallback((emblaApi: UseEmblaCarouselType) => {
-    setSelectedIndex(emblaApi.selectedScrollSnap());
-  }, []);
-
-
   useEffect(() => {
     if (!emblaApi) return;
-    onSelect(emblaApi);
+  
+    const onSelect = () => {
+      setSelectedIndex(emblaApi.selectedScrollSnap());
+    };
+  
     emblaApi.on('select', onSelect);
     emblaApi.on('reInit', onSelect);
-  }, [emblaApi, onSelect]);
+
+    // Set initial index
+    onSelect();
+
+    return () => {
+      emblaApi.off('select', onSelect);
+      emblaApi.off('reInit', onSelect);
+    };
+  }, [emblaApi]);
 
 
   useEffect(() => {
