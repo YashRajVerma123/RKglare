@@ -3,8 +3,13 @@ import { getDiaryEntry } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import DiaryEntryClient from './diary-entry-client';
 
-const DiaryEntryPage = async ({ params }: { params: { chapter: string } }) => {
-  const chapter = parseInt(params.chapter, 10);
+type PageProps = {
+  params: Promise<{ chapter: string }>;
+};
+
+const DiaryEntryPage = async ({ params }: PageProps) => {
+  const { chapter: chapterStr } = await params;
+  const chapter = parseInt(chapterStr, 10);
   
   if (isNaN(chapter)) {
     notFound();

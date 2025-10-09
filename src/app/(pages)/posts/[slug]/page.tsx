@@ -15,13 +15,13 @@ import AboutTheAuthor from '@/components/about-the-author';
 import PostClientPage from './post-client-page';
 
 interface PostPageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
   searchParams: { [key: string]: string | string[] | undefined };
 }
 
 
 export async function generateMetadata({ params }: PostPageProps, parent: ResolvingMetadata): Promise<Metadata> {
-  const { slug } = params;
+  const { slug } = await params;
   const post = await getPost(slug);
 
   if (!post) {
@@ -68,8 +68,8 @@ export async function generateMetadata({ params }: PostPageProps, parent: Resolv
 }
 
 
-export default async function PostPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const post = await getPost(slug);
 
   if (!post) {
