@@ -1,11 +1,10 @@
 
-
 // This file now only contains the initial raw data for seeding the database.
 import { Post, Comment, Author, Notification, Bulletin, DiaryEntry } from './data';
 
-const yashRaj: Author = { id: 'yash-raj', name: 'Yash Raj', avatar: 'https://i.pravatar.cc/150?u=yash-raj', email: 'yashrajverma916@gmail.com'};
-const janeDoe: Author = { id: 'jane-doe', name: 'Jane Doe', avatar: 'https://i.pravatar.cc/150?u=jane-doe', email: 'jane.doe@example.com'};
-const johnSmith: Author = { id: 'john-smith', name: 'John Smith', avatar: 'https://i.pravatar.cc/150?u=john-smith', email: 'john.smith@example.com'};
+const yashRaj: Author = { id: 'yash-raj', name: 'Yash Raj', username: 'yash.raj', avatar: 'https://i.pravatar.cc/150?u=yash-raj', email: 'yashrajverma916@gmail.com'};
+const janeDoe: Author = { id: 'jane-doe', name: 'Jane Doe', username: 'jane.doe', avatar: 'https://i.pravatar.cc/150?u=jane-doe', email: 'jane.doe@example.com'};
+const johnSmith: Author = { id: 'john-smith', name: 'John Smith', username: 'john.smith', avatar: 'https://i.pravatar.cc/150?u=john-smith', email: 'john.smith@example.com'};
 
 type PostSeedData = Omit<Post, 'id' | 'comments'> & { comments?: Omit<Comment, 'id'>[] }
 
