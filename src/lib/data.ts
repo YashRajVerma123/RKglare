@@ -503,7 +503,7 @@ export const getNotifications = unstable_cache(async (): Promise<Notification[]>
     const notificationsCollection = collection(db, 'notifications').withConverter(notificationConverter);
     const q = query(notificationsCollection, orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return snapshot.docs.map(doc => doc.data());
 }, ['notifications'], { revalidate: 60, tags: ['notifications'] });
 
 // This function is for client-side use only.
@@ -643,8 +643,26 @@ export const getAuthorById = (id: string): Promise<Author | null> => {
         if (!snapshot.exists()) {
             return null;
         }
-        // The converter already handles serialization.
-        return { id: snapshot.id, ...snapshot.data() };
+        
+        const authorData = snapshot.data();
+        const serializableAuthor: Author = {
+            ...authorData,
+            id: snapshot.id,
+            premium: authorData.premium ? {
+                ...authorData.premium,
+                expires: safeToISOString(authorData.premium.expires),
+            } : { active: false, expires: null },
+            streak: authorData.streak ? {
+                ...authorData.streak,
+                lastLoginDate: safeToISOString(authorData.streak.lastLoginDate) || '',
+            } : undefined,
+            challenge: authorData.challenge ? {
+                ...authorData.challenge,
+                assignedAt: safeToISOString(authorData.challenge.assignedAt) || '',
+            } : undefined,
+        };
+
+        return serializableAuthor;
       },
       ['author', id], // Key depends on id
       { revalidate: 3600, tags: ['users', `author-id:${id}`] }
