@@ -81,6 +81,7 @@ export async function getAuthorProfileAction(authorId: string): Promise<{ succes
             // Manually ensure all nested date objects are serialized to strings
             const serializableAuthor: Author = {
                 ...authorData,
+                id: authorId, // Add the missing id property
                 premium: authorData.premium ? {
                     ...authorData.premium,
                     expires: safeToISOString(authorData.premium.expires),
