@@ -46,7 +46,7 @@ export async function addComment(
     // The data is already complete, just format the timestamp
     const newComment: Comment = {
         ...newCommentData,
-        createdAt: newCommentData.createdAt.toDate().toISOString(),
+        createdAt: newCommentData.createdAt.toDate().toISOString(), // Ensure serializable
     };
 
     if (postSlug) {
@@ -108,7 +108,16 @@ export async function updateComment(postId: string, commentId: string, newConten
     const postDoc = await getDoc(postRef);
     const postSlug = postDoc.data()?.slug;
 
-    const updatedComment = { ...commentData, id: commentId, content: newContent, createdAt: (commentData.createdAt as Timestamp).toDate().toISOString() } as Comment;
+    // Fetch the updated comment to get the server timestamp correctly
+    const updatedCommentDoc = await getDoc(commentRef);
+    const updatedCommentData = updatedCommentDoc.data();
+
+    const updatedComment: Comment = { 
+        ...updatedCommentData,
+        id: commentId,
+        content: newContent,
+        createdAt: (updatedCommentData?.createdAt as Timestamp).toDate().toISOString() // Ensure serializable
+    } as Comment;
 
     if (postSlug) {
         revalidateTag(`comments:${postId}`);
@@ -176,7 +185,12 @@ export async function toggleCommentHighlight(postId: string, commentId: string, 
     const postDoc = await getDoc(postRef);
     const postSlug = postDoc.data()?.slug;
 
-    const updatedComment = { ...commentData, id: commentId, highlighted: newHighlightedState, createdAt: (commentData.createdAt as Timestamp).toDate().toISOString() } as Comment;
+    const updatedComment: Comment = { 
+        ...commentData,
+        id: commentId,
+        highlighted: newHighlightedState,
+        createdAt: (commentData.createdAt as Timestamp).toDate().toISOString() // Ensure serializable
+    } as Comment;
 
     if (postSlug) {
         revalidateTag(`comments:${postId}`);
@@ -204,7 +218,12 @@ export async function toggleCommentPin(postId: string, commentId: string, isAdmi
     const postDoc = await getDoc(postRef);
     const postSlug = postDoc.data()?.slug;
 
-    const updatedComment = { ...commentData, id: commentId, pinned: newPinnedState, createdAt: (commentData.createdAt as Timestamp).toDate().toISOString() } as Comment;
+    const updatedComment: Comment = { 
+        ...commentData,
+        id: commentId,
+        pinned: newPinnedState,
+        createdAt: (commentData.createdAt as Timestamp).toDate().toISOString() // Ensure serializable
+    } as Comment;
     
     if (postSlug) {
         revalidateTag(`comments:${postId}`);
