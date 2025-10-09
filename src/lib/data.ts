@@ -377,7 +377,7 @@ export async function getPostsClient(
   const q = query(postsCollection, orderBy('publishedAt', 'desc'));
   const snapshot = await getDocs(q.withConverter(postConverter));
 
-  let allPosts = snapshot.docs.map((doc) => ({...doc.data(), id: doc.id}));
+  let allPosts = snapshot.docs.map((doc) => ({id: doc.id, ...doc.data()}));
 
   if (searchQuery) {
     const lowercasedQuery = searchQuery.toLowerCase();
@@ -420,7 +420,7 @@ export const getPostClient = async (slug: string, user?: Author | null): Promise
     }
     
     const postDoc = snapshot.docs[0];
-    const post = { ...postDoc.data(), id: postDoc.id };
+    const post = { id: postDoc.id, ...postDoc.data() };
 
     // Admins see everything
     if (user?.email === 'yashrajverma916@gmail.com') {
@@ -494,7 +494,7 @@ export const getComments = async (postId: string): Promise<Comment[]> => {
     const q = query(commentsCollection, orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
     
-    let comments = snapshot.docs.map(doc => doc.data());
+    let comments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     
     return sortComments(comments);
 };
@@ -503,7 +503,7 @@ export const getNotifications = unstable_cache(async (): Promise<Notification[]>
     const notificationsCollection = collection(db, 'notifications').withConverter(notificationConverter);
     const q = query(notificationsCollection, orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => doc.data());
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }, ['notifications'], { revalidate: 60, tags: ['notifications'] });
 
 // This function is for client-side use only.
@@ -511,7 +511,7 @@ export const getNotificationsClient = async (): Promise<Notification[]> => {
     const notificationsCollection = collection(db, 'notifications').withConverter(notificationConverter);
     const q = query(notificationsCollection, orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => doc.data());
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
 
@@ -527,7 +527,7 @@ export const getNotificationClient = async (id: string): Promise<Notification | 
     const notifRef = doc(db, 'notifications', id).withConverter(notificationConverter);
     const snapshot = await getDoc(notifRef);
     if (snapshot.exists()) {
-        return snapshot.data();
+        return { id: snapshot.id, ...snapshot.data() };
     }
     return null;
 }
@@ -541,7 +541,7 @@ export const getBulletins = unstable_cache(async (
     const q = query(bulletinsCollection, orderBy('publishedAt', 'desc'));
     const snapshot = await getDocs(q);
     
-    const allBulletins = snapshot.docs.map(doc => doc.data());
+    const allBulletins = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     const lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
 
     const filteredBulletins = filterPremiumContent(allBulletins as any, currentUser) as Bulletin[];
@@ -576,7 +576,7 @@ export const getPaginatedBulletins = async (
     const q = query(bulletinsCollection, ...constraints);
     const snapshot = await getDocs(q);
     
-    const rawBulletins = snapshot.docs.map(doc => doc.data());
+    const rawBulletins = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     const lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
 
     // Manually ensure publishedAt is a string
@@ -606,7 +606,7 @@ export const getBulletinClient = async (id: string): Promise<Bulletin | null> =>
     const bulletinRef = doc(db, 'bulletins', id).withConverter(bulletinConverter);
     const snapshot = await getDoc(bulletinRef);
     if (snapshot.exists()) {
-        return snapshot.data();
+        return { id: snapshot.id, ...snapshot.data() };
     }
     return null;
 };
@@ -619,7 +619,7 @@ export const getAuthorByEmailServer = unstable_cache(async (email: string): Prom
     if (snapshot.empty) {
         return null;
     }
-    return snapshot.docs[0].data();
+    return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
 }, ['author_by_email'], { revalidate: 3600, tags: ['users'] });
 
 export const getAuthorByEmailClient = async (email: string): Promise<Author | null> => {
@@ -630,7 +630,7 @@ export const getAuthorByEmailClient = async (email: string): Promise<Author | nu
     if (snapshot.empty) {
         return null;
     }
-    return snapshot.docs[0].data();
+    return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
 };
 
 
@@ -643,7 +643,8 @@ export const getAuthorById = (id: string): Promise<Author | null> => {
         if (!snapshot.exists()) {
             return null;
         }
-        return snapshot.data();
+        // The converter already handles serialization.
+        return { id: snapshot.id, ...snapshot.data() };
       },
       ['author', id], // Key depends on id
       { revalidate: 3600, tags: ['users', `author-id:${id}`] }
@@ -661,13 +662,13 @@ export async function isFollowing(followerId: string, authorId: string): Promise
 export const getAuthorsServer = unstable_cache(async (): Promise<Author[]> => {
     const usersCollection = collection(db, 'users').withConverter(authorConverter);
     const snapshot = await getDocs(usersCollection);
-    return snapshot.docs.map(doc => doc.data());
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }, ['all_users'], { revalidate: 3600, tags: ['users'] });
 
 export const getAuthorsClient = async (): Promise<Author[]> => {
     const usersCollection = collection(db, 'users').withConverter(authorConverter);
     const snapshot = await getDocs(usersCollection);
-    return snapshot.docs.map(doc => doc.data());
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
 export const getPremiumUsers = async (): Promise<Author[]> => {
@@ -680,7 +681,7 @@ export const getPremiumUsers = async (): Promise<Author[]> => {
         const premiumUsers: Author[] = [];
 
         snapshot.docs.forEach(doc => {
-            const user = doc.data();
+            const user = { id: doc.id, ...doc.data() };
             if (user.premium?.expires && new Date(user.premium.expires) > now) {
                 premiumUsers.push(user);
             }
@@ -738,7 +739,7 @@ export const getDiaryEntries = unstable_cache(async (): Promise<DiaryEntry[]> =>
     const diaryCollection = collection(db, 'diary').withConverter(diaryEntryConverter);
     const q = query(diaryCollection, orderBy('chapter', 'asc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => doc.data());
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }, ['diary_entries'], { revalidate: 60, tags: ['diary'] });
 
 export const getDiaryEntry = (chapter: number): Promise<DiaryEntry | undefined> => {
@@ -751,7 +752,8 @@ export const getDiaryEntry = (chapter: number): Promise<DiaryEntry | undefined> 
             if (snapshot.empty) {
                 return undefined;
             }
-            return snapshot.docs[0].data();
+            const doc = snapshot.docs[0];
+            return { id: doc.id, ...doc.data() };
         },
         ['diary_entry', chapter],
         { revalidate: 3600, tags: ['diary', `diary-chapter:${chapter}`] }
@@ -777,7 +779,7 @@ export const getPosts = async (
   const postsCollection = collection(db, 'posts');
   const q = query(postsCollection, orderBy('publishedAt', 'desc'));
   const snapshot = await getDocs(q.withConverter(postConverter));
-  const allPosts = snapshot.docs.map(doc => doc.data());
+  const allPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   return filterPremiumContent(allPosts, currentUser);
 };
 
@@ -785,14 +787,14 @@ export const getDiaryEntriesClient = async (): Promise<DiaryEntry[]> => {
     const diaryCollection = collection(db, 'diary').withConverter(diaryEntryConverter);
     const q = query(diaryCollection, orderBy('chapter', 'asc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => doc.data());
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
 export const getDiaryEntryClient = async (id: string): Promise<DiaryEntry | null> => {
     const entryRef = doc(db, 'diary', id).withConverter(diaryEntryConverter);
     const snapshot = await getDoc(entryRef);
     if (snapshot.exists()) {
-        return snapshot.data();
+        return { id: snapshot.id, ...snapshot.data() };
     }
     return null;
 };
