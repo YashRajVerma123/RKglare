@@ -83,15 +83,19 @@ export type DiaryEntry = {
 
 const safeToISOString = (date: any): string | null => {
     if (!date) return null;
+    // Check if it's already a string (and hopefully an ISO string)
+    if (typeof date === 'string') {
+        // Basic check to see if it looks like an ISO string
+        if (date.includes('T') && date.includes('Z')) {
+            return date;
+        }
+        // If it's a string but not ISO, try to parse it. If it fails, it will be caught below.
+    }
     // Check if it's a Firestore Timestamp
     if (typeof date.toDate === 'function') {
         return date.toDate().toISOString();
     }
-    // If it's already an ISO string, return it
-    if (typeof date === 'string' && new Date(date).toISOString() === date) {
-        return date;
-    }
-    // Try to parse other formats, like a Date object
+    // Try to parse other formats, like a Date object or a string that's not ISO
     try {
         return new Date(date).toISOString();
     } catch (e) {
