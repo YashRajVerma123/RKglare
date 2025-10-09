@@ -1,8 +1,9 @@
+
 // THIS FILE IS FOR SERVER-SIDE USE ONLY
 import { initializeApp, getApps, getApp, FirebaseOptions } from "firebase/app";
 import { getFirestore, collection, getDocs, query, orderBy, where, limit } from "firebase/firestore";
 import { unstable_cache } from 'next/cache';
-import { Post, postConverter, Author } from './data';
+import { Post, postConverter, Author, safeToISOString } from './data';
 
 // This is the server-side configuration. It directly uses environment variables.
 const firebaseConfig: FirebaseOptions = {
@@ -95,18 +96,24 @@ export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
     const snapshot = await getDocs(q);
     
     const now = new Date();
-    const posts = snapshot.docs.map(doc => doc.data()).filter(post => {
-        if (!post.trendingUntil) return false;
-        try {
-            // Ensure trendingUntil is a valid date string before creating a Date object
-            if (typeof post.trendingUntil === 'string') {
-              return new Date(post.trendingUntil) > now;
+    // Filter posts and ensure all date fields are serializable strings
+    const posts = snapshot.docs
+        .map(doc => {
+            const data = doc.data();
+            // Explicitly serialize the trendingUntil field
+            return {
+                ...data,
+                trendingUntil: safeToISOString(data.trendingUntil),
+            };
+        })
+        .filter(post => {
+            if (!post.trendingUntil) return false;
+            try {
+                return new Date(post.trendingUntil) > now;
+            } catch (e) {
+                return false;
             }
-            return false;
-        } catch (e) {
-            return false;
-        }
-    });
+        });
 
     return posts.slice(0, 10);
 }, ['trending_posts'], { revalidate: 3600, tags: ['posts', 'trending'] });
