@@ -23,6 +23,7 @@ const AdminPage = async () => {
     const serializablePosts = posts.map(post => ({
         ...post,
         publishedAt: new Date(post.publishedAt).toISOString(),
+        trendingUntil: post.trendingUntil ? new Date(post.trendingUntil).toISOString() : null,
     })).sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 
     const serializableUsers = users.map(user => ({

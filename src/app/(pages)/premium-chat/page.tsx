@@ -362,7 +362,7 @@ const PremiumChatPage = () => {
                                     </DropdownMenu>
                                 </div>
                             
-                            <Avatar className="h-8 w-8 cursor-pointer" onClick={()={() => handleAvatarClick(msg.author.id)}>
+                            <Avatar className="h-8 w-8 cursor-pointer" onClick={() => handleAvatarClick(msg.author.id)}>
                                 <AvatarImage src={msg.author.avatar} />
                                 <AvatarFallback>{getInitials(msg.author.name)}</AvatarFallback>
                             </Avatar>
@@ -524,5 +524,7 @@ const PremiumChatPage = () => {
 };
 
 export default PremiumChatPage;
+
+    
 
     
