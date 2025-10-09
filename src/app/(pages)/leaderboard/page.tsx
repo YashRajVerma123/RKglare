@@ -25,7 +25,7 @@ async function getTopUsers(count: number = 50): Promise<Author[]> {
     const usersCollection = collection(db, 'users').withConverter(authorConverter);
     const q = query(usersCollection, orderBy('points', 'desc'), limit(count));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => doc.data());
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
 const getInitials = (name: string) => {
