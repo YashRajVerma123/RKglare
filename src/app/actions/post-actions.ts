@@ -3,7 +3,7 @@
 'use server';
 
 import { revalidatePath, revalidateTag } from 'next/cache';
-import { Post, Author } from '@/lib/data';
+import { Post, Author, safeToISOString } from '@/lib/data';
 import { db } from '@/lib/firebase-server'; // Use server db
 import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, getDocs, limit, getDoc, setDoc, runTransaction, writeBatch, orderBy } from 'firebase/firestore';
 import { z } from 'zod';
@@ -43,12 +43,37 @@ const getAuthorDetails = async (authorId: string): Promise<Author | null> => {
 
     if (userDoc.exists()) {
       const userData = userDoc.data();
+      const premiumData = userData.premium;
+      const expires = premiumData?.expires ? safeToISOString(premiumData.expires) : null;
+      
       return {
         id: authorId,
         name: userData.name || 'New User',
         username: userData.username || generateUsername(userData.name || ''),
         avatar: userData.avatar || `https://i.pravatar.cc/150?u=${authorId}`,
-        email: userData.email || 'no-email@example.com'
+        email: userData.email || 'no-email@example.com',
+        bannerImage: userData.bannerImage,
+        bio: userData.bio,
+        instagramUrl: userData.instagramUrl,
+        signature: userData.signature,
+        showEmail: userData.showEmail,
+        followers: userData.followers || 0,
+        following: userData.following || 0,
+        points: userData.points || 0,
+        streak: userData.streak ? {
+            ...userData.streak,
+            lastLoginDate: safeToISOString(userData.streak.lastLoginDate) || '',
+        } : undefined,
+        challenge: userData.challenge ? {
+            ...userData.challenge,
+            assignedAt: safeToISOString(userData.challenge.assignedAt) || '',
+        } : undefined,
+        primaryColor: userData.primaryColor,
+        font: userData.font,
+        premium: {
+            active: !!(premiumData?.active && expires && new Date(expires) > new Date()),
+            expires: expires,
+        },
       }
     }
     
@@ -110,7 +135,7 @@ export async function addPost(values: z.infer<typeof formSchema>, authorId: stri
             const trendingSnapshot = await getDocs(q); // Read outside transaction or accept stale data
             
             const postsToUpdate = trendingSnapshot.docs
-                .map(d => ({ id: d.id, ...d.data() as Post }))
+                .map(d => ({ ...d.data() as Post, id: d.id }))
                 .filter(p => p.trendingPosition && p.trendingPosition >= newPostData.trendingPosition!);
 
             for (const postToShift of postsToUpdate) {
