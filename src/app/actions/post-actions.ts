@@ -23,6 +23,17 @@ const formSchema = z.object({
   earlyAccess: z.boolean().default(false),
 });
 
+const generateUsername = (name: string): string => {
+    if (!name) return `user_${Date.now().toString().slice(-6)}`;
+    
+    return name
+        .toLowerCase()
+        .replace(/\s+/g, '.') // replace spaces with dots
+        .replace(/[^a-z0-9._]/g, '') // remove invalid characters
+        .slice(0, 15); // limit length
+}
+
+
 // A mock function to get author details. In a real app this might involve a database lookup.
 const getAuthorDetails = async (authorId: string): Promise<Author | null> => {
     // In a real app, you'd have a users collection.
@@ -35,6 +46,7 @@ const getAuthorDetails = async (authorId: string): Promise<Author | null> => {
       return {
         id: authorId,
         name: userData.name || 'New User',
+        username: userData.username || generateUsername(userData.name || ''),
         avatar: userData.avatar || `https://i.pravatar.cc/150?u=${authorId}`,
         email: userData.email || 'no-email@example.com'
       }
@@ -42,7 +54,7 @@ const getAuthorDetails = async (authorId: string): Promise<Author | null> => {
     
     // Fallback for the initial admin user that might not be in the users collection yet.
     if(authorId === 'yash-raj') {
-        const adminAuthor = { id: 'yash-raj', name: 'Yash Raj', avatar: 'https://i.ibb.co/TChNTL8/pfp.png', email: 'yashrajverma916@gmail.com'};
+        const adminAuthor = { id: 'yash-raj', name: 'Yash Raj', username: 'yash.raj', avatar: 'https://i.ibb.co/TChNTL8/pfp.png', email: 'yashrajverma916@gmail.com'};
         await setDoc(doc(db, "users", "yash-raj"), adminAuthor, { merge: true });
         return adminAuthor;
     }

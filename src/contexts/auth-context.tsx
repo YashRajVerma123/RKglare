@@ -130,8 +130,14 @@ const formatUser = (user: FirebaseUser, firestoreData?: any): Author => {
         followers: firestoreData?.followers || 0,
         following: firestoreData?.following || 0,
         points: firestoreData?.points || 0,
-        streak: firestoreData?.streak,
-        challenge: firestoreData?.challenge,
+        streak: firestoreData?.streak ? {
+            ...firestoreData.streak,
+            lastLoginDate: safeToISOString(firestoreData.streak.lastLoginDate) || '',
+        } : undefined,
+        challenge: firestoreData?.challenge ? {
+            ...firestoreData.challenge,
+            assignedAt: safeToISOString(firestoreData.challenge.assignedAt) || '',
+        } : undefined,
         primaryColor: firestoreData?.primaryColor,
         font: firestoreData?.font,
         premium: {
