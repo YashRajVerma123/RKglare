@@ -16,7 +16,7 @@ import PostClientPage from './post-client-page';
 
 interface PostPageProps {
   params: Promise<{ slug: string }>;
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 
@@ -68,7 +68,7 @@ export async function generateMetadata({ params }: PostPageProps, parent: Resolv
 }
 
 
-export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function PostPage({ params }: PostPageProps) {
   const { slug } = await params;
   const post = await getPost(slug);
 

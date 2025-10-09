@@ -1,6 +1,6 @@
 
 
-import { getPosts, getNotifications, getBulletins, getAuthorsClient, getDiaryEntries } from "@/lib/data";
+import { getPosts, getNotifications, getBulletins, getAuthorsClient, getDiaryEntries, Author } from "@/lib/data";
 import AdminClientPage from "./admin-client";
 
 const AdminPage = async () => {
@@ -21,12 +21,22 @@ const AdminPage = async () => {
 
     const sortedPosts = posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 
+    // Ensure all user data is serializable before passing to the client component
+    const serializableUsers = users.map(user => ({
+        ...user,
+        premium: user.premium ? {
+            ...user.premium,
+            expires: user.premium.expires ? new Date(user.premium.expires).toISOString() : null,
+        } : undefined,
+    }));
+
+
     return (
         <AdminClientPage
             initialPosts={sortedPosts}
             initialNotifications={notifications}
             initialBulletins={bulletinsResponse.bulletins}
-            initialUsers={users}
+            initialUsers={serializableUsers}
             initialDiaryEntries={diaryEntries}
         />
     );

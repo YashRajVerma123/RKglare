@@ -14,12 +14,13 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 interface PostsPageProps {
-  searchParams: { q?: string };
+  searchParams: Promise<{ q?: string }>;
 }
 
 const PostsPage = async ({ searchParams }: PostsPageProps) => {
+  const searchParamsObj = await searchParams;
   // Fetch initial posts based on search query on the server
-  const posts = await getPostsServer(false, null, searchParams.q);
+  const posts = await getPostsServer(false, null, searchParamsObj.q);
 
   return (
     <Suspense fallback={
