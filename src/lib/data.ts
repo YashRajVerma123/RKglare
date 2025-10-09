@@ -1,5 +1,4 @@
 
-
 import { db } from '@/lib/firebase-server'; // <-- IMPORTANT: Use server DB
 import { 
     collection, 
@@ -82,7 +81,7 @@ export type DiaryEntry = {
     content: string;
 };
 
-const safeToISOString = (date: any): string | null => {
+export const safeToISOString = (date: any): string | null => {
     if (!date) return null;
     // Check if it's already a string (and hopefully an ISO string)
     if (typeof date === 'string') {
