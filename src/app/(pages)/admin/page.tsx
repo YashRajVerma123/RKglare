@@ -19,9 +19,12 @@ const AdminPage = async () => {
         diaryData
     ]);
 
-    const sortedPosts = posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    // Ensure all data is serializable before passing to the client component
+    const serializablePosts = posts.map(post => ({
+        ...post,
+        publishedAt: new Date(post.publishedAt).toISOString(),
+    })).sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 
-    // Ensure all user data is serializable before passing to the client component
     const serializableUsers = users.map(user => ({
         ...user,
         premium: user.premium ? {
@@ -43,7 +46,7 @@ const AdminPage = async () => {
 
     return (
         <AdminClientPage
-            initialPosts={sortedPosts}
+            initialPosts={serializablePosts}
             initialNotifications={serializableNotifications}
             initialBulletins={serializableBulletins}
             initialUsers={serializableUsers}

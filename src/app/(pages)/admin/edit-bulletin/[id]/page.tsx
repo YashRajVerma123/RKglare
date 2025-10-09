@@ -76,6 +76,10 @@ export default function EditBulletinPage() {
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!id) {
+      toast({ title: 'Error', description: 'Bulletin ID is missing.', variant: 'destructive' });
+      return;
+    }
     try {
         const result = await updateBulletinAction(id, values);
         if (result.error) throw new Error(result.error);

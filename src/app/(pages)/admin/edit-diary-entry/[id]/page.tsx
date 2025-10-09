@@ -95,6 +95,10 @@ export default function EditDiaryEntryPage() {
 
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!id) {
+      toast({ title: 'Error', description: 'Diary entry ID is missing.', variant: 'destructive' });
+      return;
+    }
     try {
         const result = await updateDiaryEntryAction(id, values);
         if (result.error) throw new Error(result.error);
