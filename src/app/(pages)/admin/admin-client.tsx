@@ -391,9 +391,12 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
              if (result.error) {
                 throw new Error(result.error);
             }
-            window.location.href = result.mailtoLink;
-
-            toast({ title: "Newsletter Prepared!", description: `Your email client should open with a draft for ${result.subscriberCount} subscribers.` });
+            if (typeof result.mailtoLink === 'string') {
+                window.location.href = result.mailtoLink;
+                toast({ title: "Newsletter Prepared!", description: `Your email client should open with a draft for ${result.subscriberCount} subscribers.` });
+            } else {
+                 throw new Error("Could not generate the newsletter link.");
+            }
         } catch (error) {
              toast({ title: "Error Preparing Newsletter", description: (error as Error).message, variant: "destructive" });
         }
@@ -1168,5 +1171,7 @@ const AdminClientPage = ({ initialPosts, initialNotifications, initialBulletins,
 };
 
 export default AdminClientPage;
+
+    
 
     

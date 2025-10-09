@@ -29,13 +29,23 @@ const AdminPage = async () => {
             expires: user.premium.expires ? new Date(user.premium.expires).toISOString() : null,
         } : undefined,
     }));
+    
+    const serializableNotifications = notifications.map(n => ({
+        ...n,
+        createdAt: new Date(n.createdAt).toISOString(),
+    }));
+
+    const serializableBulletins = bulletinsResponse.bulletins.map(b => ({
+        ...b,
+        publishedAt: new Date(b.publishedAt).toISOString(),
+    }));
 
 
     return (
         <AdminClientPage
             initialPosts={sortedPosts}
-            initialNotifications={notifications}
-            initialBulletins={bulletinsResponse.bulletins}
+            initialNotifications={serializableNotifications}
+            initialBulletins={serializableBulletins}
             initialUsers={serializableUsers}
             initialDiaryEntries={diaryEntries}
         />
