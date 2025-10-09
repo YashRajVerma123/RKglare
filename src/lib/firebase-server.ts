@@ -98,7 +98,11 @@ export const getTrendingPosts = unstable_cache(async (): Promise<Post[]> => {
     const posts = snapshot.docs.map(doc => doc.data()).filter(post => {
         if (!post.trendingUntil) return false;
         try {
-            return new Date(post.trendingUntil) > now;
+            // Ensure trendingUntil is a valid date string before creating a Date object
+            if (typeof post.trendingUntil === 'string') {
+              return new Date(post.trendingUntil) > now;
+            }
+            return false;
         } catch (e) {
             return false;
         }

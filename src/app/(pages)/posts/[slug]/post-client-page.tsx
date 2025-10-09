@@ -21,7 +21,7 @@ import ReaderMode from '@/components/reader-mode';
 import ReadingTimer from '@/components/reading-timer';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import useEmblaCarousel, { type UseEmblaCarouselType as EmblaCarouselType } from 'embla-carousel-react';
+import useEmblaCarousel, { type UseEmblaCarouselType } from 'embla-carousel-react';
 import ParallaxContainer from '@/components/parallax-container';
 
 
@@ -85,7 +85,7 @@ export default function PostClientPage({ post, relatedPosts, initialComments, is
 
   const fontClass = 'font-content';
 
-  const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
+  const onSelect = useCallback((emblaApi: UseEmblaCarouselType) => {
     setSelectedIndex(emblaApi.selectedScrollSnap());
   }, []);
 
