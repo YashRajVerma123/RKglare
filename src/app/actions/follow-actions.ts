@@ -92,6 +92,7 @@ export async function getFollowList(userId: string, type: 'followers' | 'followi
     
     const usersSnapshot = await getDocs(q);
     
-    return usersSnapshot.docs.map(d => d.data());
+    return usersSnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 }
+
 

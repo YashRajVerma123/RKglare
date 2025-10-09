@@ -1,7 +1,7 @@
 
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { db } from '@/lib/firebase-server'; // Use server db
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { z } from 'zod';
@@ -45,6 +45,7 @@ export async function updateAuthorProfile(authorId: string, values: Partial<z.in
   }
 
   // Revalidate paths where author info is shown
+  revalidateTag(`author-id:${authorId}`);
   revalidatePath('/admin');
   revalidatePath('/posts/.*', 'page'); // Revalidate all post pages
   
