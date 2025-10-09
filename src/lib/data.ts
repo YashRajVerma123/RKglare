@@ -419,7 +419,8 @@ export const getPostClient = async (slug: string, user?: Author | null): Promise
         return undefined;
     }
     
-    const post = snapshot.docs[0].data();
+    const postDoc = snapshot.docs[0];
+    const post = { ...postDoc.data(), id: postDoc.id };
 
     // Admins see everything
     if (user?.email === 'yashrajverma916@gmail.com') {
