@@ -388,8 +388,8 @@ export async function getPostsClient(
       return titleMatch || descriptionMatch || tagMatch;
     });
   }
-
-  if (currentUser?.email === 'yashrajverma916@gmail.com') {
+  
+  if (currentUser?.premium?.active) {
     return allPosts;
   }
 
@@ -422,7 +422,7 @@ export const getPostClient = async (slug: string, user?: Author | null): Promise
     const post = postDoc.data();
 
     // Admins see everything
-    if (user?.email === 'yashrajverma916@gmail.com') {
+    if (user?.premium?.active) {
         return post;
     }
 
