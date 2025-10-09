@@ -1,12 +1,11 @@
 
-
 import { db } from '@/lib/firebase-server'; // <-- IMPORTANT: Use server DB
 import { 
     collection, 
     getDocs, 
     doc, 
     getDoc, 
-    query, 
+    query, e
     orderBy,
     limit,
     Timestamp,
@@ -115,12 +114,12 @@ export const postConverter = {
             coverImage: data.coverImage,
             author: data.author,
             publishedAt: safeToISOString(data.publishedAt)!,
+            trendingUntil: safeToISOString(data.trendingUntil),
             tags: data.tags,
             readTime: data.readTime,
             featured: data.featured,
             trending: data.trending,
             trendingPosition: data.trendingPosition,
-            trendingUntil: safeToISOString(data.trendingUntil),
             likes: data.likes || 0,
             summary: data.summary,
             premiumOnly: data.premiumOnly || false,
@@ -276,7 +275,7 @@ export type ChatMessage = {
   id: string;
   text: string;
   image?: string;
-  author: Pick<Author, 'id' | 'name' | 'avatar' | 'username'>;
+  author: Pick&lt;Author, 'id' | 'name' | 'avatar' | 'username'&gt;;
   createdAt: string; // ISO string
   isEdited?: boolean;
   updatedAt?: string | null; // ISO string
@@ -303,7 +302,7 @@ export const messageConverter = {
             replyTo: data.replyTo,
         };
     },
-    toFirestore: (message: Omit<ChatMessage, 'id' | 'createdAt'> & { createdAt?: any }) => {
+    toFirestore: (message: Omit&lt;ChatMessage, 'id' | 'createdAt'&gt; & { createdAt?: any }) => {
         return {
             ...message,
             createdAt: message.createdAt ? Timestamp.fromDate(new Date(message.createdAt)) : Timestamp.now(),
@@ -329,21 +328,21 @@ export type SupportChatThread = {
   hasUnread: boolean;
 }
 
-const sortComments = (comments: Comment[]): Comment[] => {
-    return [...comments].sort((a,b) => {
-        if (a.pinned && !b.pinned) return -1;
-        if (!a.pinned && b.pinned) return 1;
+const sortComments = (comments: Comment[]): Comment[] =&gt; {
+    return [...comments].sort((a,b) =&gt; {
+        if (a.pinned &amp;&amp; !b.pinned) return -1;
+        if (!a.pinned &amp;&amp; b.pinned) return 1;
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 };
 
-const filterPremiumContent = (posts: Post[], user?: Author | null): Post[] => {
+const filterPremiumContent = (posts: Post[], user?: Author | null): Post[] =&gt; {
     const isPremium = user?.premium?.active === true;
     const now = new Date();
 
-    return posts.filter(post => {
+    return posts.filter(post =&gt; {
         // Public posts are always visible
-        if (!post.premiumOnly && !post.earlyAccess) {
+        if (!post.premiumOnly &amp;&amp; !post.earlyAccess) {
             return true;
         }
 
@@ -361,7 +360,7 @@ const filterPremiumContent = (posts: Post[], user?: Author | null): Post[] => {
         if (post.earlyAccess) {
             const publishedAt = new Date(post.publishedAt);
             const hoursSincePublished = (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60);
-            return hoursSincePublished >= 24;
+            return hoursSincePublished &gt;= 24;
         }
 
         return false;
@@ -372,20 +371,20 @@ export async function getPostsClient(
   includeContent: boolean = true,
   currentUser?: Author | null,
   searchQuery?: string
-): Promise<Post[]> {
+): Promise&lt;Post[]&gt; {
   const postsCollection = collection(db, 'posts');
   const q = query(postsCollection, orderBy('publishedAt', 'desc'));
   const snapshot = await getDocs(q.withConverter(postConverter));
 
-  let allPosts = snapshot.docs.map((doc) => ({id: doc.id, ...doc.data()}));
+  let allPosts = snapshot.docs.map((doc) =&gt; ({ ...doc.data(), id: doc.id }));
 
   if (searchQuery) {
     const lowercasedQuery = searchQuery.toLowerCase();
-    allPosts = allPosts.filter((post) => {
+    allPosts = allPosts.filter((post) =&gt; {
       const titleMatch = post.title.toLowerCase().includes(lowercasedQuery);
       const descriptionMatch = post.description.toLowerCase().includes(lowercasedQuery);
       const tagMatch =
-        post.tags && post.tags.some((tag) => tag.toLowerCase().includes(lowercasedQuery));
+        post.tags &amp;&amp; post.tags.some((tag) =&gt; tag.toLowerCase().includes(lowercasedQuery));
       return titleMatch || descriptionMatch || tagMatch;
     });
   }
@@ -397,17 +396,17 @@ export async function getPostsClient(
   return filterPremiumContent(allPosts, currentUser);
 }
 
-export const getPost = (slug: string): Promise<Post | undefined> => {
+export const getPost = (slug: string): Promise&lt;Post | undefined&gt; =&gt; {
     // This function now fetches the post regardless of premium status on the server.
     // The client component will handle the visibility of the content.
     return unstable_cache(
-        async (slug: string) => getPostClient(slug),
+        async (slug: string) =&gt; getPostClient(slug),
         ['post', slug], // Key depends on slug
         { revalidate: 3600, tags: ['posts', `post:${slug}`] }
     )(slug);
 };
 
-export const getPostClient = async (slug: string, user?: Author | null): Promise<Post | undefined> => {
+export const getPostClient = async (slug: string, user?: Author | null): Promise&lt;Post | undefined&gt; =&gt; {
     if (!slug) {
         return undefined;
     }
@@ -420,7 +419,7 @@ export const getPostClient = async (slug: string, user?: Author | null): Promise
     }
     
     const postDoc = snapshot.docs[0];
-    const post = { id: postDoc.id, ...postDoc.data() };
+    const post = { ...postDoc.data(), id: postDoc.id };
 
     // Admins see everything
     if (user?.email === 'yashrajverma916@gmail.com') {
@@ -430,15 +429,15 @@ export const getPostClient = async (slug: string, user?: Author | null): Promise
     const isPremium = user?.premium?.active === true;
     const now = new Date();
 
-    if (post.premiumOnly && !isPremium) {
+    if (post.premiumOnly &amp;&amp; !isPremium) {
         // Return post but client will gate content
         return post; 
     }
 
-    if (post.earlyAccess && !isPremium) {
+    if (post.earlyAccess &amp;&amp; !isPremium) {
         const publishedAt = new Date(post.publishedAt);
         const hoursSincePublished = (now.getTime() - publishedAt.getTime()) / (1000 * 60 * 60);
-        if (hoursSincePublished < 24) {
+        if (hoursSincePublished &lt; 24) {
             // Return post but client will gate content
             return post;
         }
@@ -448,24 +447,24 @@ export const getPostClient = async (slug: string, user?: Author | null): Promise
 };
 
 
-export const getRelatedPosts = unstable_cache(async (currentPost: Post, currentUser?: Author | null): Promise<Post[]> => {
+export const getRelatedPosts = unstable_cache(async (currentPost: Post, currentUser?: Author | null): Promise&lt;Post[]&gt; =&gt; {
     if (!currentPost) return [];
     
     const allPosts = await getPostsClient(false, currentUser); // Fetch lightweight posts respecting permissions
-    const otherPosts = allPosts.filter(p => p.id !== currentPost.id);
+    const otherPosts = allPosts.filter(p =&gt; p.id !== currentPost.id);
 
     if (!currentPost.tags || currentPost.tags.length === 0) {
         // Fallback for posts without tags: return most recent
         return otherPosts
-            .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+            .sort((a, b) =&gt; new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
             .slice(0, 3);
     }
     
     const currentPostTags = new Set(currentPost.tags);
 
-    const scoredPosts = otherPosts.map(post => {
+    const scoredPosts = otherPosts.map(post =&gt; {
         let score = 0;
-        if (post.tags && post.tags.length > 0) {
+        if (post.tags &amp;&amp; post.tags.length &gt; 0) {
             for (const tag of post.tags) {
                 if (currentPostTags.has(tag)) {
                     score++;
@@ -475,7 +474,7 @@ export const getRelatedPosts = unstable_cache(async (currentPost: Post, currentU
         return { ...post, score };
     });
 
-    scoredPosts.sort((a, b) => {
+    scoredPosts.sort((a, b) =&gt; {
         if (b.score !== a.score) {
             return b.score - a.score;
         }
@@ -487,43 +486,40 @@ export const getRelatedPosts = unstable_cache(async (currentPost: Post, currentU
 }, ['related_posts'], { revalidate: 3600, tags: ['posts'] });
 
 
-export const getComments = async (postId: string): Promise<Comment[]> => {
+export const getComments = async (postId: string): Promise&lt;Comment[]&gt; =&gt; {
     if (!postId) return [];
     
     const commentsCollection = collection(db, 'posts', postId, 'comments').withConverter(commentConverter);
     const q = query(commentsCollection, orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
     
-    let comments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    let comments = snapshot.docs.map(doc =&gt; ({ id: doc.id, ...doc.data() }));
     
     return sortComments(comments);
 };
 
-export const getNotifications = unstable_cache(async (): Promise<Notification[]> => {
-    const notificationsCollection = collection(db, 'notifications').withConverter(notificationConverter);
-    const q = query(notificationsCollection, orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => doc.data());
+export const getNotifications = unstable_cache(async (): Promise&lt;Notification[]&gt; =&gt; {
+    return []; // RETURN EMPTY ARRAY FOR NOW
 }, ['notifications'], { revalidate: 60, tags: ['notifications'] });
 
 // This function is for client-side use only.
-export const getNotificationsClient = async (): Promise<Notification[]> => {
+export const getNotificationsClient = async (): Promise&lt;Notification[]&gt; =&gt; {
     const notificationsCollection = collection(db, 'notifications').withConverter(notificationConverter);
     const q = query(notificationsCollection, orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return snapshot.docs.map(doc =&gt; ({ id: doc.id, ...doc.data() }));
 };
 
 
-export const getNotification = (id: string): Promise<Notification | null> => {
+export const getNotification = (id: string): Promise&lt;Notification | null&gt; =&gt; {
     return unstable_cache(
-        async (id: string) => getNotificationClient(id),
+        async (id: string) =&gt; getNotificationClient(id),
         ['notification', id],
         { revalidate: 3600, tags: ['notifications', `notification:${id}`] }
     )(id);
 };
 
-export const getNotificationClient = async (id: string): Promise<Notification | null> => {
+export const getNotificationClient = async (id: string): Promise&lt;Notification | null&gt; =&gt; {
     const notifRef = doc(db, 'notifications', id).withConverter(notificationConverter);
     const snapshot = await getDoc(notifRef);
     if (snapshot.exists()) {
@@ -536,12 +532,12 @@ export const getNotificationClient = async (id: string): Promise<Notification | 
 // New Bulletin Functions
 export const getBulletins = unstable_cache(async (
     currentUser?: Author | null
-): Promise<{ bulletins: Bulletin[]; lastDocId?: string }> => {
+): Promise&lt;{ bulletins: Bulletin[]; lastDocId?: string }&gt; =&gt; {
     const bulletinsCollection = collection(db, 'bulletins').withConverter(bulletinConverter);
     const q = query(bulletinsCollection, orderBy('publishedAt', 'desc'));
     const snapshot = await getDocs(q);
     
-    const allBulletins = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const allBulletins = snapshot.docs.map(doc =&gt; ({ id: doc.id, ...doc.data() }));
     const lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
 
     const filteredBulletins = filterPremiumContent(allBulletins as any, currentUser) as Bulletin[];
@@ -556,7 +552,7 @@ export const getPaginatedBulletins = async (
     pageSize: number,
     startAfterDocId?: string,
     currentUser?: Author | null
-): Promise<{ bulletins: Bulletin[]; lastDocId?: string }> => {
+): Promise&lt;{ bulletins: Bulletin[]; lastDocId?: string }&gt; =&gt; {
     let lastDoc;
     if (startAfterDocId) {
         lastDoc = await getDoc(doc(db, "bulletins", startAfterDocId));
@@ -576,11 +572,11 @@ export const getPaginatedBulletins = async (
     const q = query(bulletinsCollection, ...constraints);
     const snapshot = await getDocs(q);
     
-    const rawBulletins = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const rawBulletins = snapshot.docs.map(doc =&gt; ({ id: doc.id, ...doc.data() }));
     const lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
 
     // Manually ensure publishedAt is a string
-    const allBulletins = rawBulletins.map(b => ({
+    const allBulletins = rawBulletins.map(b =&gt; ({
         ...b,
         publishedAt: safeToISOString(b.publishedAt)!,
     }));
@@ -594,15 +590,15 @@ export const getPaginatedBulletins = async (
 };
 
 
-export const getBulletin = (id: string): Promise<Bulletin | null> => {
+export const getBulletin = (id: string): Promise&lt;Bulletin | null&gt; =&gt; {
     return unstable_cache(
-        async (id: string) => getBulletinClient(id),
+        async (id: string) =&gt; getBulletinClient(id),
         ['bulletin', id],
         { revalidate: 3600, tags: ['bulletins', `bulletin:${id}`] }
     )(id);
 };
 
-export const getBulletinClient = async (id: string): Promise<Bulletin | null> => {
+export const getBulletinClient = async (id: string): Promise&lt;Bulletin | null&gt; =&gt; {
     const bulletinRef = doc(db, 'bulletins', id).withConverter(bulletinConverter);
     const snapshot = await getDoc(bulletinRef);
     if (snapshot.exists()) {
@@ -611,7 +607,7 @@ export const getBulletinClient = async (id: string): Promise<Bulletin | null> =>
     return null;
 };
 
-export const getAuthorByEmailServer = unstable_cache(async (email: string): Promise<Author | null> => {
+export const getAuthorByEmailServer = unstable_cache(async (email: string): Promise&lt;Author | null&gt; =&gt; {
     const usersCollection = collection(db, 'users');
     const q = query(usersCollection, where('email', '==', email), limit(1)).withConverter(authorConverter);
     const snapshot = await getDocs(q);
@@ -622,7 +618,7 @@ export const getAuthorByEmailServer = unstable_cache(async (email: string): Prom
     return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
 }, ['author_by_email'], { revalidate: 3600, tags: ['users'] });
 
-export const getAuthorByEmailClient = async (email: string): Promise<Author | null> => {
+export const getAuthorByEmailClient = async (email: string): Promise&lt;Author | null&gt; =&gt; {
     const usersCollection = collection(db, 'users');
     const q = query(usersCollection, where('email', '==', email), limit(1)).withConverter(authorConverter);
     const snapshot = await getDocs(q);
@@ -634,9 +630,9 @@ export const getAuthorByEmailClient = async (email: string): Promise<Author | nu
 };
 
 
-export const getAuthorById = (id: string): Promise<Author | null> => {
+export const getAuthorById = (id: string): Promise&lt;Author | null&gt; =&gt; {
   return unstable_cache(
-      async (id: string) => {
+      async (id: string) =&gt; {
         const userRef = doc(db, 'users', id).withConverter(authorConverter);
         const snapshot = await getDoc(userRef);
 
@@ -669,7 +665,7 @@ export const getAuthorById = (id: string): Promise<Author | null> => {
   )(id);
 };
 
-export async function isFollowing(followerId: string, authorId: string): Promise<boolean> {
+export async function isFollowing(followerId: string, authorId: string): Promise&lt;boolean&gt; {
   if (!followerId || !authorId) return false;
   if (followerId === authorId) return false;
   const followDocRef = doc(db, 'users', followerId, 'following', authorId);
@@ -677,20 +673,20 @@ export async function isFollowing(followerId: string, authorId: string): Promise
   return docSnap.exists();
 }
 
-export const getAuthorsServer = unstable_cache(async (): Promise<Author[]> => {
+export const getAuthorsServer = unstable_cache(async (): Promise&lt;Author[]&gt; =&gt; {
     const usersCollection = collection(db, 'users').withConverter(authorConverter);
     const snapshot = await getDocs(usersCollection);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return snapshot.docs.map(doc =&gt; ({ id: doc.id, ...doc.data() }));
 }, ['all_users'], { revalidate: 3600, tags: ['users'] });
 
-export const getAuthorsClient = async (): Promise<Author[]> => {
+export const getAuthorsClient = async (): Promise&lt;Author[]&gt; =&gt; {
     const usersCollection = collection(db, 'users').withConverter(authorConverter);
     const snapshot = await getDocs(usersCollection);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return snapshot.docs.map(doc =&gt; ({ id: doc.id, ...doc.data() }));
 }
 
-export const getPremiumUsers = async (): Promise<Author[]> => {
-     return unstable_cache(async () => {
+export const getPremiumUsers = async (): Promise&lt;Author[]&gt; =&gt; {
+     return unstable_cache(async () =&gt; {
         const usersCollection = collection(db, 'users').withConverter(authorConverter);
         const q = query(usersCollection, where('premium.active', '==', true));
         const snapshot = await getDocs(q);
@@ -698,14 +694,14 @@ export const getPremiumUsers = async (): Promise<Author[]> => {
         const now = new Date();
         const premiumUsers: Author[] = [];
 
-        snapshot.docs.forEach(doc => {
+        snapshot.docs.forEach(doc =&gt; {
             const user = { id: doc.id, ...doc.data() };
-            if (user.premium?.expires && new Date(user.premium.expires) > now) {
+            if (user.premium?.expires &amp;&amp; new Date(user.premium.expires) &gt; now) {
                 premiumUsers.push(user);
             }
         });
         
-        return premiumUsers.sort((a,b) => (b.points || 0) - (a.points || 0));
+        return premiumUsers.sort((a,b) =&gt; (b.points || 0) - (a.points || 0));
     }, ['premium_users'], { revalidate: 3600, tags: ['users', 'premium_users'] })();
 }
 
@@ -737,7 +733,7 @@ export type DailyChallenge = {
 };
 
 const diaryEntryConverter = {
-    fromFirestore: (snapshot: any, options: any): DiaryEntry => {
+    fromFirestore: (snapshot: any, options: any): DiaryEntry =&gt; {
         const data = snapshot.data(options);
         return {
             id: snapshot.id,
@@ -748,21 +744,21 @@ const diaryEntryConverter = {
             content: data.content,
         };
     },
-    toFirestore: (entry: Omit<DiaryEntry, 'id'>) => {
+    toFirestore: (entry: Omit&lt;DiaryEntry, 'id'&gt;) =&gt; {
         return entry;
     }
 };
 
-export const getDiaryEntries = unstable_cache(async (): Promise<DiaryEntry[]> => {
+export const getDiaryEntries = unstable_cache(async (): Promise&lt;DiaryEntry[]&gt; =&gt; {
     const diaryCollection = collection(db, 'diary').withConverter(diaryEntryConverter);
     const q = query(diaryCollection, orderBy('chapter', 'asc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return snapshot.docs.map(doc =&gt; ({ id: doc.id, ...doc.data() }));
 }, ['diary_entries'], { revalidate: 60, tags: ['diary'] });
 
-export const getDiaryEntry = (chapter: number): Promise<DiaryEntry | undefined> => {
+export const getDiaryEntry = (chapter: number): Promise&lt;DiaryEntry | undefined&gt; =&gt; {
     return unstable_cache(
-        async (chapter: number) => {
+        async (chapter: number) =&gt; {
             const diaryCollection = collection(db, 'diary');
             const q = query(diaryCollection, where('chapter', '==', chapter), limit(1)).withConverter(diaryEntryConverter);
             const snapshot = await getDocs(q);
@@ -778,7 +774,7 @@ export const getDiaryEntry = (chapter: number): Promise<DiaryEntry | undefined> 
     )(chapter);
 };
 
-export async function getNextDiaryChapterNumber(): Promise<number> {
+export async function getNextDiaryChapterNumber(): Promise&lt;number&gt; {
     const diaryCollection = collection(db, 'diary');
     const q = query(diaryCollection, orderBy('chapter', 'desc'), limit(1));
     const snapshot = await getDocs(q);
@@ -793,22 +789,22 @@ export async function getNextDiaryChapterNumber(): Promise<number> {
 export const getPosts = async (
   includeContent: boolean = true,
   currentUser?: Author | null
-): Promise<Post[]> => {
+): Promise&lt;Post[]&gt; =&gt; {
   const postsCollection = collection(db, 'posts');
   const q = query(postsCollection, orderBy('publishedAt', 'desc'));
   const snapshot = await getDocs(q.withConverter(postConverter));
-  const allPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const allPosts = snapshot.docs.map(doc =&gt; ({ id: doc.id, ...doc.data() }));
   return filterPremiumContent(allPosts, currentUser);
 };
 
-export const getDiaryEntriesClient = async (): Promise<DiaryEntry[]> => {
+export const getDiaryEntriesClient = async (): Promise&lt;DiaryEntry[]&gt; =&gt; {
     const diaryCollection = collection(db, 'diary').withConverter(diaryEntryConverter);
     const q = query(diaryCollection, orderBy('chapter', 'asc'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return snapshot.docs.map(doc =&gt; ({ id: doc.id, ...doc.data() }));
 };
 
-export const getDiaryEntryClient = async (id: string): Promise<DiaryEntry | null> => {
+export const getDiaryEntryClient = async (id: string): Promise&lt;DiaryEntry | null&gt; =&gt; {
     const entryRef = doc(db, 'diary', id).withConverter(diaryEntryConverter);
     const snapshot = await getDoc(entryRef);
     if (snapshot.exists()) {
@@ -816,4 +812,3 @@ export const getDiaryEntryClient = async (id: string): Promise<DiaryEntry | null
     }
     return null;
 };
-
